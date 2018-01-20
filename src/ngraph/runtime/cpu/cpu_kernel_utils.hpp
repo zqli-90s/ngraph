@@ -17,7 +17,6 @@
 #include "ngraph/codegen/code_writer.hpp"
 #include "ngraph/common.hpp"
 #include "ngraph/coordinate_transform.hpp"
-
 namespace ngraph
 {
     namespace runtime

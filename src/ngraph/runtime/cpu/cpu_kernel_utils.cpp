@@ -18,6 +18,7 @@
 #include "ngraph/coordinate_transform.hpp"
 #include "ngraph/util.hpp"
 
+#define OPENMP_COST_VAL_SHAPE_OP 100
 using namespace ngraph;
 using namespace ngraph::runtime::cpu::kernel;
 
@@ -130,7 +131,7 @@ std::string ngraph::runtime::cpu::kernel::start_index_loop(const std::string& in
 {
     std::stringstream ss;
 
-    if (omp)
+    if (omp && (end > OPENMP_COST_VAL_SHAPE_OP))
     {
         ss << "#pragma omp parallel for\n";
     }

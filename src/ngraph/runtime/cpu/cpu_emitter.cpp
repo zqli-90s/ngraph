@@ -46,6 +46,7 @@ using namespace std;
 using namespace ngraph;
 
 #define PREFER_EIGEN 0
+#define OPENMP_COST_VAL 10000
 
 static bool s_use_ref_kernels = (std::getenv("NGRAPH_CPU_USE_REF_KERNELS") != nullptr);
 
@@ -86,7 +87,9 @@ void runtime::cpu::CPU_Emitter::EmitAdd(codegen::CodeWriter& writer,
            << args[1].get_size() << ", 1>, Eigen::Unaligned> arg1(" << args[1].get_name() << ");\n";
     writer << "out = arg0 + arg1;\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name() << "[i] + "
@@ -189,7 +192,9 @@ void runtime::cpu::CPU_Emitter::EmitMultiply(codegen::CodeWriter& writer,
            << "   " << emit_array1d(args[0]) << " *\n"
            << "   " << emit_array1d(args[1]) << ";\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name() << "[i] * "
@@ -243,7 +248,9 @@ void runtime::cpu::CPU_Emitter::EmitAbs(codegen::CodeWriter& writer,
     writer << emit_array1d(out[0]) << " =\n";
     writer << "Eigen::abs(" << emit_array1d(args[0]) << ");\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = std::abs(" << args[0].get_name() << "[i]);\n";
@@ -387,7 +394,9 @@ void runtime::cpu::CPU_Emitter::EmitDivide(codegen::CodeWriter& writer,
            << "    " << emit_array1d(args[0]) << " /\n"
            << "    " << emit_array1d(args[1]) << ";\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name() << "[i] / "
@@ -410,7 +419,9 @@ void runtime::cpu::CPU_Emitter::EmitEqual(codegen::CodeWriter& writer,
            << "    (" << emit_array1d(args[0]) << " ==\n"
            << "    " << emit_array1d(args[1]) << ").template cast<char>();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name()
@@ -433,7 +444,9 @@ void runtime::cpu::CPU_Emitter::EmitGreater(codegen::CodeWriter& writer,
            << "    (" << emit_array1d(args[0]) << " >\n"
            << "    " << emit_array1d(args[1]) << ").template cast<char>();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name() << "[i] > "
@@ -456,7 +469,9 @@ void runtime::cpu::CPU_Emitter::EmitGreaterEq(codegen::CodeWriter& writer,
            << "    (" << emit_array1d(args[0]) << " >=\n"
            << "    " << emit_array1d(args[1]) << ").template cast<char>();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name()
@@ -479,7 +494,9 @@ void runtime::cpu::CPU_Emitter::EmitLess(codegen::CodeWriter& writer,
            << "    (" << emit_array1d(args[0]) << " <\n"
            << "    " << emit_array1d(args[1]) << ").template cast<char>();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name() << "[i] < "
@@ -502,7 +519,9 @@ void runtime::cpu::CPU_Emitter::EmitLessEq(codegen::CodeWriter& writer,
            << "    (" << emit_array1d(args[0]) << " <=\n"
            << "    " << emit_array1d(args[1]) << ").template cast<char>();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name()
@@ -524,7 +543,9 @@ void runtime::cpu::CPU_Emitter::EmitLog(codegen::CodeWriter& writer,
     writer << emit_array1d(out[0]) << " =\n"
            << "    Eigen::log(" << emit_array1d(args[0]) << ");\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = log(" << args[0].get_name() << "[i]);\n";
@@ -546,7 +567,9 @@ void runtime::cpu::CPU_Emitter::EmitMaximum(codegen::CodeWriter& writer,
            << "        " << emit_array1d(args[0]) << ".max(\n"
            << "        " << emit_array1d(args[1]) << ");\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name() << "[i] > "
@@ -570,7 +593,9 @@ void runtime::cpu::CPU_Emitter::EmitMinimum(codegen::CodeWriter& writer,
            << "    " << emit_array1d(args[0]) << ".min(\n"
            << "    " << emit_array1d(args[1]) << ");\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name() << "[i] < "
@@ -593,7 +618,9 @@ void runtime::cpu::CPU_Emitter::EmitNegative(codegen::CodeWriter& writer,
     writer << emit_array1d(out[0]) << " =\n"
            << "    -" << emit_array1d(args[0]) << ";\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = -" << args[0].get_name() << "[i];\n";
@@ -615,7 +642,9 @@ void runtime::cpu::CPU_Emitter::EmitNotEqual(codegen::CodeWriter& writer,
            << "    (" << emit_array1d(args[0]) << " !=\n"
            << "    " << emit_array1d(args[1]) << ").template cast<char>();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name()
@@ -639,7 +668,9 @@ void runtime::cpu::CPU_Emitter::EmitSelect(codegen::CodeWriter& writer,
            << "    .select(" << emit_array1d(args[1]) << ",\n"
            << "       " << emit_array1d(args[2]) << ");\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name() << "[i] ? "
@@ -662,7 +693,9 @@ void runtime::cpu::CPU_Emitter::EmitSubtract(codegen::CodeWriter& writer,
            << "    " << emit_array1d(args[0]) << " -\n"
            << "    " << emit_array1d(args[1]) << ";\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = " << args[0].get_name() << "[i] - "
@@ -775,7 +808,9 @@ void runtime::cpu::CPU_Emitter::EmitConvert(codegen::CodeWriter& writer,
            << "    " << emit_array1d(args[0]) << "\n"
            << "    .template cast<" << result_element_type.c_type_string() << ">();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = (" << result_element_type.c_type_string()
@@ -1142,7 +1177,9 @@ void runtime::cpu::CPU_Emitter::EmitSign(codegen::CodeWriter& writer,
     writer << emit_array1d(out[0]) << " =\n"
            << "    " << emit_array1d(args[0]) << ".sign();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = (0 < " << args[0].get_name() << "[i]) - ("
@@ -1321,7 +1358,9 @@ void runtime::cpu::CPU_Emitter::EmitExp(codegen::CodeWriter& writer,
     writer << emit_array1d(out[0]) << " =\n"
            << "    " << emit_array1d(args[0]) << ".exp();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = exp(" << args[0].get_name() << "[i]);\n";
@@ -1469,7 +1508,9 @@ void runtime::cpu::CPU_Emitter::EmitAsin(codegen::CodeWriter& writer,
     writer << emit_array1d(out[0]) << " =\n"
            << "    " << emit_array1d(args[0]) << ".asin();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = asin(" << args[0].get_name() << "[i]);\n";
@@ -1511,7 +1552,9 @@ void runtime::cpu::CPU_Emitter::EmitAtan(codegen::CodeWriter& writer,
     writer << emit_array1d(out[0]) << " =\n"
            << "    " << emit_array1d(args[0]) << ".atan();\n";
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = atan(" << args[0].get_name() << "[i]);\n";
@@ -1535,7 +1578,9 @@ void runtime::cpu::CPU_Emitter::EmitPower(codegen::CodeWriter& writer,
     writer << emit_array1d(args[1]) << ");\n";
     writer.indent--;
 #else
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
     writer << "for (size_t i = 0; i < " << out[0].get_size() << "; i++)\n";
     writer << "{\n";
     writer << "    " << out[0].get_name() << "[i] = pow(" << args[0].get_name() << "[i], "
@@ -1761,7 +1806,9 @@ void runtime::cpu::CPU_Emitter::EmitFloor(codegen::CodeWriter& writer,
     writer.indent++;
     size_t element_count = out[0].get_size();
 #if PREFER_EIGEN == 0
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
 #endif
     writer << "for (size_t i = 0; i < " << element_count << "; i++)\n";
     writer << "{\n";
@@ -1780,7 +1827,9 @@ void runtime::cpu::CPU_Emitter::EmitSqrt(codegen::CodeWriter& writer,
     writer.indent++;
     size_t element_count = out[0].get_size();
 #if PREFER_EIGEN == 0
-    writer << "#pragma omp parallel for\n";
+    //TODO: Temp fix, since sequential code performing better for smaller shapes
+    if (out[0].get_size() > OPENMP_COST_VAL)
+        writer << "#pragma omp parallel for\n";
 #endif
     writer << "for (size_t i = 0; i < " << element_count << "; i++)\n";
     writer << "{\n";
