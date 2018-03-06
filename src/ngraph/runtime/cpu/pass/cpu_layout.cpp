@@ -30,6 +30,7 @@
 #include "ngraph/ops/avg_pool.hpp"
 #include "ngraph/ops/batch_norm.hpp"
 #include "ngraph/ops/convolution.hpp"
+#include "ngraph/ops/get_output_element.hpp"
 #include "ngraph/ops/op.hpp"
 #include "ngraph/ops/relu.hpp"
 #include "ngraph/runtime/cpu/cpu_layout_descriptor.hpp"
@@ -730,7 +731,7 @@ namespace ngraph
 #define TI(x) type_index(typeid(x))
 
 static const runtime::cpu::pass::LayoutOpMap s_dispatcher{
-    {TI(ngraph::op::Convolution), &runtime::cpu::pass::CPULayout::layout<ngraph::op::BatchNorm>},
+    {TI(ngraph::op::BatchNorm), &runtime::cpu::pass::CPULayout::layout<ngraph::op::BatchNorm>},
     {TI(ngraph::op::Convolution), &runtime::cpu::pass::CPULayout::layout<ngraph::op::Convolution>},
     {TI(ngraph::op::ConvolutionBackpropData),
      &runtime::cpu::pass::CPULayout::layout<ngraph::op::ConvolutionBackpropData>},
@@ -754,7 +755,7 @@ bool runtime::cpu::pass::CPULayout::run_on_call_graph(const std::list<std::share
         {
             handler->second(m_external_function, node);
         }
-        else
+        else if (TI(n) != TI(ngraph::op::GetOutputElement))
         {
             set_default_layouts(m_external_function, node);
         }

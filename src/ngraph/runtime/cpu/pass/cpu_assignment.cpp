@@ -27,6 +27,7 @@
 #include "ngraph/descriptor/output.hpp"
 #include "ngraph/ops/add.hpp"
 #include "ngraph/ops/avg_pool.hpp"
+#include "ngraph/ops/batch_norm.hpp"
 #include "ngraph/ops/convolution.hpp"
 #include "ngraph/ops/relu.hpp"
 #include "ngraph/runtime/cpu/cpu_op_annotations.hpp"
@@ -67,6 +68,28 @@ namespace ngraph
                             std::make_shared<ngraph::runtime::cpu::CPUOpAnnotations>();
                         op_annotations->set_mkldnn_op(true);
                         add->set_op_annotations(op_annotations);
+                    }
+                }
+
+                template <>
+                void CPUAssignment::ASSIGN_DECL(ngraph::op::BatchNorm)
+                {
+                    auto bn = static_cast<op::BatchNorm*>(node);
+                    auto arg0_shape = node->get_input_shape(0);
+                    auto arg1_shape = node->get_input_shape(1);
+                    auto arg2_shape = node->get_input_shape(2);
+                    auto arg0_rank = arg0_shape.size();
+                    auto arg1_rank = arg1_shape.size();
+                    auto arg2_rank = arg2_shape.size();
+
+                    if (node->get_input_element_type(0) == element::f32 &&
+                        node->get_input_element_type(1) == element::f32 && arg0_rank == 1 &&
+                        arg1_rank == 1 && arg2_rank == 4)
+                    {
+                        auto op_annotations =
+                            std::make_shared<ngraph::runtime::cpu::CPUOpAnnotations>();
+                        op_annotations->set_mkldnn_op(true);
+                        bn->set_op_annotations(op_annotations);
                     }
                 }
 
@@ -234,6 +257,7 @@ namespace ngraph
 
 static const runtime::cpu::pass::AssignOpMap s_dispatcher{
     {TI(ngraph::op::Add), &runtime::cpu::pass::CPUAssignment::assign<ngraph::op::Add>},
+    {TI(ngraph::op::BatchNorm), &runtime::cpu::pass::CPUAssignment::assign<ngraph::op::BatchNorm>},
     {TI(ngraph::op::Convolution),
      &runtime::cpu::pass::CPUAssignment::assign<ngraph::op::Convolution>},
     {TI(ngraph::op::ConvolutionBackpropData),
