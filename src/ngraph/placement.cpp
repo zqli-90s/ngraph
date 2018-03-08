@@ -21,8 +21,6 @@
 #include "ngraph/util.hpp"
 
 #include <deque>
-
-// TODO: debug use
 #include <sstream>
 
 using namespace std;
@@ -160,11 +158,6 @@ shared_ptr<Cluster> cluster_util::merge_clusters(const shared_ptr<Cluster>& src_
                            placement_to_string(src_cluster->get_placement()) + " and " +
                            placement_to_string(dst_cluster->get_placement()) + ".");
     }
-    // Edge src_cluster->dst_cluster must exist
-    // if (src_cluster->get_children().count(dst_cluster) == 0)
-    // {
-    //     throw ngraph_error("Edge src_cluster->dst_cluster does not exist, cannot be merged.");
-    // }
 
     // The new cluster has all nodes from src_cluster and dst_cluster
     auto new_cluster = make_shared<Cluster>();
