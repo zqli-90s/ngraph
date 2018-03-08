@@ -94,8 +94,8 @@ namespace ngraph
             split_function_to_clusters(const std::shared_ptr<Function>& f);
         std::shared_ptr<Cluster> merge_clusters(const std::shared_ptr<Cluster>& src_cluster,
                                                 const std::shared_ptr<Cluster>& dst_cluster);
-        bool is_reachable_from_children_ptrs(std::shared_ptr<Cluster> src_cluster,
-                                             std::shared_ptr<Cluster> dst_cluster);
+        bool is_reachable_from_children_ptrs(const std::shared_ptr<Cluster>& src_cluster,
+                                             const std::shared_ptr<Cluster>& dst_cluster);
         bool is_edge_contractable(const std::shared_ptr<Cluster>& src_cluster,
                                   const std::shared_ptr<Cluster>& dst_cluster);
         std::vector<std::shared_ptr<Cluster>>

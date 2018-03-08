@@ -208,8 +208,8 @@ shared_ptr<Cluster> cluster_util::merge_clusters(const shared_ptr<Cluster>& src_
     return new_cluster;
 }
 
-bool cluster_util::is_reachable_from_children_ptrs(shared_ptr<Cluster> src_cluster,
-                                                   shared_ptr<Cluster> dst_cluster)
+bool cluster_util::is_reachable_from_children_ptrs(const shared_ptr<Cluster>& src_cluster,
+                                                   const shared_ptr<Cluster>& dst_cluster)
 {
     unordered_set<shared_ptr<Cluster>> visited;
     deque<shared_ptr<Cluster>> stack;
