@@ -549,14 +549,14 @@ TEST(graph_partition, hybrid_no_split)
     shared_ptr<op::Parameter> A = make_shared<op::Parameter>(element::f32, shape);
     shared_ptr<op::Parameter> B = make_shared<op::Parameter>(element::f32, shape);
     shared_ptr<Node> C = A + B;
-    shared_ptr<Function> sub_function = make_shared<Function>(C, op::ParameterVector{A, B});
+    shared_ptr<Function> f = make_shared<Function>(C, op::ParameterVector{A, B});
 
     pass::Manager pass_manager;
     pass_manager.register_pass<pass::AssignPlacement>(int_with_cpu_mul_policy);
-    pass_manager.run_passes(sub_function);
+    pass_manager.run_passes(f);
 
     auto backend = make_shared<HybridBackend>();
-    auto cf = backend->compile(sub_function);
+    auto cf = backend->compile(f);
 
     shared_ptr<runtime::TensorView> a = backend->make_primary_tensor_view(element::f32, shape);
     shared_ptr<runtime::TensorView> b = backend->make_primary_tensor_view(element::f32, shape);
