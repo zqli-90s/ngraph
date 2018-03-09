@@ -548,7 +548,7 @@ void cluster_util::node_consistency_check_pass(const vector<shared_ptr<Cluster>>
 
 vector<shared_ptr<Cluster>> cluster_util::split_function_to_clusters(const shared_ptr<Function>& f)
 {
-    // Init node cluster, very cluster contains one node
+    // Init node cluster, every cluster contains one node
     vector<shared_ptr<Cluster>> clusters = cluster_util::build_singleton_clusters(f);
     node_consistency_check_pass(clusters, f);
 
