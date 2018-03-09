@@ -300,12 +300,9 @@ vector<shared_ptr<Cluster>> cluster_util::build_singleton_clusters(const shared_
     unordered_map<shared_ptr<Node>, shared_ptr<Cluster>> map_node_to_cluster;
     for (shared_ptr<Node> node : f->get_ordered_ops())
     {
-        if (map_node_to_cluster.find(node) == map_node_to_cluster.end())
-        {
-            auto cluster = make_shared<Cluster>(unordered_set<shared_ptr<Node>>({node}));
-            map_node_to_cluster[node] = cluster;
-            clusters.push_back(cluster);
-        }
+        auto cluster = make_shared<Cluster>(unordered_set<shared_ptr<Node>>({node}));
+        map_node_to_cluster[node] = cluster;
+        clusters.push_back(cluster);
     }
     for (shared_ptr<Node> node : f->get_ordered_ops())
     {
@@ -322,7 +319,7 @@ vector<shared_ptr<Cluster>> cluster_util::build_singleton_clusters(const shared_
 
 void cluster_util::merge_adjacent_clusters_pass(vector<shared_ptr<Cluster>>& clusters)
 {
-    // Contract cluster edges if the constraction does not from cycle(s)
+    // Contract cluster edges if the constraction does not form cycle(s)
     unordered_set<shared_ptr<Cluster>> unvisited_clusters(clusters.begin(), clusters.end());
     unordered_set<shared_ptr<Cluster>> candidate_clusters = unvisited_clusters;
     while (!unvisited_clusters.empty())
