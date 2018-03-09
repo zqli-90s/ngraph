@@ -55,7 +55,6 @@ static shared_ptr<runtime::Backend> get_cached_backend(const string& name)
     return cached_backends.at(name);
 }
 
-// HybridCallFrame uses INT TensorView by default, do conversions to CPU TensorView as needed
 class HybridCallFrame
 {
 public:
@@ -76,7 +75,7 @@ public:
     void call(const vector<shared_ptr<runtime::TensorView>>& inputs,
               const vector<shared_ptr<runtime::TensorView>>& outputs)
     {
-        // Each input or output of a function has a TensorView from a corresponding backend
+        // Every parameter and result node in every sub_function maps to one TensorView
         unordered_map<shared_ptr<Node>, shared_ptr<runtime::TensorView>> map_node_to_tensor_view;
 
         // Main function's parameters and results
@@ -158,11 +157,9 @@ protected:
 // HybridCallFrame servers 2 purposes:
 // 1. HybridBackend's main use case is to test device placement and graph partition routines.
 // 2. It also shows how glued-hybrid runtime can be built by combining different runtimes.
-// 3. By default, HybridBackend operates on INTERPRETER (for example, the primary tensor view is
-//    INTERPRETER tensor view). It falls back to CPU when requested by placement.
 //
-// TODO: For simplicity, currently this test HybridBackend does not handle input-output,
-//       output-output and constant-output aliasing.
+// By default, HybridBackend operates on INTERPRETER (for example, the primary tensor view is
+// INTERPRETER tensor view). It falls back to CPU when requested by placement.
 class HybridBackend
 {
 public:
@@ -204,7 +201,7 @@ public:
     }
 };
 
-// Perform all operations on interpreter and fallback Multiply to cpu
+// Perform all operations on INTERPRETER and fallback Multiply to CPU
 static function<Placement(shared_ptr<Node>)> int_with_cpu_mul_policy = [](shared_ptr<Node> node) {
     Placement placement;
     string node_op = node->description();
@@ -462,13 +459,13 @@ TEST(graph_partition, hybrid_abcd)
 
 TEST(graph_partition, hybrid_back_and_forth)
 {
-    //   A   B
-    //    \ / \
-    //    D*   |
+    // A   B
+    //  \ / \
+    //  D*   |
+    //    \ /
+    //    E+   C
     //      \ /
-    //      E+   C
-    //        \ /
-    //        F*
+    //      F*
     Shape shape = Shape{2, 2};
     shared_ptr<op::Parameter> A = make_shared<op::Parameter>(element::f32, shape);
     shared_ptr<op::Parameter> B = make_shared<op::Parameter>(element::f32, shape);
@@ -501,13 +498,13 @@ TEST(graph_partition, hybrid_back_and_forth)
 
 TEST(graph_partition, hybrid_multi_middle_nodes)
 {
-    //   A   B   C
-    //    \ / \ / \
-    //    D+  E+  |
-    //      \ / \ /
-    //      F*  G*
-    //        \ /
-    //        H+
+    // A   B   C
+    //  \ / \ / \
+    //  D+  E+  |
+    //    \ / \ /
+    //    F*  G*
+    //      \ /
+    //      H+
     Shape shape = Shape{2, 2};
     shared_ptr<op::Parameter> A = make_shared<op::Parameter>(element::f32, shape);
     shared_ptr<op::Parameter> B = make_shared<op::Parameter>(element::f32, shape);
@@ -542,9 +539,9 @@ TEST(graph_partition, hybrid_multi_middle_nodes)
 
 TEST(graph_partition, hybrid_no_split)
 {
-    //     A   B
-    //      \ /
-    //       +
+    // A   B
+    //  \ /
+    //   +
     Shape shape = Shape{2, 2};
     shared_ptr<op::Parameter> A = make_shared<op::Parameter>(element::f32, shape);
     shared_ptr<op::Parameter> B = make_shared<op::Parameter>(element::f32, shape);
