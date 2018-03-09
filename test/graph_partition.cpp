@@ -413,18 +413,16 @@ TEST(graph_partition, hybrid_abc)
     copy_data(b, test::NDArray<float, 2>({{5, 6}, {7, 8}}).get_vector());
     copy_data(c, test::NDArray<float, 2>({{9, 10}, {11, 12}}).get_vector());
 
-    // cf->call({a, b, c}, {r});
-    // EXPECT_EQ(read_vector<float>(r),
-    //           (test::NDArray<float, 2>({{54, 80}, {110, 144}})).get_vector());
+    cf->call({a, b, c}, {r});
+    EXPECT_EQ(read_vector<float>(r),
+              (test::NDArray<float, 2>({{54, 80}, {110, 144}})).get_vector());
 }
 
 TEST(graph_partition, hybrid_abcd)
 {
     //   A   B
     //    \ /
-    //    E*
-    //    ---
-    // C  [P]  D
+    // C  E*   D
     //  \ / \ /
     //  F+  G+
     //    \ /
@@ -503,13 +501,13 @@ TEST(graph_partition, hybrid_back_and_forth)
 
 TEST(graph_partition, hybrid_multi_middle_nodes)
 {
-    //   A   B   C        A   B   C           C
-    //    \ / \ / \        \ / \ /             \
-    //    D+  E+  |  =>    D+  E+     PD  PE   |
-    //      \ / \ /                     \ / \ /
-    //      F*  G*                       F*  G*     PF   PG
-    //        \ /                                     \ /
-    //        H+                                       H+
+    //   A   B   C
+    //    \ / \ / \
+    //    D+  E+  |
+    //      \ / \ /
+    //      F*  G*
+    //        \ /
+    //        H+
     Shape shape = Shape{2, 2};
     shared_ptr<op::Parameter> A = make_shared<op::Parameter>(element::f32, shape);
     shared_ptr<op::Parameter> B = make_shared<op::Parameter>(element::f32, shape);

@@ -247,10 +247,12 @@ bool cluster_util::is_edge_contractable(const shared_ptr<Cluster>& src_cluster,
     }
     else
     {
-        // Contracting edge X->Y in a DAG forms a cycles iff after the removal of edge X->Y, Y is
+        // Contracting edge X->Y in a DAG forms a cycle iff after the removal of edge X->Y, Y is
         // still reachable from X.
         //
-        // "=>":
+        // "=>": Proof that if "Contracting edge X->Y in a DAG forms a cycle", then "after the
+        //       removal of edge X->Y, Y is still reachable from X".
+        //
         // Let's call the original unaltered graph G. To contract edge X->Y, we
         // (1) Remove all Y's incoming and outgoing edges, including X->Y.
         // (2) Nodes set Is = { I | I != X, I != Y, I->Y in G, I->X not in G }.
@@ -276,7 +278,9 @@ bool cluster_util::is_edge_contractable(const shared_ptr<Cluster>& src_cluster,
         //         O->...->X is in G. Therefore a cycle Y->O->...->X->Y is in G which contradicts
         //         with G is a DAG.
         //
-        // "<=":
+        // "<=": Proof that if "after the removal of edge X->Y, Y is still reachable from X", then
+        //       "contracting edge X->Y in a DAG forms a cycle".
+        //
         // Assuming after the removal of edge X->Y, Y is still reachable from X from path
         // X->...->I->Y, then after contracting X->Y, a cycle X->...->I->X will be formed.
         //
