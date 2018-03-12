@@ -322,7 +322,7 @@ pair<shared_ptr<op::Result>, shared_ptr<op::Parameter>>
 {
     if (src_node->get_output_size() != 1)
     {
-        throw ngraph_error("TODO: multiple output per op not supported in graph partition yet.");
+        throw ngraph_error("Multiple output per op not supported in graph partition yet.");
     }
 
     // Make parameter node
@@ -340,8 +340,8 @@ pair<shared_ptr<op::Result>, shared_ptr<op::Parameter>>
     const_cast<multiset<Node*>&>(src_node->users()).erase(dst_node.get());  // Remove [2]
     const_cast<multiset<Node*>&>(par_node->users()).insert(dst_node.get()); // Add [10]
     auto& dst_args = const_cast<NodeVector&>(dst_node->get_arguments_FOR_GRAPH_REWRITE_ONLY());
-    auto it = find(begin(dst_args), end(dst_args), src_node);
-    if (it == end(dst_args))
+    auto it = find(dst_args.begin(), dst_args.end(), src_node);
+    if (it == dst_args.end())
     {
         throw ngraph_error("src_node is not an input to dst_node");
     }

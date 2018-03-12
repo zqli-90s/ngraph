@@ -28,12 +28,6 @@ using namespace ngraph;
 
 std::string ngraph::placement_to_string(Placement placement)
 {
-    // Provides safety and avoid clang's warning
-    if (placement != Placement::DEFAULT && placement != Placement::INTERPRETER &&
-        placement != Placement::CPU && placement != Placement::GPU && placement != Placement::ARGON)
-    {
-        throw ngraph_error("Placement is uninitialized.");
-    }
     switch (placement)
     {
     case Placement::DEFAULT: return "DEFAULT";
@@ -52,7 +46,7 @@ Cluster::Cluster()
 }
 
 Cluster::Cluster(const unordered_set<shared_ptr<Node>>& nodes)
-    : m_instance_id(m_next_instance_id.fetch_add(1))
+    : Cluster()
 {
     // Check placement consistency by calling insert_node()
     for (auto node : nodes)
