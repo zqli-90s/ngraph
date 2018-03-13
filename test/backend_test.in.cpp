@@ -2336,16 +2336,16 @@ TEST(${BACKEND_NAME}, reduce_3d_to_vector)
 
     // Create some tensors for input/output
     auto a = backend->make_primary_tensor_view(element::f32, shape_a);
-    copy_data(a, vector<float>{1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
-                               15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27});
+    copy_data(a, vector<float>{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4,
+                               1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7});
     auto b = backend->make_primary_tensor_view(element::f32, shape_b);
     copy_data(b, vector<float>{1});
     auto result = backend->make_primary_tensor_view(element::f32, shape_rt);
 
     cf->call({a, b}, {result});
-    EXPECT_EQ((vector<float>{1.0f * 10.0f * 19.0f * 4.0f * 13.0f * 22.0f * 7.0f * 16.0f * 25.0f,
-                             2.0f * 11.0f * 20.0f * 5.0f * 14.0f * 23.0f * 8.0f * 17.0f * 26.0f,
-                             3.0f * 12.0f * 21.0f * 6.0f * 15.0f * 24.0f * 9.0f * 18.0f * 27.0f}),
+    EXPECT_EQ((vector<float>{0.1f * 1.0f * 1.9f * 0.4f * 1.3f * 2.2f * 0.7f * 1.6f * 2.5f,
+                             0.2f * 1.1f * 2.0f * 0.5f * 1.4f * 2.3f * 0.8f * 1.7f * 2.6f,
+                             0.3f * 1.2f * 2.1f * 0.6f * 1.5f * 2.4f * 0.9f * 1.8f * 2.7f}),
               read_vector<float>(result));
 }
 
