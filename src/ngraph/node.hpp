@@ -50,6 +50,10 @@ namespace ngraph
         insert_result_parameter_split(const std::shared_ptr<Node>& src_node,
                                       const std::shared_ptr<Node>& dst_node);
 
+    void insert_new_node_between(const std::shared_ptr<Node>& src_node,
+                                 const std::shared_ptr<Node>& dst_node,
+                                 const std::shared_ptr<Node>& new_node);
+
     /// Nodes are the backbone of the graph of Value dataflow. Every node has
     /// zero or more nodes as arguments and one value, which is either a tensor
     /// view or a (possibly empty) tuple of values.
@@ -63,6 +67,9 @@ namespace ngraph
         friend std::pair<std::shared_ptr<op::Result>, std::shared_ptr<op::Parameter>>
             insert_result_parameter_split(const std::shared_ptr<Node>& src_node,
                                           const std::shared_ptr<Node>& dst_node);
+        friend void insert_new_node_between(const std::shared_ptr<Node>& src_node,
+                                            const std::shared_ptr<Node>& dst_node,
+                                            const std::shared_ptr<Node>& new_node);
 
     protected:
         Node(const std::string& node_type, const NodeVector& arguments);

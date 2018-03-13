@@ -355,6 +355,69 @@ pair<shared_ptr<op::Result>, shared_ptr<op::Parameter>>
     return make_pair(res_node, par_node);
 }
 
+// Insert unary node between two nodes like S->D => S->N->D
+// Before:                        |  After:
+// +-----+---+       +---+-----+  |  +-----+---+       +---+-----+---+       +---+-----+
+// |     |   |       |   |     |  |  |     |   |       |   |     |   |       |   |     |
+// |     | o +--[0]--> i |     |  |  |     | o +--[4]--> i |     | o +--[8]--> i |     |
+// |     |   <--[1]--+   |     |  |  |     |   <--[5]--+   |     |   <--[9]--+   |     |
+// | src +---+       +---+ dst |  |  | src +---+       +---+ new +---+       +---+ dst |
+// |     |               |     |  |  |     |               |     |               |     |
+// |     +------[2]------>     |  |  |     +------[6]------>     +------[10]----->     |
+// |     <------[3]------+     |  |  |     <------[7]------+     <------[11]-----+     |
+// +-----+               +-----+  |  +-----+               +-----+               +-----+
+//                                |
+// +-----+---+       +---+-----+  |
+// |     |   |       |   |     |  |
+// |     | o +--[4]--> i |     |  |
+// |     |   <--[5]--+   |     |  |
+// | src +---+       +---+ new |  |
+// |     |               |     |  |
+// |     +------[6]------>     |  |
+// |     <------[7]------+     |  |
+// +-----+               +-----+  |
+//
+// This cannot be achieved by ngraph::replace_node().
+// With replace_node(), we could do:
+//     S           S
+//    / \          |
+//   /   \   =>    N
+//  /     \       / \
+// D0     D1    D0   D1
+//
+// But we want:
+//     S            S
+//    / \          / \
+//   /   \   =>   N0  N1
+//  /     \      /     \
+// D0     D1    D0     D1
+//
+// Typically new_node is connected to src_node already. The reason we don't create `new_node`
+// inside the function and return it (similar to ngraph::insert_result_parameter_split) is that
+// we'll have to templatize its function to call new_node's constructor.
+void ngraph::insert_new_node_between(const shared_ptr<Node>& src_node,
+                                     const shared_ptr<Node>& dst_node,
+                                     const shared_ptr<Node>& new_node)
+{
+    // Fix input / output
+    descriptor::Input* dst_input = dst_node->get_input_from(src_node);
+    descriptor::Output* src_output = src_node->get_output_to(dst_node);
+    src_output->remove_input(dst_input);    // Remove [0]
+    dst_input->replace_output(new_node, 0); // Remove [0] (again), add [8], remove [1], add [9]
+
+    // Fix user / argument
+    const_cast<multiset<Node*>&>(src_node->users()).erase(dst_node.get());  // Remove [2]
+    const_cast<multiset<Node*>&>(new_node->users()).insert(dst_node.get()); // Add [10]
+    auto& dst_args = const_cast<NodeVector&>(dst_node->get_arguments_FOR_GRAPH_REWRITE_ONLY());
+    auto it = find(dst_args.begin(), dst_args.end(), src_node);
+    if (it == dst_args.end())
+    {
+        throw ngraph_error("src_node is not an input to dst_node");
+    }
+    it = dst_args.erase(it);       // Remove [3]
+    dst_args.insert(it, new_node); // Add [11]
+}
+
 // Assert that nodes in the function is colocated and return that placement
 Placement ngraph::get_colocated_function_placement(shared_ptr<Function> func)
 {
