@@ -327,11 +327,11 @@ TEST(${BACKEND_NAME}, abs)
 
     // Create some tensors for input/output
     auto a = backend->make_primary_tensor_view(element::f32, shape);
-    copy_data(a, vector<float>{1, -2, 0, -4.75});
+    copy_data(a, vector<float>{1, -2, 0, -4.75f});
     auto result = backend->make_primary_tensor_view(element::f32, shape);
 
     cf->call({a}, {result});
-    EXPECT_EQ((vector<float>{1, 2, 0, 4.75}), read_vector<float>(result));
+    EXPECT_EQ((vector<float>{1, 2, 0, 4.75f}), read_vector<float>(result));
 }
 
 TEST(${BACKEND_NAME}, ceiling)
@@ -3100,7 +3100,7 @@ TEST(${BACKEND_NAME}, slice_3d_strided_different_strides)
 TEST(${BACKEND_NAME}, scalar_constant_float32)
 {
     SKIP_TEST_FOR("GPU", "${BACKEND_NAME}");
-    auto r = op::Constant::create(element::f32, Shape{}, {4.75f});
+    auto r = op::Constant::create(element::f32, Shape{}, {4.75});
     auto f = make_shared<Function>(r, op::ParameterVector{});
 
     auto manager = runtime::Manager::get("${BACKEND_NAME}");
@@ -8504,6 +8504,8 @@ TEST(${BACKEND_NAME}, softmax_axis)
 TEST(${BACKEND_NAME}, softmax_underflow)
 {
     SKIP_TEST_FOR("GPU", "${BACKEND_NAME}");
+    SKIP_TEST_FOR("ARGON", "${BACKEND_NAME}");
+
     Shape shape{2, 3};
     auto A = make_shared<op::Parameter>(element::f32, shape);
     auto f = make_shared<Function>(make_shared<op::Softmax>(A, AxisSet{0}), op::ParameterVector{A});
