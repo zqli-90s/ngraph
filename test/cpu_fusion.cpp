@@ -48,9 +48,11 @@
 #include "ngraph/util.hpp"
 #include "nlohmann/json.hpp"
 #include "util/all_close.hpp"
+#include "util/autodiff/backprop_derivative.hpp"
 #include "util/autodiff/backprop_function.hpp"
 #include "util/autodiff/numeric_compare.hpp"
 #include "util/matcher.hpp"
+#include "util/random.hpp"
 #include "util/test_tools.hpp"
 
 using namespace ngraph;
@@ -959,4 +961,41 @@ TEST(cpu_fusion, sigmoid_bprop_n1c1h4)
 
     vector<float> expected{0.196612f, 0.0176627f, 0.196612f, 0.0176627f};
     EXPECT_TRUE(test::all_close(expected, read_vector<float>(result)));
+}
+
+TEST(cpu_fusion, bn_fprop_cache)
+{
+    test::Uniform<float> rng(-1.0f, 1.0f);
+    auto input_shape = Shape{2, 2, 2, 1};
+    auto mean_shape = Shape{2};
+    auto var_shape = Shape{2};
+    auto gamma_shape = Shape{2};
+    auto beta_shape = Shape{2};
+    auto shape_r = Shape{2, 2, 2, 1};
+    auto make_graph = [input_shape, gamma_shape, beta_shape]() {
+
+        auto input = make_shared<op::Parameter>(element::f32, input_shape);
+        auto gamma = make_shared<op::Parameter>(element::f32, gamma_shape);
+        auto beta = make_shared<op::Parameter>(element::f32, beta_shape);
+        double eps = 0.001;
+
+        auto bn = make_shared<op::BatchNorm>(eps, gamma, beta, input);
+
+        auto output_rt = std::make_shared<op::GetOutputElement>(bn, 0);
+        auto mean_rt = std::make_shared<op::GetOutputElement>(bn, 1);
+        auto variance_rt = std::make_shared<op::GetOutputElement>(bn, 2);
+
+        return make_shared<Function>(NodeVector{output_rt, mean_rt, variance_rt},
+                                     op::ParameterVector{input, gamma, beta});
+    };
+
+    auto manager = runtime::Manager::get("CPU");
+    //auto external = manager->compile(f);
+    auto backend = manager->allocate_backend();
+    //auto cf = backend->make_call_frame(external);
+    auto x0 = rng.initialize(backend->make_primary_tensor_view<float>(input_shape));
+    auto x1 = rng.initialize(backend->make_primary_tensor_view<float>(gamma_shape));
+    auto x2 = rng.initialize(backend->make_primary_tensor_view<float>(beta_shape));
+
+    autodiff_numeric_compare<float>(manager, backend, make_graph, {x0, x1, x2}, .01f, .01f);
 }

@@ -60,9 +60,13 @@ namespace ngraph
             auto external = manager->compile(f);
             auto cf = backend->make_call_frame(external);
 
+            //temp fix
+            //Shape mean_shape{2};
+            //Shape var_shape{2};
+            //auto ref_mean = backend->make_primary_tensor_view<T>(mean_shape);
+            //auto ref_var = backend->make_primary_tensor_view<T>(var_shape);
             // ref_y is the function evaluated at the args
             auto ref_y = backend->make_primary_tensor_view<T>(y_shape);
-
             cf->tensor_call(args, std::vector<std::shared_ptr<ngraph::runtime::TensorView>>{ref_y});
             auto ref_vec = read_vector<T>(ref_y);
 
