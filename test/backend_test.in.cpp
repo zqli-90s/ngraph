@@ -97,6 +97,7 @@ TEST(${BACKEND_NAME}, node_name)
 
 TEST(${BACKEND_NAME}, component_cleanup)
 {
+    SKIP_TEST_FOR("ARGON", "${BACKEND_NAME}");
     shared_ptr<runtime::Backend> backend;
     shared_ptr<runtime::ExternalFunction> external;
     shared_ptr<runtime::CallFrame> cf;
@@ -4898,6 +4899,8 @@ TEST(${BACKEND_NAME}, max_pool_2d_1channel_1image_strided)
 TEST(${BACKEND_NAME}, not)
 {
     SKIP_TEST_FOR("GPU", "${BACKEND_NAME}");
+    SKIP_TEST_FOR("ARGON", "${BACKEND_NAME}");
+
     Shape shape{2, 2};
     auto A = make_shared<op::Parameter>(element::boolean, shape);
     auto f = make_shared<Function>(make_shared<op::Not>(A), op::ParameterVector{A});
