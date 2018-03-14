@@ -4731,6 +4731,8 @@ TEST(${BACKEND_NAME}, max_pool_2d_2channel_2image)
 TEST(${BACKEND_NAME}, max_pool_2d_1channel_1image_overpadded)
 {
     SKIP_TEST_FOR("GPU", "${BACKEND_NAME}");
+    SKIP_TEST_FOR("ARGON", "${BACKEND_NAME}");
+
     Shape shape_a{1, 1, 5, 5};
     Shape window_shape{2, 3};
     auto window_movement_strides = Strides{1, 1};
@@ -7498,6 +7500,8 @@ TEST(${BACKEND_NAME}, product_3d_to_matrix_least_sig)
 TEST(${BACKEND_NAME}, product_3d_to_vector)
 {
     SKIP_TEST_FOR("GPU", "${BACKEND_NAME}");
+    SKIP_TEST_FOR("ARGON", "${BACKEND_NAME}"); // Correct values but OOB
+
     Shape shape_a{3, 3, 3};
     auto A = make_shared<op::Parameter>(element::f32, shape_a);
     Shape shape_rt{3};
@@ -7525,6 +7529,8 @@ TEST(${BACKEND_NAME}, product_3d_to_vector)
 TEST(${BACKEND_NAME}, product_3d_to_scalar)
 {
     SKIP_TEST_FOR("GPU", "${BACKEND_NAME}");
+    SKIP_TEST_FOR("ARGON", "${BACKEND_NAME}"); // Correct values but OOB
+
     Shape shape_a{3, 3, 3};
     auto A = make_shared<op::Parameter>(element::f32, shape_a);
     Shape shape_rt{};
