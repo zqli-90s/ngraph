@@ -5,37 +5,33 @@ envlist = py27,py35
 skipdist=True
 skip_install=True
 deps =
-  -rrequirements.txt
-  -rtest_requirements.txt
-passenv =
-  NGRAPH_CPP_BUILD_PATH
-  LD_LIBRARY_PATH
-  DYLD_LIBRARY_PATH
+  -r${CMAKE_SOURCE_DIR}/requirements.txt
+  -r${CMAKE_SOURCE_DIR}/test_requirements.txt
 
 [testenv:py35]
 deps =
-  -rrequirements.txt
-  -rtest_requirements.txt
+  -r${CMAKE_SOURCE_DIR}/requirements.txt
+  -r${CMAKE_SOURCE_DIR}/test_requirements.txt
   mypy
   flake8-bugbear
 commands=
   {envbindir}/python setup.py develop
-  flake8 {posargs:pyngraph/ ngraph/ examples/}
-  flake8 --ignore=D100,D101,D102,D103,D104,D105,D107 test/  # ignore lack of docs in tests
-  mypy --config-file=tox.ini {posargs:pyngraph/ ngraph/ examples/} # Use MyPy in Python 3 only
-  pytest {posargs:test/}
+  flake8 {posargs:${CMAKE_SOURCE_DIR}/pyngraph/ ${CMAKE_SOURCE_DIR}/ngraph/ ${CMAKE_SOURCE_DIR}/examples/}
+  flake8 --ignore=D100,D101,D102,D103,D104,D105,D107 ${CMAKE_SOURCE_DIR}/test/  # ignore lack of docs in tests
+  mypy --config-file=tox.ini {posargs:${CMAKE_SOURCE_DIR}/pyngraph/ ${CMAKE_SOURCE_DIR}/ngraph/ ${CMAKE_SOURCE_DIR}/examples/} # Use MyPy in Python 3 only
+  pytest {posargs:${CMAKE_SOURCE_DIR}/test/}
 
 [testenv:py27]
 commands=
   {envbindir}/python setup.py develop
-  flake8 {posargs:pyngraph/ ngraph/ examples/}
-  flake8 --ignore=D100,D101,D102,D103,D104,D105,D107 test/  # ignore lack of docs in tests
-  pytest {posargs:test/}
+  flake8 {posargs:${CMAKE_SOURCE_DIR}/pyngraph/ ${CMAKE_SOURCE_DIR}/ngraph/ ${CMAKE_SOURCE_DIR}/examples/}
+  flake8 --ignore=D100,D101,D102,D103,D104,D105,D107 ${CMAKE_SOURCE_DIR}/test/  # ignore lack of docs in tests
+  pytest {posargs:${CMAKE_SOURCE_DIR}/test/}
 
 [testenv:devenv]
 envdir = devenv
 usedevelop = True
-deps = -rrequirements.txt
+deps = -r${CMAKE_SOURCE_DIR}/requirements.txt
 
 [flake8]
 max-line-length=100
