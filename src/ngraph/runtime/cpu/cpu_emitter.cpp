@@ -1663,7 +1663,10 @@ namespace ngraph
             {
                 const ngraph::op::Sum* sum = static_cast<const ngraph::op::Sum*>(node);
                 writer.block_begin();
+
+
 #if USE_EIGEN_CORE_INLINE == 1
+                std::cout << "USING EIGEN" << std::endl;
                 const Shape& arg_shape = args[0].get_shape();
                 size_t arg_rank = arg_shape.size();
                 const AxisSet& reduction_axes = sum->get_reduction_axes();
@@ -1710,13 +1713,61 @@ namespace ngraph
                            << "});\n";
                 }
 #else
-                kernel::emit_sum(writer,
-                                 args[0].get_element_type().c_type_string(),
-                                 args[0].get_name(),
-                                 out[0].get_name(),
-                                 args[0].get_shape(),
-                                 out[0].get_shape(),
-                                 sum->get_reduction_axes());
+                const auto& data_shape = args[0].get_shape();
+                const AxisSet& reduction_axes = sum->get_reduction_axes();
+                std::cout << "SUM " << data_shape.size() << " " << vector_to_string(data_shape) << std::endl;
+
+                if (data_shape.size() == 1) {
+                    std::cout << "CBLAS" << std::endl;
+                    writer.block_begin();
+                    writer << "float temp[" << data_shape[0] << "] = {";
+                    for (int i = 0; i < data_shape[0]; ++i) {
+                        if (i == data_shape[0]-1)
+                            writer << "1";
+                        else
+                            writer << "1, ";
+                    }
+                    writer << "};\n";
+//                        writer << "for (int i = 0; i < 3; ++i) { std::cout << temp[i] << std::endl; }\n";
+                    writer << "float* r = cblas_ddot(" << data_shape[0]
+                           << args[0].get_name() << "1, temp, 1)\n";
+                    writer << out[0].get_name() << " = *r\n";
+                    writer.block_end();
+                }
+                else if (data_shape.size() == 2 && reduction_axes == AxisSet{0}) {
+                    std::cout << "CBLAS" << std::endl;
+                    writer.block_begin();
+                    writer << "float temp[" << data_shape[0] << "] = {";
+                    for (int i = 0; i < data_shape[0]; ++i) {
+                        if (i == data_shape[0]-1)
+                            writer << "1";
+                        else
+                            writer << "1, ";
+                    }
+                    writer << "};\n";
+//                        writer << "for (int i = 0; i < 3; ++i) { std::cout << temp[i] << std::endl; }\n";
+                    writer << "cblas::cblas_sgemv("
+                           << "cblas::Layout::RowMajor, "
+                           << "cblas::Transpose::Transpose, "
+                           << data_shape[0] << ", "
+                           << data_shape[1] << ", "
+                           << "1.0f, "
+                           << args[0].get_name() << ", "
+                           << data_shape[1] << ", "
+                           << "&(temp[0]), 1, 0, "
+                           << out[0].get_name() << ", 1);\n";
+                    writer.block_end();
+                }
+                else {
+                    std::cout << "SUM KERNEL" << std::endl;
+                    kernel::emit_sum(writer,
+                                     args[0].get_element_type().c_type_string(),
+                                     args[0].get_name(),
+                                     out[0].get_name(),
+                                     args[0].get_shape(),
+                                     out[0].get_shape(),
+                                     sum->get_reduction_axes());
+                }
 #endif
                 writer.block_end();
             }

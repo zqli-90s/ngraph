@@ -88,6 +88,20 @@ namespace cblas
                      float* C,
                      const int64_t ldc);
     }
+    extern "C" {
+    void cblas_sgemv(const Layout Layout,
+                     const Transpose trans,
+                     const int64_t m,
+                     const int64_t n,
+                     const float alpha,
+                     const float *a,
+                     const int64_t lda,
+                     const float *x,
+                     const int64_t incx,
+                     const float beta,
+                     float *y,
+                     const int64_t incy);
+    }
 }
 
 namespace mkl
