@@ -51,6 +51,11 @@ Node::Node(const std::string& node_type, const NodeVector& arguments)
     }
 }
 
+Node::Node(const NodeKind* node_kind)
+    : m_node_kind(node_kind)
+{
+}
+
 void Node::set_value_type_checked(const element::Type& element_type, const Shape& shape)
 {
     if (m_outputs.size() == 0)

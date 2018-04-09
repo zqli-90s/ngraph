@@ -58,6 +58,21 @@ namespace ngraph
                                  const std::shared_ptr<Node>& dst_node,
                                  const std::shared_ptr<Node>& new_node);
 
+    class Node;
+
+    /// One instance of NodeKind for each kind of node
+    class NodeKind
+    {
+    public:
+        virtual ~Node() {}
+        virtual std::shared_ptr<Node> make(const NodeVector& arguments) = 0;
+        virtual void propagate_types(Node* node) const = 0;
+        virtual void validate(Node *node) const = 0;
+
+    protected:
+        std::string m_node_type;
+    };
+
     /// Nodes are the backbone of the graph of Value dataflow. Every node has
     /// zero or more nodes as arguments and one value, which is either a tensor
     /// view or a (possibly empty) tuple of values.
@@ -79,6 +94,7 @@ namespace ngraph
 
     protected:
         Node(const std::string& node_type, const NodeVector& arguments);
+        Node(const NodeKind* node_kind);
         virtual ~Node();
 
         virtual void generate_adjoints(autodiff::Adjoints& adjoints, const NodeVector& deltas) {}
@@ -194,6 +210,7 @@ namespace ngraph
     protected:
         void add_output(const element::Type& element_type, const Shape& shape);
 
+        NodeKind *m_node_kind{nullptr};
         std::string m_node_type;
         size_t m_instance_id;
         std::string m_name;
