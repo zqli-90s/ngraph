@@ -1713,53 +1713,103 @@ namespace ngraph
                            << "});\n";
                 }
 #else
-                const auto& data_shape = args[0].get_shape();
-                const AxisSet& reduction_axes = sum->get_reduction_axes();
-                std::cout << "SUM " << data_shape.size() << " " << vector_to_string(data_shape) << std::endl;
 
-                if (data_shape.size() == 1) {
-                    std::cout << "CBLAS" << std::endl;
-                    writer.block_begin();
-                    writer << "float temp[" << data_shape[0] << "] = {";
-                    for (int i = 0; i < data_shape[0]; ++i) {
-                        if (i == data_shape[0]-1)
-                            writer << "1";
-                        else
-                            writer << "1, ";
-                    }
-                    writer << "};\n";
-//                        writer << "for (int i = 0; i < 3; ++i) { std::cout << temp[i] << std::endl; }\n";
-                    writer << "float* r = cblas_ddot(" << data_shape[0]
-                           << args[0].get_name() << "1, temp, 1)\n";
-                    writer << out[0].get_name() << " = *r\n";
-                    writer.block_end();
+				if (std::getenv("NGRAPH_CPU_SUM_GEMM")) {
+					const auto& data_shape = args[0].get_shape();
+	                const AxisSet& reduction_axes = sum->get_reduction_axes();
+	                std::cout << "SUM " << data_shape.size() << " " << vector_to_string(data_shape) << std::endl;
+
+	                if (data_shape.size() == 1) {
+	                    std::cout << "CBLAS" << std::endl;
+	                    writer.block_begin();
+	                    writer << "float temp[" << data_shape[0] << "] = {";
+	                    for (int i = 0; i < data_shape[0]; ++i) {
+	                        if (i == data_shape[0]-1)
+	                            writer << "1";
+	                        else
+	                            writer << "1, ";
+	                    }
+	                    writer << "};\n";
+	//                        writer << "for (int i = 0; i < 3; ++i) { std::cout << temp[i] << std::endl; }\n";
+	                    writer << "float* r = cblas_ddot(" << data_shape[0]
+	                           << args[0].get_name() << "1, temp, 1)\n";
+	                    writer << out[0].get_name() << " = *r\n";
+	                    writer.block_end();
+	                }
+	                else if (data_shape.size() == 2 && reduction_axes == AxisSet{0}) {
+	                    std::cout << "CBLAS" << std::endl;
+	                    writer.block_begin();
+	                    writer << "float temp[" << data_shape[0] << "] = {";
+	                    for (int i = 0; i < data_shape[0]; ++i) {
+	                        if (i == data_shape[0]-1)
+	                            writer << "1";
+	                        else
+	                            writer << "1, ";
+	                    }
+	                    writer << "};\n";
+	//                        writer << "for (int i = 0; i < 3; ++i) { std::cout << temp[i] << std::endl; }\n";
+	                    writer << "cblas::cblas_sgemv("
+	                           << "cblas::Layout::RowMajor, "
+	                           << "cblas::Transpose::Transpose, "
+	                           << data_shape[0] << ", "
+	                           << data_shape[1] << ", "
+	                           << "1.0f, "
+	                           << args[0].get_name() << ", "
+	                           << data_shape[1] << ", "
+	                           << "&(temp[0]), 1, 0, "
+	                           << out[0].get_name() << ", 1);\n";
+	                    writer.block_end();
+	                }
+	                else {
+	                    std::cout << "SUM KERNEL" << std::endl;
+	                    kernel::emit_sum(writer,
+	                                     args[0].get_element_type().c_type_string(),
+	                                     args[0].get_name(),
+	                                     out[0].get_name(),
+	                                     args[0].get_shape(),
+	                                     out[0].get_shape(),
+	                                     sum->get_reduction_axes());
+	                }
+				}
+                else if (args[0].get_element_type() == element::f32 && args[0].get_shape().size() == 1 &&
+                    sum->get_reduction_axes().size() == 1)
+                {
+                    writer << "cpu::kernel::reduce_sum_all_1d_float32(" << args[0].get_name()
+                           << ", " << out[0].get_name() << ", "
+                           << "{" << join(args[0].get_shape()) << "}, "
+                           << "{" << join(out[0].get_shape()) << "}"
+                           << ");\n";
                 }
-                else if (data_shape.size() == 2 && reduction_axes == AxisSet{0}) {
-                    std::cout << "CBLAS" << std::endl;
-                    writer.block_begin();
-                    writer << "float temp[" << data_shape[0] << "] = {";
-                    for (int i = 0; i < data_shape[0]; ++i) {
-                        if (i == data_shape[0]-1)
-                            writer << "1";
-                        else
-                            writer << "1, ";
-                    }
-                    writer << "};\n";
-//                        writer << "for (int i = 0; i < 3; ++i) { std::cout << temp[i] << std::endl; }\n";
-                    writer << "cblas::cblas_sgemv("
-                           << "cblas::Layout::RowMajor, "
-                           << "cblas::Transpose::Transpose, "
-                           << data_shape[0] << ", "
-                           << data_shape[1] << ", "
-                           << "1.0f, "
-                           << args[0].get_name() << ", "
-                           << data_shape[1] << ", "
-                           << "&(temp[0]), 1, 0, "
-                           << out[0].get_name() << ", 1);\n";
-                    writer.block_end();
+                else if (args[0].get_element_type() == element::f32 &&
+                         args[0].get_shape().size() == 2 && sum->get_reduction_axes().size() == 2)
+                {
+                    writer << "cpu::kernel::reduce_sum_all_2d_float32(" << args[0].get_name()
+                           << ", " << out[0].get_name() << ", "
+                           << "{" << join(args[0].get_shape()) << "}, "
+                           << "{" << join(out[0].get_shape()) << "}"
+                           << ");\n";
                 }
-                else {
-                    std::cout << "SUM KERNEL" << std::endl;
+                else if (args[0].get_element_type() == element::f32 &&
+                         args[0].get_shape().size() == 2 && sum->get_reduction_axes().size() == 1)
+                {
+                    writer << "cpu::kernel::reduce_sum_2d_1rd_float32(" << args[0].get_name()
+                           << ", " << out[0].get_name() << ", "
+                           << "{" << join(args[0].get_shape()) << "}, "
+                           << "{" << join(out[0].get_shape()) << "}, "
+                           << "{" << join(sum->get_reduction_axes()) << "}"
+                           << ");\n";
+                }
+                else if (args[0].get_element_type() == element::f32 &&
+                         args[0].get_shape().size() == 4 && sum->get_reduction_axes().size() == 4)
+                {
+                    writer << "cpu::kernel::reduce_sum_all_4d_float32(" << args[0].get_name()
+                           << ", " << out[0].get_name() << ", "
+                           << "{" << join(args[0].get_shape()) << "}, "
+                           << "{" << join(out[0].get_shape()) << "}"
+                           << ");\n";
+                }
+                else
+                {
                     kernel::emit_sum(writer,
                                      args[0].get_element_type().c_type_string(),
                                      args[0].get_name(),
@@ -3116,14 +3166,26 @@ namespace ngraph
                            << "});\n";
                 }
 #else
-                // TODO: add an emitter akin to the emit_sum
-                writer << "reference::max<" << out[0].get_type() << ">(" << args[0].get_name()
-                       << ",\n";
-                writer << "                         " << out[0].get_name() << ",\n";
-                writer << "                         {" << join(args[0].get_shape()) << "},\n";
-                writer << "                         {" << join(out[0].get_shape()) << "},\n";
-                writer << "                         {" << join(max->get_reduction_axes())
-                       << "});\n";
+                if (args[0].get_element_type() == element::f32 && args[0].get_shape().size() == 2 &&
+                    max->get_reduction_axes().size() == 1)
+                {
+                    writer << "cpu::kernel::reduce_max_2d_1rd_float32(" << args[0].get_name()
+                           << ", " << out[0].get_name() << ", "
+                           << "{" << join(args[0].get_shape()) << "}, "
+                           << "{" << join(out[0].get_shape()) << "}, "
+                           << "{" << join(max->get_reduction_axes()) << "}"
+                           << ");\n";
+                }
+                else
+                {
+                    writer << "reference::max<" << out[0].get_type() << ">(" << args[0].get_name()
+                           << ",\n";
+                    writer << "                         " << out[0].get_name() << ",\n";
+                    writer << "                         {" << join(args[0].get_shape()) << "},\n";
+                    writer << "                         {" << join(out[0].get_shape()) << "},\n";
+                    writer << "                         {" << join(max->get_reduction_axes())
+                           << "});\n";
+                }
 #endif
                 writer.block_end();
             }

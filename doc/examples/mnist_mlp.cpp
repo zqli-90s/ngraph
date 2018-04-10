@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <string>
 
+#include <ngraph/autodiff/adjoints.hpp>
 #include <ngraph/graph_util.hpp>
 #include <ngraph/ngraph.hpp>
 
@@ -172,10 +173,12 @@ int main(int argc, const char* argv[])
     auto delta = -learning_rate * loss;
 
     // Updates
-    auto W0_next = W0 + loss->backprop_node(W0, delta);
-    auto b0_next = b0 + loss->backprop_node(b0, delta);
-    auto W1_next = W1 + loss->backprop_node(W1, delta);
-    auto b1_next = b1 + loss->backprop_node(b1, delta);
+    ngraph::autodiff::Adjoints adjoints(NodeVector{loss},
+                                        NodeVector{delta});
+    auto W0_next = W0 + adjoints.backprop_node(W0);
+    auto b0_next = b0 + adjoints.backprop_node(b0);
+    auto W1_next = W1 + adjoints.backprop_node(W1);
+    auto b1_next = b1 + adjoints.backprop_node(b1);
 
     // Get the backend
     auto manager = runtime::Manager::get("CPU");
@@ -216,7 +219,7 @@ int main(int argc, const char* argv[])
     // X, Y, learning_rate, W0, b0, W1, b1 -> loss, softmax, W0_next, b0_next, W1_next, b1_next
     NodeMap train_node_map;
     auto train_function = clone_function(
-        std::make_shared<Function>(
+        Function(
             NodeVector{loss, softmax, W0_next, b0_next, W1_next, b1_next},
             op::ParameterVector{X, Y, N, learning_rate, W0, b0, W1, b1}),
         train_node_map);
@@ -226,10 +229,10 @@ int main(int argc, const char* argv[])
     // Plain inference
     // X, W0, b0, W1, b1 -> softmax
     NodeMap inference_node_map;
-    auto inference_function = clone_function(
-        std::make_shared<Function>(NodeVector{softmax},
-                                   op::ParameterVector{X, W0, b0, W1, b1}),
-        inference_node_map);
+    auto inference_function =
+        clone_function(Function(NodeVector{softmax},
+                                op::ParameterVector{X, W0, b0, W1, b1}),
+                       inference_node_map);
     auto inference_ext = manager->compile(inference_function);
     auto inference_cf = backend->make_call_frame(inference_ext);
 
