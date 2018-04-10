@@ -64,7 +64,7 @@ namespace ngraph
     class NodeKind
     {
     public:
-        virtual ~Node() {}
+        virtual ~NodeKind() {}
         virtual std::shared_ptr<Node> make(const NodeVector& arguments) = 0;
         virtual void propagate_types(Node* node) const = 0;
         virtual void validate(Node *node) const = 0;
@@ -210,7 +210,7 @@ namespace ngraph
     protected:
         void add_output(const element::Type& element_type, const Shape& shape);
 
-        NodeKind *m_node_kind{nullptr};
+        const NodeKind *m_node_kind{nullptr};
         std::string m_node_type;
         size_t m_instance_id;
         std::string m_name;
