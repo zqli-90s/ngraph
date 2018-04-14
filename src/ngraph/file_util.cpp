@@ -291,7 +291,7 @@ string ngraph::file_util::tmp_filename(const string& extension)
     char* tmpname = strdup(tmp_template.c_str());
 
     // mkstemp opens the file with open() so we need to close it
-    close(mkstemps(tmpname, static_cast<int>(extension.size())));
+    close(mkstemp(tmpname));
 
     string rc = tmpname;
     free(tmpname);
