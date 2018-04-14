@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <cstdlib>
 
 #include "ngraph/file_util.hpp"
 #include "ngraph/log.hpp"
