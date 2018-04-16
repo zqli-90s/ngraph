@@ -1740,10 +1740,10 @@ namespace ngraph
 				if (std::getenv("NGRAPH_CPU_SUM_GEMM")) {
 					const auto& data_shape = args[0].get_shape();
 	                const AxisSet& reduction_axes = sum->get_reduction_axes();
-	                std::cout << "SUM " << data_shape.size() << " " << vector_to_string(data_shape) << std::endl;
+//	                std::cout << "SUM " << data_shape.size() << " " << vector_to_string(data_shape) << std::endl;
 
 	                if (data_shape.size() == 1) {
-	                    std::cout << "CBLAS" << std::endl;
+//	                    std::cout << "CBLAS" << std::endl;
 	                    writer.block_begin();
 	                    writer << "float temp[" << data_shape[0] << "] = {";
 	                    for (int i = 0; i < data_shape[0]; ++i) {
@@ -1760,7 +1760,7 @@ namespace ngraph
 	                    writer.block_end();
 	                }
 	                else if (data_shape.size() == 2 && reduction_axes == AxisSet{0}) {
-	                    std::cout << "CBLAS" << std::endl;
+//	                    std::cout << "CBLAS" << std::endl;
 	                    writer.block_begin();
 	                    writer << "float temp[" << data_shape[0] << "] = {";
 	                    for (int i = 0; i < data_shape[0]; ++i) {
