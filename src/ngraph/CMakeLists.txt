@@ -114,8 +114,11 @@ set (SRC
     pass/pass.cpp
     pass/reshape_elimination.cpp
     pass/result_copy_elimination.cpp
+    pass/zero_dim_tensor_elimination.cpp
+    pass/validate_graph.cpp
     pass/visualize_tree.cpp
     pass/core_fusion.cpp
+    pass/zero_dim_tensor_elimination.cpp
     pattern/matcher.cpp
     runtime/aligned_buffer.cpp
     runtime/backend.cpp
@@ -208,6 +211,7 @@ if (NGRAPH_CPU_ENABLE AND LLVM_INCLUDE_DIR AND
         runtime/cpu/kernel/pad.cpp
         runtime/cpu/kernel/reduce_max.cpp
         runtime/cpu/kernel/reduce_sum.cpp
+        runtime/cpu/kernel/reshape.cpp
         runtime/cpu/op/conv_bias.cpp
         runtime/cpu/op/conv_relu.cpp
         runtime/cpu/op/convert_layout.cpp
@@ -273,6 +277,11 @@ endif()
             runtime/gpu/gpu_cuda_function_builder.cpp
             runtime/gpu/gpu_cuda_function_pool.cpp
             runtime/gpu/gpu_cuda_context_manager.cpp
+            runtime/gpu/gpu_runtime_context.cpp
+            runtime/gpu/gpu_primitive_emitter.cpp
+            runtime/gpu/gpu_invoke.cpp
+            runtime/gpu/cudnn_emitter.cpp
+            runtime/gpu/cuda_emitter.cpp
             )
         set_property(SOURCE codegen/compiler.cpp APPEND_STRING PROPERTY COMPILE_DEFINITIONS
         "CUDA_HEADER_PATHS=\"${CUDA_INCLUDE_DIRS}\";")

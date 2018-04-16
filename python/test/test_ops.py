@@ -128,9 +128,9 @@ def binary_op_exec(op_str):
     function = Function(NodeVector([binary_op(op_str, A, B)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    b = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(element_type, shape)
+    a = backend.create_tensor(element_type, shape)
+    b = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(element_type, shape)
 
     a.write(util.numpy_to_c(np.array([[1, 6], [7, 4]], dtype=np.float32)), 0, 16)
     b.write(util.numpy_to_c(np.array([[5, 2], [3, 8]], dtype=np.float32)), 0, 16)
@@ -157,9 +157,9 @@ def binary_op_comparison(op_str):
     function = Function(NodeVector([binary_op(op_str, A, B)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    b = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(Type.boolean, shape)
+    a = backend.create_tensor(element_type, shape)
+    b = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(Type.boolean, shape)
 
     a.write(util.numpy_to_c(np.array([[1, 5], [3, 2]], dtype=np.float32)), 0, 16)
     b.write(util.numpy_to_c(np.array([[2, 4], [3, 1]], dtype=np.float32)), 0, 16)
@@ -184,12 +184,10 @@ def test_add_op():
     binary_op_exec('Add')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_sub():
     binary_op_exec('-')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_sub_op():
     binary_op_exec('Sub')
 
@@ -202,17 +200,14 @@ def test_mul_op():
     binary_op_exec('Mul')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_div():
     binary_op_exec('/')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_div_op():
     binary_op_exec('Div')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_dot():
     binary_op_exec('Dot')
 
@@ -225,37 +220,30 @@ def test_minimum():
     binary_op_exec('Minimum')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_power():
     binary_op_exec('Power')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_greater():
     binary_op_comparison('Greater')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_greater_eq():
     binary_op_comparison('GreaterEq')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_less():
     binary_op_comparison('Less')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_less_eq():
     binary_op_comparison('LessEq')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_not_equal():
     binary_op_comparison('NotEqual')
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_add_with_mul():
 
     element_type = Type.f32
@@ -267,10 +255,10 @@ def test_add_with_mul():
     function = Function(NodeVector([Multiply(Add(A, B), C)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    b = backend.make_primary_tensor_view(element_type, shape)
-    c = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(element_type, shape)
+    a = backend.create_tensor(element_type, shape)
+    b = backend.create_tensor(element_type, shape)
+    c = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(element_type, shape)
 
     a.write(util.numpy_to_c(np.array([1, 2, 3, 4], dtype=np.float32)), 0, 16)
     b.write(util.numpy_to_c(np.array([5, 6, 7, 8], dtype=np.float32)), 0, 16)
@@ -372,15 +360,15 @@ def unary_op_exec(op_str, input_list):
     input_list needs to have deep length of 4
     """
     element_type = Type.f32
-    shape = Shape(np.array(input_list).shape)  
+    shape = Shape(np.array(input_list).shape)
     shape_np = np.array(input_list).shape
     A = Parameter(element_type, shape)
     parameter_list = [A]
     function = Function(NodeVector([unary_op(op_str, A)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(element_type, shape)
+    a = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(element_type, shape)
 
     a.write(util.numpy_to_c(np.array(input_list, dtype=np.float32)), 0, 16)
 
@@ -395,119 +383,102 @@ def unary_op_exec(op_str, input_list):
     assert np.allclose(result_arr, result_arr_ref)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_abs():
     input_list = [-1, 0, 1, 2]
     op_str = 'Abs'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_acos():
     input_list = [-1, 0, 0.5, 1]
     op_str = 'Acos'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_asin():
     input_list = [-1, 0, 0.5, 1]
     op_str = 'Asin'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_atan():
     input_list = [-1, 0, 0.5, 1]
     op_str = 'Atan'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_ceiling():
     input_list = [0.5, 0, 0.4, 0.5]
     op_str = 'Ceiling'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_cos():
     input_list = [0, 0.7, 1.7, 3.4]
     op_str = 'Cos'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_cosh():
     input_list = [-1, 0., 0.5, 1]
     op_str = 'Cosh'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_floor():
     input_list = [-0.5, 0, 0.4, 0.5]
     op_str = 'Floor'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_log():
     input_list = [1, 2, 3, 4]
     op_str = 'log'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_exp():
     input_list = [-1, 0, 1, 2]
     op_str = 'exp'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_negative():
     input_list = [-1, 0, 1, 2]
     op_str = 'negative'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_sign():
     input_list = [-1, 0, 0.5, 1]
     op_str = 'Sign'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_sin():
     input_list = [0, 0.7, 1.7, 3.4]
     op_str = 'Sin'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_sinh():
     input_list = [-1, 0., 0.5, 1]
     op_str = 'Sinh'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_sqrt():
     input_list = [0., 0.5, 1, 2]
     op_str = 'Sqrt'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_tan():
     input_list = [-np.pi / 4, 0, np.pi / 8, np.pi / 8]
     op_str = 'Tan'
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_tanh():
     input_list = [-1, 0, 0.5, 1]
     op_str = 'Tanh'
@@ -521,7 +492,6 @@ def test_reverse():
     unary_op_exec(op_str, input_list)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_not():
     element_type = Type.boolean
     shape = Shape([2])
@@ -530,8 +500,8 @@ def test_not():
     function = Function(NodeVector([Not(A)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(Type.boolean, shape)
+    a = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(Type.boolean, shape)
 
     a.write(util.numpy_to_c(np.array([True, False], dtype=np.bool)), 0, 2)
 
@@ -546,7 +516,6 @@ def test_not():
     assert np.allclose(result_arr, result_arr_ref)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_sum():
 
     element_type = Type.f32
@@ -556,8 +525,8 @@ def test_sum():
     function = Function(NodeVector([Sum(A, AxisSet({1}))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(element_type, Shape([1]))
+    a = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(element_type, Shape([1]))
 
     a.write(util.numpy_to_c(np.array([1, 2, 3, 4], dtype=np.float32)), 0, 16)
 
@@ -572,7 +541,6 @@ def test_sum():
     assert np.allclose(result_arr[0], result_arr_ref)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_reshape():
 
     element_type = Type.f32
@@ -582,8 +550,8 @@ def test_reshape():
     function = Function(NodeVector([Reshape(A, AxisVector([0, 1]), Shape([3, 2]))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(element_type, Shape([3, 2]))
+    a = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(element_type, Shape([3, 2]))
 
     a.write(util.numpy_to_c(np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)), 0, 24)
 
@@ -598,7 +566,6 @@ def test_reshape():
     assert np.allclose(result_arr, result_arr_ref)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_convert():
 
     element_type = Type.f32
@@ -609,8 +576,8 @@ def test_convert():
     function = Function(NodeVector([Convert(A, Type.boolean)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(Type.boolean, shape)
+    a = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(Type.boolean, shape)
 
     a.write(util.numpy_to_c(np.array([1, 5, 3], dtype=np.float32)), 0, 12)
 
@@ -627,7 +594,7 @@ def test_convert():
     function = Function(NodeVector([Convert(A, Type.i32)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    result = backend.make_primary_tensor_view(Type.i32, shape)
+    result = backend.create_tensor(Type.i32, shape)
 
     a.write(util.numpy_to_c(np.array([1.4, 5.5, 3.9], dtype=np.float32)), 0, 12)
 
@@ -642,7 +609,6 @@ def test_convert():
     assert np.allclose(result_arr, result_arr_ref)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_broadcast():
 
     element_type = Type.f32
@@ -651,8 +617,8 @@ def test_broadcast():
     function = Function(NodeVector([Broadcast(A, Shape([3, 3]), AxisSet({0}))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, Shape([3]))
-    result = backend.make_primary_tensor_view(element_type, Shape([3, 3]))
+    a = backend.create_tensor(element_type, Shape([3]))
+    result = backend.create_tensor(element_type, Shape([3, 3]))
 
     a.write(util.numpy_to_c(np.array([1, 2, 3], dtype=np.float32)), 0, 12)
 
@@ -668,7 +634,6 @@ def test_broadcast():
     assert np.allclose(result_arr, result_arr_ref)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_constant():
 
     element_type = Type.f32
@@ -677,7 +642,7 @@ def test_constant():
                         parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    result = backend.make_primary_tensor_view(element_type, Shape([3, 3]))
+    result = backend.create_tensor(element_type, Shape([3, 3]))
 
     result_arr = np.zeros((3, 3), dtype=np.float32)
     result.write(util.numpy_to_c(result_arr), 0, 36)
@@ -707,8 +672,8 @@ def test_reduce():
                         parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(float_element_type, Shape([2, 2, 2]))
-    result = backend.make_primary_tensor_view(float_element_type, Shape([2, 2]))
+    a = backend.create_tensor(float_element_type, Shape([2, 2, 2]))
+    result = backend.create_tensor(float_element_type, Shape([2, 2]))
 
     a.write(util.numpy_to_c(np.arange(8, dtype=np.float32).reshape(2, 2, 2)), 0, 32)
 
@@ -723,7 +688,6 @@ def test_reduce():
     assert np.allclose(result_arr, result_arr_ref)
 
 
-@pytest.config.gpu_skip(reason="Not implemented")
 def test_onehot():
 
     element_type = Type.f32
@@ -732,8 +696,8 @@ def test_onehot():
     function = Function(NodeVector([OneHot(A, Shape([3, 3]), 0)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, Shape([3]))
-    result = backend.make_primary_tensor_view(element_type, Shape([3, 3]))
+    a = backend.create_tensor(element_type, Shape([3]))
+    result = backend.create_tensor(element_type, Shape([3, 3]))
 
     a.write(util.numpy_to_c(np.array([1, 0, 2], dtype=np.float32)), 0, 12)
 
@@ -760,10 +724,10 @@ def test_concat():
     function = Function(NodeVector([Concat(NodeVector([A, B, C]), axis)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, Shape([1, 2]))
-    b = backend.make_primary_tensor_view(element_type, Shape([1, 2]))
-    c = backend.make_primary_tensor_view(element_type, Shape([1, 2]))
-    result = backend.make_primary_tensor_view(element_type, Shape([3, 2]))
+    a = backend.create_tensor(element_type, Shape([1, 2]))
+    b = backend.create_tensor(element_type, Shape([1, 2]))
+    c = backend.create_tensor(element_type, Shape([1, 2]))
+    result = backend.create_tensor(element_type, Shape([3, 2]))
 
     a.write(util.numpy_to_c(np.array([1, 2], dtype=np.float32)), 0, 8)
     b.write(util.numpy_to_c(np.array([5, 6], dtype=np.float32)), 0, 8)
@@ -794,10 +758,10 @@ def test_select():
     function = Function(NodeVector([Select(A, B, C)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(Type.boolean, Shape([1, 2]))
-    b = backend.make_primary_tensor_view(element_type, Shape([1, 2]))
-    c = backend.make_primary_tensor_view(element_type, Shape([1, 2]))
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 2]))
+    a = backend.create_tensor(Type.boolean, Shape([1, 2]))
+    b = backend.create_tensor(element_type, Shape([1, 2]))
+    c = backend.create_tensor(element_type, Shape([1, 2]))
+    result = backend.create_tensor(element_type, Shape([1, 2]))
 
     a.write(util.numpy_to_c(np.array([[True, False]], dtype=np.bool)), 0, 2)
     b.write(util.numpy_to_c(np.array([[5, 6]], dtype=np.float32)), 0, 8)
@@ -825,12 +789,12 @@ def test_slice():
     lower_bounds = [1, 1]
     upper_bounds = [5, 5]
 
-    function = Function(NodeVector([Slice(A, Coordinate(lower_bounds), 
+    function = Function(NodeVector([Slice(A, Coordinate(lower_bounds),
                                    Coordinate(upper_bounds))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(element_type, Shape([4, 4]))
+    a = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(element_type, Shape([4, 4]))
 
     a.write(util.numpy_to_c(input_arr), 0, 36*4)
 
@@ -851,7 +815,7 @@ def test_slice():
                         Strides(strides))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    result = backend.make_primary_tensor_view(element_type, Shape([4, 2]))
+    result = backend.create_tensor(element_type, Shape([4, 2]))
     result_arr = np.zeros(8, dtype=np.float32).reshape(4, 2)
 
     result.write(util.numpy_to_c(result_arr), 0, 8*4)
@@ -880,9 +844,9 @@ def test_replace_slice():
                         Coordinate(upper_bounds))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, Shape([6, 4]))
-    b = backend.make_primary_tensor_view(element_type, Shape([3, 2]))
-    result = backend.make_primary_tensor_view(element_type, Shape([6, 4]))
+    a = backend.create_tensor(element_type, Shape([6, 4]))
+    b = backend.create_tensor(element_type, Shape([3, 2]))
+    result = backend.create_tensor(element_type, Shape([6, 4]))
 
     a.write(util.numpy_to_c(input_arr_a), 0, 24*4)
     b.write(util.numpy_to_c(input_arr_b), 0, 6*4)
@@ -931,8 +895,8 @@ def test_max_pool():
     function = Function(NodeVector([MaxPool(A, Shape(window_shape))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, 8]))
+    a = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(element_type, Shape([1, 1, 8]))
 
     a.write(util.numpy_to_c(input_arr), 0, 10*4)
 
@@ -951,7 +915,7 @@ def test_max_pool():
     backend, cf = make_backend_call_frame(function)
 
     size = 4
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, size]))
+    result = backend.create_tensor(element_type, Shape([1, 1, size]))
     result_arr = np.zeros(size, dtype=np.float32).reshape(1, 1, size)
 
     result.write(util.numpy_to_c(result_arr), 0, size*4)
@@ -973,8 +937,8 @@ def test_max_pool():
     function = Function(NodeVector([MaxPool(A, Shape(window_shape))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, shape)
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, 8, 8]))
+    a = backend.create_tensor(element_type, shape)
+    result = backend.create_tensor(element_type, Shape([1, 1, 8, 8]))
 
     a.write(util.numpy_to_c(input_arr), 0, 10*10*4)
 
@@ -993,7 +957,7 @@ def test_max_pool():
     backend, cf = make_backend_call_frame(function)
 
     size = 4
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, size, size]))
+    result = backend.create_tensor(element_type, Shape([1, 1, size, size]))
     result_arr = np.zeros(size*size, dtype=np.float32).reshape(1, 1, size, size)
 
     result.write(util.numpy_to_c(result_arr), 0, size*size*4)
@@ -1069,13 +1033,13 @@ def test_convolution():
     function = Function(NodeVector([Convolution(A, B)]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, image_shape)
-    b = backend.make_primary_tensor_view(element_type, filter_shape)
+    a = backend.create_tensor(element_type, image_shape)
+    b = backend.create_tensor(element_type, filter_shape)
 
     a.write(util.numpy_to_c(image_arr), 0, 16*16*4)
     b.write(util.numpy_to_c(filter_arr), 0, 3*3*4)
 
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, 14, 14]))
+    result = backend.create_tensor(element_type, Shape([1, 1, 14, 14]))
     result.write(util.numpy_to_c(result_arr), 0, 14*14*4)
     cf.call([result], [a, b])
     result.read(util.numpy_to_c(result_arr), 0, 14*14*4)
@@ -1102,14 +1066,14 @@ def test_convolution_with_strides():
     function = Function(NodeVector([Convolution(A, B, Strides(strides))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, image_shape)
-    b = backend.make_primary_tensor_view(element_type, filter_shape)
+    a = backend.create_tensor(element_type, image_shape)
+    b = backend.create_tensor(element_type, filter_shape)
 
     a.write(util.numpy_to_c(image_arr), 0, 10*10*4)
     b.write(util.numpy_to_c(filter_arr), 0, 3*3*4)
 
     result_arr = np.zeros(16, dtype=np.float32).reshape(1, 1, 4, 4)
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, 4, 4]))
+    result = backend.create_tensor(element_type, Shape([1, 1, 4, 4]))
     result.write(util.numpy_to_c(result_arr), 0, 4*4*4)
     cf.call([result], [a, b])
 
@@ -1136,14 +1100,14 @@ def test_convolution_with_filter_dilation():
     function = Function(NodeVector([Convolution(A, B, Strides(strides), Strides(dilation))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, image_shape)
-    b = backend.make_primary_tensor_view(element_type, filter_shape)
+    a = backend.create_tensor(element_type, image_shape)
+    b = backend.create_tensor(element_type, filter_shape)
 
     a.write(util.numpy_to_c(image_arr), 0, 10*10*4)
     b.write(util.numpy_to_c(filter_arr), 0, 3*3*4)
 
     result_arr = np.zeros(36, dtype=np.float32).reshape(1, 1, 6, 6)
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, 6, 6]))
+    result = backend.create_tensor(element_type, Shape([1, 1, 6, 6]))
     result.write(util.numpy_to_c(result_arr), 0, 6*6*4)
     cf.call([result], [a, b])
 
@@ -1171,19 +1135,19 @@ def test_convolution_with_padding():
     padding_below = [0, 0]
     padding_above = [0, 0]
 
-    function = Function(NodeVector([Convolution(A, B, Strides(strides), Strides(dilation), 
+    function = Function(NodeVector([Convolution(A, B, Strides(strides), Strides(dilation),
                         CoordinateDiff(padding_below), CoordinateDiff(padding_above))]),
                         parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, image_shape)
-    b = backend.make_primary_tensor_view(element_type, filter_shape)
+    a = backend.create_tensor(element_type, image_shape)
+    b = backend.create_tensor(element_type, filter_shape)
 
     a.write(util.numpy_to_c(image_arr), 0, 10*10*4)
     b.write(util.numpy_to_c(filter_arr), 0, 3*3*4)
 
     result_arr = np.zeros(36, dtype=np.float32).reshape(1, 1, 6, 6)
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, 6, 6]))
+    result = backend.create_tensor(element_type, Shape([1, 1, 6, 6]))
     result.write(util.numpy_to_c(result_arr), 0, 6*6*4)
     cf.call([result], [a, b])
 
@@ -1209,19 +1173,19 @@ def test_convolution_with_padding():
     padding_below = [2, 1]
     padding_above = [1, 2]
 
-    function = Function(NodeVector([Convolution(A, B, Strides(strides), Strides(dilation), 
+    function = Function(NodeVector([Convolution(A, B, Strides(strides), Strides(dilation),
                         CoordinateDiff(padding_below), CoordinateDiff(padding_above))]),
                         parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, image_shape)
-    b = backend.make_primary_tensor_view(element_type, filter_shape)
+    a = backend.create_tensor(element_type, image_shape)
+    b = backend.create_tensor(element_type, filter_shape)
 
     a.write(util.numpy_to_c(image_arr), 0, 10*10*4)
     b.write(util.numpy_to_c(filter_arr), 0, 3*3*4)
 
     result_arr = np.zeros(81, dtype=np.float32).reshape(1, 1, 9, 9)
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, 9, 9]))
+    result = backend.create_tensor(element_type, Shape([1, 1, 9, 9]))
     result.write(util.numpy_to_c(result_arr), 0, 9*9*4)
     cf.call([result], [a, b])
 
@@ -1255,14 +1219,14 @@ def test_convolution_with_data_dilation():
                                     Strides(data_dilation))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, image_shape)
-    b = backend.make_primary_tensor_view(element_type, filter_shape)
+    a = backend.create_tensor(element_type, image_shape)
+    b = backend.create_tensor(element_type, filter_shape)
 
     a.write(util.numpy_to_c(image_arr), 0, 10*10*4)
     b.write(util.numpy_to_c(filter_arr), 0, 3*3*4)
 
     result_arr = np.zeros(17*17, dtype=np.float32).reshape(1, 1, 17, 17)
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, 17, 17]))
+    result = backend.create_tensor(element_type, Shape([1, 1, 17, 17]))
     result.write(util.numpy_to_c(result_arr), 0, 17*17*4)
     cf.call([result], [a, b])
 
@@ -1302,14 +1266,14 @@ def test_convolutionBackpropData():
                                      Strides(data_dilation))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, filter_shape)
-    b = backend.make_primary_tensor_view(element_type, output_shape)
+    a = backend.create_tensor(element_type, filter_shape)
+    b = backend.create_tensor(element_type, output_shape)
 
     a.write(util.numpy_to_c(filter_arr), 0, 3*3*4)
     b.write(util.numpy_to_c(output_arr), 0, 17*17*4)
 
     result_arr = np.zeros(10*10, dtype=np.float32).reshape(1, 1, 10, 10)
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, 10, 10]))
+    result = backend.create_tensor(element_type, Shape([1, 1, 10, 10]))
     result.write(util.numpy_to_c(result_arr), 0, 10*10*4)
     cf.call([result], [a, b])
 
@@ -1357,14 +1321,14 @@ def test_convolutionBackpropFilters():
                                      Strides(data_dilation))]), parameter_list, 'test')
     backend, cf = make_backend_call_frame(function)
 
-    a = backend.make_primary_tensor_view(element_type, image_shape)
-    b = backend.make_primary_tensor_view(element_type, output_shape)
+    a = backend.create_tensor(element_type, image_shape)
+    b = backend.create_tensor(element_type, output_shape)
 
     a.write(util.numpy_to_c(image_arr), 0, 10*10*4)
     b.write(util.numpy_to_c(output_arr), 0, 17*17*4)
 
     result_arr = np.zeros(3*3, dtype=np.float32).reshape(1, 1, 3, 3)
-    result = backend.make_primary_tensor_view(element_type, Shape([1, 1, 3, 3]))
+    result = backend.create_tensor(element_type, Shape([1, 1, 3, 3]))
     result.write(util.numpy_to_c(result_arr), 0, 3*3*4)
     cf.call([result], [a, b])
 
