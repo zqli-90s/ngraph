@@ -181,9 +181,9 @@ namespace ngraph
         std::unordered_set<descriptor::Tensor*> liveness_new_list;
         std::unordered_set<descriptor::Tensor*> liveness_free_list;
 
-        virtual NodeVector get_input_ops(); //const;
+        virtual NodeVector get_arguments(); //const;
 
-        std::shared_ptr<Node> get_input_op(size_t index);
+        std::shared_ptr<Node> get_argument(size_t index);
 
         virtual std::shared_ptr<Node> copy_with_new_args(const NodeVector& new_args) const = 0;
 
@@ -207,6 +207,7 @@ namespace ngraph
         /// Get all the nodes that uses the current node
         NodeVector get_users() const;
 
+        virtual std::shared_ptr<Node> get_default_value() const { return nullptr; }
     protected:
         void add_output(const element::Type& element_type, const Shape& shape);
 

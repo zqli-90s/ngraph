@@ -16,21 +16,23 @@
 
 #pragma once
 
-#include <cstddef>
+#include <memory>
+
+#include "ngraph/pass/pass.hpp"
 
 namespace ngraph
 {
-    namespace descriptor
+    namespace pass
     {
-        // A buffer identfies a chunk of storage
-        // In descriptors, we are identifying what will be associated with actual memory
-        // during execution.
-        class Buffer
-        {
-        public:
-            size_t size() const { return m_size; }
-        protected:
-            size_t m_size;
-        };
+        class ValidateGraph;
     }
 }
+
+class ngraph::pass::ValidateGraph : public ModulePass
+{
+public:
+    bool run_on_module(std::vector<std::shared_ptr<ngraph::Function>>&) override;
+
+private:
+    void validate_parameters(const Function&);
+};
