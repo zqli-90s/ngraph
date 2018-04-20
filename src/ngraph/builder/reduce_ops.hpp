@@ -16,11 +16,21 @@
 
 #pragma once
 
+#include <memory>
+
 #include "ngraph/axis_set.hpp"
 #include "ngraph/node.hpp"
+#include "ngraph/op/add.hpp"
+#include "ngraph/op/op.hpp"
 
 namespace ngraph
 {
+    template <typename T, typename... Args>
+    std::shared_ptr<Node> make(Args&&... args)
+    {
+        return T::template make<T>(args...);
+    }
+
     namespace builder
     {
         /// \brief Sum-based L2 Norm of a Tensor.
@@ -128,4 +138,54 @@ namespace ngraph
                                        const bool bessel_correction = false);
 
     } // namespace builder
+
+    namespace op
+    {
+        class L2Norm
+        {
+        public:
+            template <typename T>
+            static std::shared_ptr<Node> make(const std::shared_ptr<Node>& node,
+                                              const AxisSet& reduction_axes)
+            {
+                return builder::l2_norm(node, reduction_axes);
+            }
+        };
+
+        class Mean
+        {
+        public:
+            template <typename T>
+            static std::shared_ptr<Node> make(const std::shared_ptr<Node>& node,
+                                              const AxisSet& reduction_axes)
+            {
+                return builder::mean(node, reduction_axes);
+            }
+        };
+
+        class StdDev
+        {
+        public:
+            template <typename T>
+            static std::shared_ptr<Node> make(const std::shared_ptr<Node>& node,
+                                              const AxisSet& reduction_axes,
+                                              bool bessel_correction = false)
+            {
+                return builder::std_dev(node, reduction_axes, bessel_correction);
+            }
+        };
+
+        class Variance
+        {
+        public:
+            template <typename T>
+            static std::shared_ptr<Node> make(const std::shared_ptr<Node>& node,
+                                              const AxisSet& reduction_axes,
+                                              bool bessel_correction = false)
+            {
+                return builder::variance(node, reduction_axes, bessel_correction);
+            }
+        };
+    }
+
 } // namespace ngraph

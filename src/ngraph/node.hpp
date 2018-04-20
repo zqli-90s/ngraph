@@ -67,7 +67,7 @@ namespace ngraph
         virtual ~NodeKind() {}
         virtual std::shared_ptr<Node> make(const NodeVector& arguments) = 0;
         virtual void propagate_types(Node* node) const = 0;
-        virtual void validate(Node *node) const = 0;
+        virtual void validate(Node* node) const = 0;
 
     protected:
         std::string m_node_type;
@@ -99,6 +99,12 @@ namespace ngraph
 
         virtual void generate_adjoints(autodiff::Adjoints& adjoints, const NodeVector& deltas) {}
     public:
+        template <typename T, typename... ARGS>
+        static std::shared_ptr<Node> make(ARGS&&... args)
+        {
+            return std::make_shared<T>(args...);
+        }
+
         /// The class name, must not contain spaces
         std::string description() const { return m_node_type; }
         const std::string& get_friendly_name() const;
@@ -211,7 +217,7 @@ namespace ngraph
     protected:
         void add_output(const element::Type& element_type, const Shape& shape);
 
-        const NodeKind *m_node_kind{nullptr};
+        const NodeKind* m_node_kind{nullptr};
         std::string m_node_type;
         size_t m_instance_id;
         std::string m_name;
