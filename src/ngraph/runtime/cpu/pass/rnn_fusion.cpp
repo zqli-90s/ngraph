@@ -23,37 +23,26 @@
 #include "ngraph/graph_util.hpp"
 #include "ngraph/log.hpp"
 #include "ngraph/op/add.hpp"
-#include "ngraph/op/add.hpp"
-#include "ngraph/op/batch_norm.hpp"
-#include "ngraph/op/broadcast.hpp"
 #include "ngraph/op/broadcast.hpp"
 #include "ngraph/op/concat.hpp"
 #include "ngraph/op/constant.hpp"
-#include "ngraph/op/convolution.hpp"
 #include "ngraph/op/divide.hpp"
 #include "ngraph/op/dot.hpp"
 #include "ngraph/op/exp.hpp"
 #include "ngraph/op/get_output_element.hpp"
 #include "ngraph/op/multiply.hpp"
 #include "ngraph/op/negative.hpp"
-#include "ngraph/op/pad.hpp"
 #include "ngraph/op/parameter.hpp"
 #include "ngraph/op/relu.hpp"
 #include "ngraph/op/reshape.hpp"
 #include "ngraph/op/result.hpp"
 #include "ngraph/op/slice.hpp"
-#include "ngraph/op/sqrt.hpp"
-#include "ngraph/op/subtract.hpp"
 #include "ngraph/op/sum.hpp"
 #include "ngraph/op/tanh.hpp"
 #include "ngraph/pattern/matcher.hpp"
 #include "ngraph/pattern/op/label.hpp"
 #include "ngraph/pattern/op/skip.hpp"
-#include "ngraph/runtime/cpu/op/batch_norm_relu.hpp"
-#include "ngraph/runtime/cpu/op/conv_bias.hpp"
-#include "ngraph/runtime/cpu/op/conv_relu.hpp"
 #include "ngraph/runtime/cpu/op/lstm.hpp"
-#include "ngraph/runtime/cpu/op/matmul_bias.hpp"
 #include "ngraph/runtime/cpu/op/rnn.hpp"
 #include "ngraph/runtime/cpu/op/sigmoid.hpp"
 #include "rnn_fusion.hpp"
@@ -76,24 +65,25 @@ void ngraph::runtime::cpu::pass::LSTMFusion::construct_sigmoid()
     //Define a call back that needs to called once the DFG matches the pattern
     ngraph::pattern::graph_rewrite_callback callback = [input](pattern::Matcher& m) {
         NGRAPH_DEBUG << "In a callback for construct_fprop_sigmoid pattern against "
-                     << m.match_root()->get_name();
+                     << m.get_match_root()->get_name();
         auto pattern_map = m.get_pattern_map();
 
-        if (m.match_root()->get_element_type() != element::f32)
+        if (m.get_match_root()->get_element_type() != element::f32)
         {
-            NGRAPH_DEBUG << "mpattern = " << m.match_root()->get_name() << " type is not float!";
+            NGRAPH_DEBUG << "mpattern = " << m.get_match_root()->get_name()
+                         << " type is not float!";
             return false;
         }
 
-        if (m.match_root()->get_outputs().size() != pattern_map[input]->get_outputs().size())
+        if (m.get_match_root()->get_outputs().size() != pattern_map[input]->get_outputs().size())
         {
-            NGRAPH_DEBUG << "mpattern = " << m.match_root()->get_name()
+            NGRAPH_DEBUG << "mpattern = " << m.get_match_root()->get_name()
                          << "input= " << pattern_map[input]->get_name() << "size dont match!";
             return false;
         }
 
         auto sigmoid_node = std::make_shared<op::Sigmoid>(pattern_map[input]);
-        ngraph::replace_node(m.match_root(), sigmoid_node);
+        ngraph::replace_node(m.get_match_root(), sigmoid_node);
         return true;
     };
 
@@ -164,21 +154,21 @@ void ngraph::runtime::cpu::pass::LSTMFusion::construct_lstm_fprop()
         [ct_label, param1_1, param1_2, param2_1, param2_2, bias1, bias2, ct_1](
             pattern::Matcher& m) {
             NGRAPH_DEBUG << "In a callback for construct_fprop_lstm pattern against "
-                         << m.match_root()->get_name();
+                         << m.get_match_root()->get_name();
 
             auto pattern_map = m.get_pattern_map();
             NGRAPH_DEBUG << "In Lstm fprop call back";
 
-            if (m.match_root()->get_element_type() != element::f32)
+            if (m.get_match_root()->get_element_type() != element::f32)
             {
-                NGRAPH_DEBUG << "mpattern = " << m.match_root()->get_name()
+                NGRAPH_DEBUG << "mpattern = " << m.get_match_root()->get_name()
                              << " type is not float!";
                 return false;
             }
 
-            if (m.match_root()->get_shape() != pattern_map[param2_1]->get_shape())
+            if (m.get_match_root()->get_shape() != pattern_map[param2_1]->get_shape())
             {
-                NGRAPH_DEBUG << "matched_node_shape: " << join(m.match_root()->get_shape())
+                NGRAPH_DEBUG << "matched_node_shape: " << join(m.get_match_root()->get_shape())
                              << " hidden state shape: " << join(pattern_map[param2_1]->get_shape());
                 return false;
             }
@@ -222,7 +212,7 @@ void ngraph::runtime::cpu::pass::LSTMFusion::construct_lstm_fprop()
                     new_args.clear();
                 }
             }
-            ngraph::replace_node(m.match_root(), ht_output);
+            ngraph::replace_node(m.get_match_root(), ht_output);
             return true;
         };
     auto m = std::make_shared<pattern::Matcher>(ht, callback);
@@ -586,7 +576,7 @@ void ngraph::runtime::cpu::pass::RecurrentRNNFusion::construct_superfused_rnn_fp
             std::cout << "########## In Recurrent RNN super fusion ############ " << std::endl;
             std::cout << "Number of RNN's Matched: " << number_of_rnn_cell_matched << std::endl;
             std::cout << "matched_root: " << m.get_match_root()->get_name() << std::endl;
-            std::cout << "src_layer_node: " << scr_node[0]->get_name() << std::endl;
+            std::cout << "src_layer_node: " << scr_nodes[0]->get_name() << std::endl;
 
             // // we can fuse across different RNN layers only if SLC != DLC
             // for (size_t i=0; i< number_of_rnn_cell_matched; i++)
