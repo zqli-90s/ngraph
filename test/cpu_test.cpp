@@ -29,6 +29,7 @@
 #include "ngraph/op/batch_norm.hpp"
 #include "ngraph/op/get_output_element.hpp"
 #include "ngraph/op/parameter.hpp"
+#include "ngraph/pass/algebraic_simplification.hpp"
 #include "ngraph/pass/manager.hpp"
 #include "ngraph/pass/visualize_tree.hpp"
 #include "ngraph/runtime/cpu/pass/cpu_fusion.hpp"
@@ -66,13 +67,14 @@ TEST(cpu_test, unhandled_op)
 TEST(cpu_test, fuse_fprop_lstm)
 {
     pass::Manager pass_manager;
-    pass_manager.register_pass<pass::VisualizeTree>("lstm_fprop_before_fusion");
+    //pass_manager.register_pass<pass::VisualizeTree>("lstm_fprop_before_fusion");
     pass_manager.register_pass<runtime::cpu::pass::LSTMFusion>();
-    pass_manager.register_pass<pass::VisualizeTree>("lstm_fprop_fusion");
+   // pass_manager.register_pass<pass::VisualizeTree>("lstm_fprop_fusion");
     pass_manager.register_pass<runtime::cpu::pass::RNNFusion>();
+    pass_manager.register_pass<ngraph::pass::AlgebraicSimplification>();
     pass_manager.register_pass<runtime::cpu::pass::RecurrentRNNFusion>();
-    pass_manager.register_pass<pass::VisualizeTree>("lstm_fprop_rnn_fusion");
-    const string json_path = file_util::path_join(SERIALIZED_ZOO, "mxnet/3_lstm_cell_forward.json");
+    pass_manager.register_pass<pass::VisualizeTree>("lstm_fprop_rnn_fusion.pdf");
+    const string json_path = file_util::path_join(SERIALIZED_ZOO, "mxnet/60_timestep_1rnn_layer.json");
     const string json_string = file_util::read_file_to_string(json_path);
     stringstream ss(json_string);
     shared_ptr<Function> func = ngraph::deserialize(ss);
