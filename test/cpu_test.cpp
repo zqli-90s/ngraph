@@ -81,6 +81,7 @@ TEST(cpu_test, fuse_fprop_lstm)
     stringstream ss(json_string);
     shared_ptr<Function> func = ngraph::deserialize(ss);
     pass_manager.run_passes(func);
+}
 
 TEST(cpu_test, reverse_sequence_n2c3h4w2)
 {

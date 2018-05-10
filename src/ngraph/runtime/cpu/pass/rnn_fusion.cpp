@@ -586,35 +586,38 @@ void ngraph::runtime::cpu::pass::RecurrentRNNFusion::construct_superfused_rnn_fp
          weights_iter_label,
          bias_label,
          rnn_ht_label](pattern::RecurrentMatcher& m) {
-            auto scr_nodes = m.get_bound_nodes_for_pattern(src_layer_label);
+            auto src_nodes = m.get_bound_nodes_for_pattern(src_layer_label);
             auto rnn_ht_out_nodes = m.get_bound_nodes_for_pattern(rnn_ht_label);
             auto number_of_rnn_cell_matched = m.get_number_of_recurrent_matches();
             std::cout << "########## In Recurrent RNN super fusion ############ " << std::endl;
             std::cout << "Number of RNN's Matched: " << number_of_rnn_cell_matched << std::endl;
             std::cout << "matched_root: " << m.get_match_root()->get_name() << std::endl;
-            std::cout << "src_layer_node: " << scr_nodes[0]->get_name() << std::endl;
+            std::cout << "src_layer_node: " << src_nodes[0]->get_name() << std::endl;
 
             // // we can fuse across different RNN layers only if SLC == DLC
             for (size_t i=0; i< number_of_rnn_cell_matched; i++)
             {
                 if(src_nodes[i]->get_shape()[1] != rnn_ht_out_nodes[i]->get_shape()[1])
                 {
+                    std::cout << "Not fusing since the sizes dont match" <<std::endl;
                     return false;
                 }
             }
-            std::vector<std::shared_ptr<pattern::op::Label>> src_iter_labels{src_iter};
-            auto src_iter = compute_rnn_args(src_iter_labels, m, true);
 
-            std::vector<std::shared_ptr<pattern::op::Label>> weights_layer_labels{weights_layer};
-            auto weights_layer = compute_rnn_args(weights_layer_labels, m, true);
 
-            std::vector<std::shared_ptr<pattern::op::Label>> weights_iter_labels{weights_iter};
-            auto weights_iter = compute_rnn_args(weights_iter_labels, m, true);
-
-            std::vector<std::shared_ptr<pattern::op::Label>> src_layer_labels{src_layer};
+            std::vector<std::shared_ptr<pattern::op::Label>> src_layer_labels{src_layer_label};
             auto src_layer = compute_rnn_args(src_layer_labels, m, true);
 
-            return false;
+            std::vector<std::shared_ptr<pattern::op::Label>> src_iter_labels{src_iter_label};
+            auto src_iter = compute_rnn_args(src_iter_labels, m, true);
+
+            std::vector<std::shared_ptr<pattern::op::Label>> weights_layer_labels{weights_layer_label};
+            auto weights_layer = compute_rnn_args(weights_layer_labels, m, true);
+
+            std::vector<std::shared_ptr<pattern::op::Label>> weights_iter_labels{weights_iter_label};
+            auto weights_iter = compute_rnn_args(weights_iter_labels, m, true);
+
+            return true;
 
         };
 
