@@ -81,13 +81,13 @@ static bool simplify_concat(std::shared_ptr<Node> n)
     auto slice =
         std::make_shared<op::Slice>(lgoe, Coordinate{0, 0}, Coordinate{2, 1}, Strides{1, 1});
 
-    auto reshape_pred = [](std::shared_ptr<Node> r) {
-        return std::dynamic_pointer_cast<op::Reshape>(r) != nullptr;
-    };
+    // auto reshape_pred = [](std::shared_ptr<Node> r) {
+    //     return std::dynamic_pointer_cast<op::Reshape>(r) != nullptr;
+    // };
 
-    auto skip_reshape = std::make_shared<pattern::op::Skip>(slice, reshape_pred);
+    // auto skip_reshape = std::make_shared<pattern::op::Skip>(slice, reshape_pred);
 
-    auto matcher = std::make_shared<pattern::Matcher>(skip_reshape, nullptr);
+    auto matcher = std::make_shared<pattern::Matcher>(slice, nullptr);
 
     for (auto carg : n->get_arguments())
     {

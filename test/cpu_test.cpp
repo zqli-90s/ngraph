@@ -29,7 +29,6 @@
 #include "ngraph/op/batch_norm.hpp"
 #include "ngraph/op/get_output_element.hpp"
 #include "ngraph/op/parameter.hpp"
-#include "ngraph/pass/algebraic_simplification.hpp"
 #include "ngraph/op/reverse_sequence.hpp"
 #include "ngraph/pass/manager.hpp"
 #include "ngraph/pass/visualize_tree.hpp"
@@ -63,24 +62,6 @@ TEST(cpu_test, unhandled_op)
     auto f = make_shared<Function>(unhandled, op::ParameterVector{A});
     auto backend = runtime::Backend::create("CPU");
     ASSERT_THROW(backend->compile(f), ngraph_error);
-}
-
-
-TEST(cpu_test, fuse_fprop_lstm)
-{
-    pass::Manager pass_manager;
-    //pass_manager.register_pass<pass::VisualizeTree>("lstm_fprop_before_fusion");
-    pass_manager.register_pass<runtime::cpu::pass::LSTMFusion>();
-   // pass_manager.register_pass<pass::VisualizeTree>("lstm_fprop_fusion");
-    pass_manager.register_pass<runtime::cpu::pass::RNNFusion>();
-    pass_manager.register_pass<ngraph::pass::AlgebraicSimplification>();
-    pass_manager.register_pass<runtime::cpu::pass::RecurrentRNNFusion>();
-    pass_manager.register_pass<pass::VisualizeTree>("lstm_fprop_rnn_fusion.pdf");
-    const string json_path = file_util::path_join(SERIALIZED_ZOO, "mxnet/60_timestep_1rnn_layer.json");
-    const string json_string = file_util::read_file_to_string(json_path);
-    stringstream ss(json_string);
-    shared_ptr<Function> func = ngraph::deserialize(ss);
-    pass_manager.run_passes(func);
 }
 
 TEST(cpu_test, reverse_sequence_n2c3h4w2)
@@ -294,5 +275,4 @@ TEST(cpu_test, backwards_reverse_sequence_n4d2c3h2w2)
     auto df = autodiff::backprop_function(f);
     backend->call(df, {da, db}, {a, b, c});
     ASSERT_EQ(read_vector<int>(da), expected);
-
 }

@@ -32,6 +32,7 @@
 #include "ngraph/op/parameter.hpp"
 #include "ngraph/op/relu.hpp"
 #include "ngraph/op/sum.hpp"
+#include "ngraph/pass/algebraic_simplification.hpp"
 #include "ngraph/pass/graph_rewrite.hpp"
 #include "ngraph/pass/manager.hpp"
 #include "ngraph/pass/reshape_elimination.hpp"
@@ -1372,7 +1373,7 @@ static void cpu_vs_interpreter_rnn_fusion(const std::string& file_name)
         cpu_results.push_back(result);
     }
 
-    // Interpreter backend to compute the result using unfused graph
+    // // Interpreter backend to compute the result using unfused graph
     auto make_interpreter_function = [file_name]() {
         const string json_path = file_util::path_join(SERIALIZED_ZOO, file_name);
         const string json_string = file_util::read_file_to_string(json_path);
@@ -1424,4 +1425,22 @@ TEST(cpu_fusion, rnn_fusion_inter_vs_cpu_2rnn_layer_3lstm_cell)
 {
     const std::string file_name("mxnet/2rnn_layer_3lstm_cell.json");
     cpu_vs_interpreter_rnn_fusion(file_name);
+}
+
+TEST(cpu_fusion, fuse_multi_layer_rnn)
+{
+    pass::Manager pass_manager;
+    pass_manager.register_pass<runtime::cpu::pass::LSTMFusion>();
+    pass_manager.register_pass<runtime::cpu::pass::RNNFusion>();
+    pass_manager.register_pass<ngraph::pass::AlgebraicSimplification>();
+    pass_manager.register_pass<runtime::cpu::pass::RecurrentRNNFusion>();
+    pass_manager.register_pass<pass::VisualizeTree>("lstm_fprop_rnn_fusion.pdf");
+    const string json_path =
+        file_util::path_join(SERIALIZED_ZOO, "mxnet/60_timestep_1rnn_layer.json");
+    const string json_string = file_util::read_file_to_string(json_path);
+    stringstream ss(json_string);
+    shared_ptr<Function> func = ngraph::deserialize(ss);
+    pass_manager.run_passes(func);
+    auto rnn_ops = get_ops_of_type<op::Rnn>(func);
+    EXPECT_EQ(rnn_ops.size(), 1);
 }
