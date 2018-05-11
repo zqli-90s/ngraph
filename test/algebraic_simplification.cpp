@@ -30,6 +30,7 @@
 #include "ngraph/op/concat.hpp"
 #include "ngraph/op/constant.hpp"
 #include "ngraph/op/divide.hpp"
+#include "ngraph/op/divide.hpp"
 #include "ngraph/op/exp.hpp"
 #include "ngraph/op/get_output_element.hpp"
 #include "ngraph/op/log.hpp"
@@ -38,8 +39,6 @@
 #include "ngraph/op/product.hpp"
 #include "ngraph/op/sqrt.hpp"
 #include "ngraph/op/subtract.hpp"
-#include "ngraph/op/subtract.hpp"
-#include "ngraph/op/sum.hpp"
 #include "ngraph/op/sum.hpp"
 #include "ngraph/pass/algebraic_simplification.hpp"
 #include "ngraph/pass/graph_rewrite.hpp"
@@ -379,74 +378,6 @@ TEST(algebraic_simplification, multiply_sum_negative)
     ASSERT_EQ(f_sum, sum_fconst1);
 }
 
-TEST(algebraic_simplification, log_neg_neg)
-{
-    auto a = make_shared<op::Parameter>(element::f32, Shape{96, 100});
-    auto b = make_shared<op::Parameter>(element::f32, Shape{96, 100});
-    auto exp_a = make_shared<op::Exp>(a);
-    auto div = exp_a / b;
-    auto log_div = make_shared<op::Log>(div);
-
-    auto neg_inner = make_shared<op::Negative>(log_div);
-    auto neg2 = make_shared<op::Negative>(neg_inner);
-    auto neg3 = make_shared<op::Negative>(neg2);
-    auto neg4 = make_shared<op::Negative>(neg3);
-
-    pass::Manager pass_manager;
-    pass_manager.register_pass<pass::AlgebraicSimplification>();
-
-    auto f = std::make_shared<Function>(ngraph::NodeVector{neg4}, op::ParameterVector{a, b});
-    pass_manager.run_passes(f);
-    auto sub = std::dynamic_pointer_cast<op::Subtract>(neg_inner->get_argument(0));
-    ASSERT_TRUE(sub != nullptr);
-    ASSERT_EQ(sub->get_argument(0), a);
-    auto new_log = std::dynamic_pointer_cast<op::Log>(sub->get_argument(1));
-    ASSERT_TRUE(new_log != nullptr);
-    ASSERT_EQ(new_log->get_argument(0), b);
-}
-
-TEST(algebraic_simplification, log_no_exp)
-{
-    auto a = make_shared<op::Parameter>(element::f32, Shape{96, 100});
-    auto b = make_shared<op::Parameter>(element::f32, Shape{96, 100});
-    auto abs_a = make_shared<op::Abs>(a);
-    auto div = abs_a / b;
-    auto log_div = make_shared<op::Log>(div);
-
-    auto neg_inner = make_shared<op::Negative>(log_div);
-    auto neg2 = make_shared<op::Negative>(neg_inner);
-    auto neg3 = make_shared<op::Negative>(neg2);
-    auto neg4 = make_shared<op::Negative>(neg3);
-
-    pass::Manager pass_manager;
-    pass_manager.register_pass<pass::AlgebraicSimplification>();
-
-    auto f = std::make_shared<Function>(ngraph::NodeVector{neg4}, op::ParameterVector{a, b});
-    pass_manager.run_passes(f);
-    ASSERT_EQ(neg_inner->get_argument(0), log_div);
-}
-
-TEST(algebraic_simplification, log_no_divide)
-{
-    auto a = make_shared<op::Parameter>(element::f32, Shape{96, 100});
-    auto b = make_shared<op::Parameter>(element::f32, Shape{96, 100});
-    auto exp_a = make_shared<op::Exp>(a);
-    auto mul = exp_a * b;
-    auto log_mul = make_shared<op::Log>(mul);
-
-    auto neg_inner = make_shared<op::Negative>(log_mul);
-    auto neg2 = make_shared<op::Negative>(neg_inner);
-    auto neg3 = make_shared<op::Negative>(neg2);
-    auto neg4 = make_shared<op::Negative>(neg3);
-
-    pass::Manager pass_manager;
-    pass_manager.register_pass<pass::AlgebraicSimplification>();
-
-    auto f = std::make_shared<Function>(ngraph::NodeVector{neg4}, op::ParameterVector{a, b});
-    pass_manager.run_passes(f);
-    ASSERT_EQ(neg_inner->get_argument(0), log_mul);
-}
-
 TEST(algebraic_simplification, concat_reshape_slice)
 {
     auto a = make_shared<op::Parameter>(element::f32, Shape{96, 100});
@@ -471,7 +402,9 @@ TEST(algebraic_simplification, concat_reshape_slice)
 
     auto f = std::make_shared<Function>(ngraph::NodeVector{concat}, op::ParameterVector{a});
     pass_manager.run_passes(f);
-    ASSERT_EQ(f->get_results().at(0)->get_argument(0), goe);
+    auto reshape = std::dynamic_pointer_cast<op::Reshape>(f->get_results().at(0)->get_argument(0));
+    ASSERT_TRUE(reshape);
+    ASSERT_EQ(reshape->get_shape(), concat->get_shape());
 }
 
 TEST(algebraic_simplification, concat_slice)
@@ -540,4 +473,72 @@ TEST(algebraic_simplification, concat_different_goes)
     auto f = std::make_shared<Function>(ngraph::NodeVector{concat}, op::ParameterVector{a});
     pass_manager.run_passes(f);
     ASSERT_EQ(f->get_results().at(0)->get_argument(0), concat);
+}
+
+TEST(algebraic_simplification, log_neg_neg)
+{
+    auto a = make_shared<op::Parameter>(element::f32, Shape{96, 100});
+    auto b = make_shared<op::Parameter>(element::f32, Shape{96, 100});
+    auto exp_a = make_shared<op::Exp>(a);
+    auto div = exp_a / b;
+    auto log_div = make_shared<op::Log>(div);
+
+    auto neg_inner = make_shared<op::Negative>(log_div);
+    auto neg2 = make_shared<op::Negative>(neg_inner);
+    auto neg3 = make_shared<op::Negative>(neg2);
+    auto neg4 = make_shared<op::Negative>(neg3);
+
+    pass::Manager pass_manager;
+    pass_manager.register_pass<pass::AlgebraicSimplification>();
+
+    auto f = std::make_shared<Function>(ngraph::NodeVector{neg4}, op::ParameterVector{a, b});
+    pass_manager.run_passes(f);
+    auto sub = std::dynamic_pointer_cast<op::Subtract>(neg_inner->get_argument(0));
+    ASSERT_TRUE(sub != nullptr);
+    ASSERT_EQ(sub->get_argument(0), a);
+    auto new_log = std::dynamic_pointer_cast<op::Log>(sub->get_argument(1));
+    ASSERT_TRUE(new_log != nullptr);
+    ASSERT_EQ(new_log->get_argument(0), b);
+}
+
+TEST(algebraic_simplification, log_no_exp)
+{
+    auto a = make_shared<op::Parameter>(element::f32, Shape{96, 100});
+    auto b = make_shared<op::Parameter>(element::f32, Shape{96, 100});
+    auto abs_a = make_shared<op::Abs>(a);
+    auto div = abs_a / b;
+    auto log_div = make_shared<op::Log>(div);
+
+    auto neg_inner = make_shared<op::Negative>(log_div);
+    auto neg2 = make_shared<op::Negative>(neg_inner);
+    auto neg3 = make_shared<op::Negative>(neg2);
+    auto neg4 = make_shared<op::Negative>(neg3);
+
+    pass::Manager pass_manager;
+    pass_manager.register_pass<pass::AlgebraicSimplification>();
+
+    auto f = std::make_shared<Function>(ngraph::NodeVector{neg4}, op::ParameterVector{a, b});
+    pass_manager.run_passes(f);
+    ASSERT_EQ(neg_inner->get_argument(0), log_div);
+}
+
+TEST(algebraic_simplification, log_no_divide)
+{
+    auto a = make_shared<op::Parameter>(element::f32, Shape{96, 100});
+    auto b = make_shared<op::Parameter>(element::f32, Shape{96, 100});
+    auto exp_a = make_shared<op::Exp>(a);
+    auto mul = exp_a * b;
+    auto log_mul = make_shared<op::Log>(mul);
+
+    auto neg_inner = make_shared<op::Negative>(log_mul);
+    auto neg2 = make_shared<op::Negative>(neg_inner);
+    auto neg3 = make_shared<op::Negative>(neg2);
+    auto neg4 = make_shared<op::Negative>(neg3);
+
+    pass::Manager pass_manager;
+    pass_manager.register_pass<pass::AlgebraicSimplification>();
+
+    auto f = std::make_shared<Function>(ngraph::NodeVector{neg4}, op::ParameterVector{a, b});
+    pass_manager.run_passes(f);
+    ASSERT_EQ(neg_inner->get_argument(0), log_mul);
 }
