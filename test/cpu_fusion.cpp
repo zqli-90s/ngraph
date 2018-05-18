@@ -52,6 +52,7 @@
 #include "ngraph/runtime/cpu/pass/cpu_post_layout_optimizations.hpp"
 #include "ngraph/runtime/cpu/pass/cpu_rnn_mat_fusion.hpp"
 #include "ngraph/runtime/cpu/pass/cpu_workspace_insertion.hpp"
+#include "ngraph/runtime/cpu/pass/lstm_fusion.hpp"
 #include "ngraph/runtime/cpu/pass/rnn_fusion.hpp"
 #include "ngraph/serializer.hpp"
 #include "ngraph/util.hpp"
@@ -1301,6 +1302,39 @@ TEST(cpu_fusion, rnn_fprop_1_lstm_cell)
 
     EXPECT_TRUE(test::all_close(expected_ht, read_vector<float>(result_ht)));
     EXPECT_TRUE(test::all_close(expected_ct, read_vector<float>(result_ct)));
+}
+
+template <typename T>
+size_t _count_ops_of_type(std::shared_ptr<ngraph::Function> f)
+{
+    size_t count = 0;
+    for (auto op : f->get_ops())
+    {
+        if (std::dynamic_pointer_cast<T>(op))
+        {
+            std::cout << " count_ops_of_type : " << op->get_name() << std::endl;
+            count++;
+        }
+    }
+
+    return count;
+}
+
+TEST(cpu_fusion, fuse_lstm_cells)
+{
+    pass::Manager pass_manager;
+    pass_manager.register_pass<runtime::cpu::pass::LSTMFusion>();
+    pass_manager.register_pass<pass::VisualizeTree>("lstm_fusion2.pdf");
+    pass_manager.register_pass<runtime::cpu::pass::LSTMFuseInput>();
+    pass_manager.register_pass<pass::VisualizeTree>("lstm_fuseinput2.pdf");
+    const string json_path =
+        file_util::path_join(SERIALIZED_ZOO, "mxnet/2rnn_layer_3lstm_cell.json");
+    const string json_string = file_util::read_file_to_string(json_path);
+    stringstream ss(json_string);
+    shared_ptr<Function> func = ngraph::deserialize(ss);
+    pass_manager.run_passes(func);
+    size_t count = _count_ops_of_type<op::Lstm>(func);
+    EXPECT_EQ(count, 6);
 }
 
 TEST(cpu_fusion, fuse_2_layer_rnn)

@@ -23,18 +23,29 @@ using namespace ngraph;
 
 shared_ptr<Node> op::Lstm::copy_with_new_args(const NodeVector& new_args) const
 {
-    if (new_args.size() != 7)
+    if (!m_mkldnn_flag)
     {
-        throw ngraph_error("Incorrect number of new arguments");
+        if (new_args.size() != 7)
+        {
+            throw ngraph_error("Incorrect number of new arguments");
+        }
+        return make_shared<Lstm>(new_args.at(0),
+                                 new_args.at(1),
+                                 new_args.at(2),
+                                 new_args.at(3),
+                                 new_args.at(4),
+                                 new_args.at(5),
+                                 new_args.at(6));
     }
-
-    return make_shared<Lstm>(new_args.at(0),
-                             new_args.at(1),
-                             new_args.at(2),
-                             new_args.at(3),
-                             new_args.at(4),
-                             new_args.at(5),
-                             new_args.at(6));
+    else
+    {
+        if (new_args.size() != 5 && m_mkldnn_flag)
+        {
+            throw ngraph_error("Incorrect number of new arguments");
+        }
+        return make_shared<Lstm>(
+            new_args.at(0), new_args.at(1), new_args.at(2), new_args.at(3), new_args.at(4));
+    }
 }
 
 op::Lstm::Lstm(std::shared_ptr<Node> input_xt_1,
@@ -62,6 +73,7 @@ op::Lstm::Lstm(std::shared_ptr<Node> input_xt_1,
     , m_num_cell_states(2)
     , m_direction(1)
     , m_num_fused_layers(1)
+    , m_mkldnn_flag(false)
 {
     if (input_xt_1->get_shape().size() != i2h_weights->get_shape().size())
     {
@@ -123,6 +135,7 @@ op::Lstm::Lstm(std::shared_ptr<Node> src_layer,
     , m_num_cell_states(2)
     , m_direction(1)
     , m_num_fused_layers(1)
+    , m_mkldnn_flag(true)
 {
     if (src_layer->get_shape().size() != weights_layer->get_shape().size())
     {

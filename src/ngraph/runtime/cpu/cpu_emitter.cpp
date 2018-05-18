@@ -374,7 +374,11 @@ namespace ngraph
             void CPU_Emitter::EMITTER_DECL(ngraph::op::Lstm)
             {
                 const ngraph::op::Lstm* lstm_node = static_cast<const ngraph::op::Lstm*>(node);
-
+                if (args.size() != 5 || !lstm_node->get_mkldnn_flag())
+                {
+                    throw ngraph_error(
+                        "Lstm op doesnt have the required number of inputs to emit MKLDNN kernel");
+                }
                 const int src_sequence_length_max = lstm_node->get_src_sequence_length();
                 const int rnn_direction = lstm_node->get_direction();
                 const int num_of_fused_rnn_layers = lstm_node->get_num_fused_layers();

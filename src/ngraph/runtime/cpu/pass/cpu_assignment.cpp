@@ -503,12 +503,6 @@ namespace ngraph
                 template <>
                 void CPUAssignment::ASSIGN_DECL(ngraph::op::Lstm)
                 {
-                    if (node->get_arguments().size() != 5)
-                    {
-                        throw ngraph_error(
-                            "Number of inputs to Lstm op in cpu_assignment pass is not equal to "
-                            "5.");
-                    }
                     auto src_layer_rank = node->get_input_shape(0).size();
                     auto src_iter_rank = node->get_input_shape(1).size();
                     auto weights_layer_rank = node->get_input_shape(2).size();
