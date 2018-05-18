@@ -46,16 +46,40 @@ namespace ngraph
                  std::shared_ptr<Node> hidden_state_ht_1,
                  std::shared_ptr<Node> h2h_weights,
                  std::shared_ptr<Node> i2h_bias,
-                 std::shared_ptr<Node> h2h_bias,
+		 std::shared_ptr<Node> h2h_bias,
                  std::shared_ptr<Node> cell_state_ct_1);
+
+            Lstm(std::shared_ptr<Node> src_layer,
+                 std::shared_ptr<Node> src_iter,
+                 std::shared_ptr<Node> weights_layer,
+                 std::shared_ptr<Node> weights_iter,
+                 std::shared_ptr<Node> bias);
             Shape get_output_tensor_shape() const { return m_output_tensor_shape; }
             Shape get_output_cell_shape() const { return m_output_cell_shape; }
+            int get_num_timesteps() const { return m_num_timesteps; }
+            int get_src_sequence_length() const { return m_src_sequence_length; }
+            int get_gates_per_cell() const { return m_num_gates_per_cell; }
+            int get_batch_size() const { return m_batch_size; }
+            int get_src_layer_feature_size() const { return m_src_layer_feature_size; }
+            int get_src_iter_feature_size() const { return m_src_iter_feature_size; }
+            int get_num_cell_states() const { return m_num_cell_states; }
+            int get_direction() const { return m_direction; }
+            int get_num_fused_layers() const { return m_num_fused_layers; }
             virtual std::shared_ptr<Node>
                 copy_with_new_args(const NodeVector& new_args) const override;
 
         private:
             Shape m_output_tensor_shape;
             Shape m_output_cell_shape;
+            int m_num_timesteps;
+            int m_num_gates_per_cell;
+            int m_src_sequence_length;
+            int m_batch_size;
+            int m_src_layer_feature_size;
+            int m_src_iter_feature_size;
+            int m_num_cell_states;
+            int m_direction;
+            int m_num_fused_layers;
         };
     }
 }

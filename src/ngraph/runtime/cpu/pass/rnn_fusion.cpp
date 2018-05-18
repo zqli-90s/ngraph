@@ -169,12 +169,13 @@ void ngraph::runtime::cpu::pass::LSTMFusion::construct_lstm_fprop()
             {
                 NGRAPH_DEBUG << "matched_node_shape: " << join(m.get_match_root()->get_shape())
                              << " hidden state shape: " << join(pattern_map[param2_1]->get_shape());
+
                 lstm = std::make_shared<op::Lstm>(pattern_map[param1_1],
                                                   pattern_map[param1_2],
                                                   pattern_map[param2_1],
                                                   pattern_map[param2_2],
-                                                  pattern_map[bias1],
-                                                  pattern_map[bias2],
+                                                  bias1,
+						  bias2,
                                                   pattern_map[ct_1]);
             }
             else
@@ -185,8 +186,8 @@ void ngraph::runtime::cpu::pass::LSTMFusion::construct_lstm_fprop()
                                                   pattern_map[param2_2],
                                                   pattern_map[param1_1],
                                                   pattern_map[param1_2],
-                                                  pattern_map[bias2],
-                                                  pattern_map[bias1],
+                                                  bias2,
+						  bias1,
                                                   pattern_map[ct_1]);
             }
 
@@ -312,8 +313,8 @@ void ngraph::runtime::cpu::pass::RNNFusion::construct_rnn_lstm_fprop()
     auto bias2 = std::make_shared<pattern::op::Label>(element::f32, Shape{400});
     auto ct_1 = std::make_shared<pattern::op::Label>(element::f32, Shape{32, 100});
 
-    auto lstm =
-        std::make_shared<op::Lstm>(xt, weights_i2h, rpattern_ht_1, weights_h2h, bias1, bias2, ct_1);
+    auto lstm = std::make_shared<op::Lstm>(
+        xt, weights_i2h, rpattern_ht_1, weights_h2h, bias1, bias2, ct_1);
     auto goe = std::make_shared<op::GetOutputElement>(lstm, 0);
     auto lstm_node_label = std::make_shared<pattern::op::Label>(goe, nullptr, NodeVector{goe});
 
@@ -323,7 +324,7 @@ void ngraph::runtime::cpu::pass::RNNFusion::construct_rnn_lstm_fprop()
                                                           rpattern_ht_1,
                                                           weights_i2h,
                                                           bias1,
-                                                          bias2,
+							  bias2,
                                                           ct_1](pattern::RecurrentMatcher& m) {
 
         NGRAPH_DEBUG << " In recurrent RNN fusion callback";
@@ -372,9 +373,8 @@ void ngraph::runtime::cpu::pass::RNNFusion::construct_rnn_lstm_fprop()
 
         std::vector<std::shared_ptr<pattern::op::Label>> weights_iter_labels{weights_h2h};
         auto weights_iter = compute_rnn_args(weights_iter_labels, m);
-
-        auto bias_i2h_label = m.get_bound_nodes_for_pattern(bias2);
-        auto bias_h2h_label = m.get_bound_nodes_for_pattern(bias1);
+        auto bias_i2h_label = m.get_bound_nodes_for_pattern(bias1);
+        auto bias_h2h_label = m.get_bound_nodes_for_pattern(bias2);
         auto bias = std::make_shared<op::Add>(bias_i2h_label[0], bias_h2h_label[0]);
 
         auto num_of_lstm_matched = m.get_number_of_recurrent_matches();

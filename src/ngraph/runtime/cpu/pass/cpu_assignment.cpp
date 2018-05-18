@@ -39,6 +39,7 @@
 #include "ngraph/runtime/cpu/op/conv_relu.hpp"
 #include "ngraph/runtime/cpu/op/max_pool_with_indices.hpp"
 #include "ngraph/runtime/cpu/op/rnn.hpp"
+#include "ngraph/runtime/cpu/op/lstm.hpp"
 #include "ngraph/runtime/cpu/op/sigmoid.hpp"
 
 using namespace std;
@@ -500,6 +501,29 @@ namespace ngraph
                 }
 
                 template <>
+                void CPUAssignment::ASSIGN_DECL(ngraph::op::Lstm)
+                {
+                    auto input_xt = node->get_input_shape(0).size();
+                    auto i2h_weigh_rank = node->get_input_shape(1).size();
+                    auto hidden_ht_1_rank = node->get_input_shape(2).size();
+                    auto h2h_weigh_rank = node->get_input_shape(3).size();
+                    auto bias_rank = node->get_input_shape(4).size();
+                    auto cell_state_rank = node->get_input_shape(5).size();                                        
+                    if ((input_xt == 2 && i2h_weigh_rank == 2 && hidden_ht_1_rank == 2 &&
+                         h2h_weigh_rank == 2 && bias_rank == 1
+                         && cell_state_rank == 2 &&
+                         node->get_input_element_type(0) == element::f32 &&
+                         node->get_input_element_type(1) == element::f32))
+                    {
+                        auto lstm_node = static_cast<op::Lstm*>(node);
+                        auto op_annotations =
+                            std::make_shared<ngraph::runtime::cpu::CPUOpAnnotations>();
+                        op_annotations->set_mkldnn_op(true);
+                        lstm_node->set_op_annotations(op_annotations);
+                    }
+                }
+
+                template <>
                 void CPUAssignment::ASSIGN_DECL(ngraph::op::Rnn)
                 {
                     auto src_layer_rank = node->get_input_shape(0).size();
@@ -564,6 +588,7 @@ static const runtime::cpu::pass::AssignOpMap s_dispatcher{
     {TI(ngraph::op::Sigmoid), &runtime::cpu::pass::CPUAssignment::assign<ngraph::op::Sigmoid>},
     {TI(ngraph::op::SigmoidBackprop),
      &runtime::cpu::pass::CPUAssignment::assign<ngraph::op::SigmoidBackprop>},
+    {TI(ngraph::op::Lstm), &runtime::cpu::pass::CPUAssignment::assign<ngraph::op::Lstm>},
     {TI(ngraph::op::Rnn), &runtime::cpu::pass::CPUAssignment::assign<ngraph::op::Rnn>},
 };
 
