@@ -33,7 +33,7 @@ shared_ptr<Node> op::Lstm::copy_with_new_args(const NodeVector& new_args) const
                              new_args.at(2),
                              new_args.at(3),
                              new_args.at(4),
-			     new_args.at(5),
+                             new_args.at(5),
                              new_args.at(6));
 }
 
@@ -42,7 +42,7 @@ op::Lstm::Lstm(std::shared_ptr<Node> input_xt_1,
                std::shared_ptr<Node> hidden_state_ht_1,
                std::shared_ptr<Node> h2h_weights,
                std::shared_ptr<Node> i2h_bias,
-	       std::shared_ptr<Node> h2h_bias,
+               std::shared_ptr<Node> h2h_bias,
                std::shared_ptr<Node> cell_state_ct_1)
     : RequiresTensorViewArgs("Lstm",
                              {input_xt_1,
@@ -50,7 +50,7 @@ op::Lstm::Lstm(std::shared_ptr<Node> input_xt_1,
                               hidden_state_ht_1,
                               h2h_weights,
                               i2h_bias,
-			      h2h_bias,
+                              h2h_bias,
                               cell_state_ct_1})
     , m_output_tensor_shape(hidden_state_ht_1->get_shape())
     , m_output_cell_shape(cell_state_ct_1->get_shape())
@@ -63,7 +63,6 @@ op::Lstm::Lstm(std::shared_ptr<Node> input_xt_1,
     , m_direction(1)
     , m_num_fused_layers(1)
 {
-
     if (input_xt_1->get_shape().size() != i2h_weights->get_shape().size())
     {
         throw ngraph_error("input_xt_1 and i2h weights size dont match");

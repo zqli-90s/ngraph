@@ -37,9 +37,9 @@
 #include "ngraph/runtime/cpu/op/batch_norm_relu.hpp"
 #include "ngraph/runtime/cpu/op/conv_bias.hpp"
 #include "ngraph/runtime/cpu/op/conv_relu.hpp"
+#include "ngraph/runtime/cpu/op/lstm.hpp"
 #include "ngraph/runtime/cpu/op/max_pool_with_indices.hpp"
 #include "ngraph/runtime/cpu/op/rnn.hpp"
-#include "ngraph/runtime/cpu/op/lstm.hpp"
 #include "ngraph/runtime/cpu/op/sigmoid.hpp"
 
 using namespace std;
@@ -503,15 +503,19 @@ namespace ngraph
                 template <>
                 void CPUAssignment::ASSIGN_DECL(ngraph::op::Lstm)
                 {
-                    auto input_xt = node->get_input_shape(0).size();
-                    auto i2h_weigh_rank = node->get_input_shape(1).size();
-                    auto hidden_ht_1_rank = node->get_input_shape(2).size();
-                    auto h2h_weigh_rank = node->get_input_shape(3).size();
+                    if (node->get_arguments().size() != 5)
+                    {
+                        throw ngraph_error(
+                            "Number of inputs to Lstm op in cpu_assignment pass is not equal to "
+                            "5.");
+                    }
+                    auto src_layer_rank = node->get_input_shape(0).size();
+                    auto src_iter_rank = node->get_input_shape(1).size();
+                    auto weights_layer_rank = node->get_input_shape(2).size();
+                    auto weights_iter_rank = node->get_input_shape(3).size();
                     auto bias_rank = node->get_input_shape(4).size();
-                    auto cell_state_rank = node->get_input_shape(5).size();                                        
-                    if ((input_xt == 2 && i2h_weigh_rank == 2 && hidden_ht_1_rank == 2 &&
-                         h2h_weigh_rank == 2 && bias_rank == 1
-                         && cell_state_rank == 2 &&
+                    if ((src_layer_rank == 2 && src_iter_rank == 2 && weights_layer_rank == 2 &&
+                         weights_iter_rank == 2 && bias_rank == 1 &&
                          node->get_input_element_type(0) == element::f32 &&
                          node->get_input_element_type(1) == element::f32))
                     {

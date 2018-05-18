@@ -46,7 +46,7 @@ namespace ngraph
                  std::shared_ptr<Node> hidden_state_ht_1,
                  std::shared_ptr<Node> h2h_weights,
                  std::shared_ptr<Node> i2h_bias,
-		 std::shared_ptr<Node> h2h_bias,
+                 std::shared_ptr<Node> h2h_bias,
                  std::shared_ptr<Node> cell_state_ct_1);
 
             Lstm(std::shared_ptr<Node> src_layer,

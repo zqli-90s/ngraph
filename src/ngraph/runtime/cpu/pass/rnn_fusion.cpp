@@ -174,8 +174,8 @@ void ngraph::runtime::cpu::pass::LSTMFusion::construct_lstm_fprop()
                                                   pattern_map[param1_2],
                                                   pattern_map[param2_1],
                                                   pattern_map[param2_2],
-                                                  bias1,
-						  bias2,
+                                                  pattern_map[bias1],
+                                                  pattern_map[bias2],
                                                   pattern_map[ct_1]);
             }
             else
@@ -186,8 +186,8 @@ void ngraph::runtime::cpu::pass::LSTMFusion::construct_lstm_fprop()
                                                   pattern_map[param2_2],
                                                   pattern_map[param1_1],
                                                   pattern_map[param1_2],
-                                                  bias2,
-						  bias1,
+                                                  pattern_map[bias2],
+                                                  pattern_map[bias1],
                                                   pattern_map[ct_1]);
             }
 
@@ -313,8 +313,8 @@ void ngraph::runtime::cpu::pass::RNNFusion::construct_rnn_lstm_fprop()
     auto bias2 = std::make_shared<pattern::op::Label>(element::f32, Shape{400});
     auto ct_1 = std::make_shared<pattern::op::Label>(element::f32, Shape{32, 100});
 
-    auto lstm = std::make_shared<op::Lstm>(
-        xt, weights_i2h, rpattern_ht_1, weights_h2h, bias1, bias2, ct_1);
+    auto lstm =
+        std::make_shared<op::Lstm>(xt, weights_i2h, rpattern_ht_1, weights_h2h, bias1, bias2, ct_1);
     auto goe = std::make_shared<op::GetOutputElement>(lstm, 0);
     auto lstm_node_label = std::make_shared<pattern::op::Label>(goe, nullptr, NodeVector{goe});
 
@@ -324,7 +324,7 @@ void ngraph::runtime::cpu::pass::RNNFusion::construct_rnn_lstm_fprop()
                                                           rpattern_ht_1,
                                                           weights_i2h,
                                                           bias1,
-							  bias2,
+                                                          bias2,
                                                           ct_1](pattern::RecurrentMatcher& m) {
 
         NGRAPH_DEBUG << " In recurrent RNN fusion callback";

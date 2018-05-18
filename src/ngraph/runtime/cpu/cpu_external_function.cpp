@@ -131,6 +131,7 @@
 #include "ngraph/runtime/cpu/pass/cpu_post_layout_optimizations.hpp"
 #include "ngraph/runtime/cpu/pass/cpu_shuffle_folding.hpp"
 #include "ngraph/runtime/cpu/pass/cpu_workspace_insertion.hpp"
+#include "ngraph/runtime/cpu/pass/lstm_fusion.hpp"
 #include "ngraph/runtime/cpu/pass/rnn_fusion.hpp"
 
 #ifdef NGRAPH_DISTRIBUTED
@@ -323,7 +324,8 @@ void runtime::cpu::CPU_ExternalFunction::compile()
 
     pass_manager.register_pass<ngraph::pass::NopElimination>();
     pass_manager.register_pass<runtime::cpu::pass::LSTMFusion>();
-    pass_manager.register_pass<runtime::cpu::pass::RNNFusion>();
+    //pass_manager.register_pass<runtime::cpu::pass::RNNFusion>();
+    pass_manager.register_pass<runtime::cpu::pass::LSTMFuseInput>();
     pass_manager.register_pass<ngraph::pass::AlgebraicSimplification>();
     pass_manager.register_pass<ngraph::pass::CommonSubexpressionElimination>();
     pass_manager.register_pass<ngraph::pass::CoreFusion>();
