@@ -547,23 +547,23 @@ void ngraph::runtime::cpu::pass::RNNFusion::construct_rnn_lstm_fprop()
                 if (goe_node->get_n() == 0)
                 {
                     goe_0 = goes->get_node();
-                }
-            }
-
-            for (auto goe0_user : goe_0->get_users())
-            {
-                if (std::find(lstm_nodes.begin(), lstm_nodes.end(), goe0_user) ==
-                        lstm_nodes.end() &&
-                    !is_unreachable(goe0_user))
-                {
-                    lstm_goe0_user.insert(goe0_user);
-                    map_goe_to_lstm_slices[goe_0] = ht_slice_per_timestep[index];
-                    NGRAPH_DEBUG << "ht_slice: " << ht_slice_per_timestep[index]->get_name()
-                                 << " goe0_user " << goe0_user->get_name() << " ";
+                    // if its a first GOE0{ht}, then replace all its consumers with GOE0
+                    // as its new input
+                    for (auto goe0_user : goe_0->get_users())
+                    {
+                        if (std::find(lstm_nodes.begin(), lstm_nodes.end(), goe0_user) ==
+                                lstm_nodes.end() &&
+                            !is_unreachable(goe0_user))
+                        {
+                            lstm_goe0_user.insert(goe0_user);
+                            map_goe_to_lstm_slices[goe_0] = ht_slice_per_timestep[index];
+                            NGRAPH_DEBUG << "ht_slice: " << ht_slice_per_timestep[index]->get_name()
+                                         << " goe0_user " << goe0_user->get_name() << " ";
+                        }
+                    }
                 }
             }
         }
-
         //now go through the lstm consumers and replace them with the slice
         for (auto& node : lstm_goe0_user)
         {
@@ -577,6 +577,7 @@ void ngraph::runtime::cpu::pass::RNNFusion::construct_rnn_lstm_fprop()
                 }
             }
         }
+
         NGRAPH_DEBUG << "End of recurrent fusion call back "
                      << "matched_node: " << m.get_match_root()->get_name();
         return true;
