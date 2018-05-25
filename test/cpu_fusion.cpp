@@ -36,6 +36,7 @@
 #include "ngraph/pass/manager.hpp"
 #include "ngraph/pass/reshape_elimination.hpp"
 #include "ngraph/pass/visualize_tree.hpp"
+#include "ngraph/pass/serialize.cpp"
 #include "ngraph/pattern/matcher.hpp"
 #include "ngraph/pattern/op/label.hpp"
 #include "ngraph/pattern/op/skip.hpp"
@@ -1505,4 +1506,20 @@ TEST(cpu_fusion, rnn_fusion_inter_vs_cpu_2rnn_layer_3lstm_cell)
     {
         EXPECT_TRUE(test::all_close(cpu_results.at(i), int_results.at(i), 1.0e-4f, 1.0e-4f));
     }
+}
+
+TEST(cpu_fusion, gen_json)
+{
+    pass::Manager pass_manager;
+    pass_manager.register_pass<runtime::cpu::pass::LSTMFusion>();
+    pass_manager.register_pass<ngraph::pass::Serialization>("lstm_fusion.json");
+    pass_manager.register_pass<runtime::cpu::pass::RNNFusion>();
+    pass_manager.register_pass<ngraph::pass::Serialization>("rnn_fusion.json");
+    pass_manager.register_pass<runtime::cpu::pass::ConcatInputs>();
+    const string json_path =
+        file_util::path_join(SERIALIZED_ZOO, "mxnet/Sockeye_Seq2Seq_forward.json");
+    const string json_string = file_util::read_file_to_string(json_path);
+    stringstream ss(json_string);
+    shared_ptr<Function> func = ngraph::deserialize(ss);
+    pass_manager.run_passes(func);
 }
