@@ -194,7 +194,7 @@ vector<char> codegen::file_util::read_file_contents(const string& path)
     size_t remainder = file_size;
     size_t offset = 0;
     while (f && remainder > 0) {
-        size_t rc = fread(&p[offset], 1, remainder, f);
+        size_t rc = fread(&p[offset], 1, remainder, f.get());
         offset += rc;
         remainder -= rc;
     }
