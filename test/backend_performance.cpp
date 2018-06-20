@@ -24,7 +24,10 @@
 #include "ngraph/codegen/execution_engine.hpp"
 #include "ngraph/file_util.hpp"
 #include "ngraph/log.hpp"
+#include "ngraph/ngraph.hpp"
 #include "ngraph/op/concat.hpp"
+#include "ngraph/pass/manager.hpp"
+#include "ngraph/pass/visualize_tree.hpp"
 #include "ngraph/runtime/backend.hpp"
 #include "ngraph/serializer.hpp"
 #include "ngraph/util.hpp"
@@ -89,6 +92,66 @@ TEST(benchmark, mxnet_sockeye_seq2seq_backward)
     const string json_path =
         file_util::path_join(SERIALIZED_ZOO, "mxnet/Sockeye_Seq2Seq_backward.json");
     run_benchmark(json_path, "CPU", 10);
+}
+
+TEST(benchmark, test)
+{
+    Shape shape_a{32, 10, 200};
+    Shape shape_r{320, 200};
+    auto A = make_shared<op::Parameter>(element::f32, shape_a);
+    NodeVector slices;
+    for (size_t i = 0; i < 10; i++)
+    {
+        auto tmp = make_shared<op::Slice>(A, Coordinate{0, i, 0}, Coordinate{32, i + 1, 200});
+        slices.push_back(tmp);
+    }
+    Shape shape_1{32, 200};
+    NodeVector reshapes;
+    for (size_t i = 0; i < 10; i++)
+    {
+        auto tmp = make_shared<op::Reshape>(slices[i], AxisVector{0, 1, 2}, shape_1);
+        reshapes.push_back(tmp);
+    }
+    auto concat = make_shared<op::Concat>(reshapes, 0);
+    auto f = make_shared<Function>(concat, op::ParameterVector{A});
+    serialize("graph.cpio", f, 4);
+    // NGRAPH_INFO << s;
+
+    pass::Manager pass_manager;
+    pass_manager.register_pass<pass::VisualizeTree>("graph.png");
+    pass_manager.run_passes(f);
+
+    vector<float> input_data;
+    for (size_t i = 0; i < shape_size(shape_a); i++)
+    {
+        input_data.push_back(i);
+    }
+    auto backend = runtime::Backend::create("CPU");
+    auto a = backend->create_tensor(element::f32, shape_a, input_data.data());
+    auto result = backend->create_tensor(element::f32, shape_r);
+    backend->call(f, {result}, {a});
+    vector<float> output = read_vector<float>(result);
+    vector<float> new_output(output.size());
+
+    vector<size_t> write_map(shape_size(shape_a));
+    for (size_t i = 0; i < shape_size(shape_a); i++)
+    {
+        write_map[output[i]] = i;
+    }
+    // for (size_t i = 0; i < shape_size(shape_a); i++)
+    // {
+    //     cout << i << " -> " << write_map[i] << endl;
+    // }
+
+    // Do the new move op
+    stopwatch t1;
+    t1.start();
+    for (size_t i = 0; i < shape_size(shape_a); i++)
+    {
+        new_output[i] = input_data[write_map[i]];
+    }
+    t1.stop();
+    NGRAPH_INFO << t1.get_microseconds();
 }
 
 //
