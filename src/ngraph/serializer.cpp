@@ -1290,6 +1290,11 @@ static json write(const Node& n, bool binary_constant_data)
         auto tmp = dynamic_cast<const op::Sum*>(&n);
         node["reduction_axes"] = tmp->get_reduction_axes();
     }
+    else if (node_op == "Softmax")
+    {
+        auto tmp = dynamic_cast<const op::Softmax*>(&n);
+        node["reduction_axes"] = tmp->get_axes();
+    }
     else if (node_op == "Tan")
     {
     }

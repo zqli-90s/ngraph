@@ -650,7 +650,11 @@ namespace ngraph
                                                                    dst_layer_md,
                                                                    dst_iter_md);
                 auto& deps = mkldnn_emitter->get_primitive_deps(rnn_index);
-
+                writer << "std::cout << " << "\"Inside Rnn kernel \" << std::endl;" << "\n"; 
+                writer << "std::cout << " << "\"src_layer_shape:  \" << " << "\"(" << join(args[0].get_shape()) << "\"" << "<< std::endl;" << "\n"; 
+                writer << "std::cout << " << "\"src_iter_shape:  \" << " << "\"(" << join(args[1].get_shape()) << "\"" << "<< std::endl;" << "\n"; 
+                writer << "std::cout << " << "\"weights_layer_shape:  \" << " << "\"(" << join(args[2].get_shape()) << "\"" << "<< std::endl;" << "\n"; 
+                writer << "std::cout << " << "\"weights_iter_shape:  \" << " << "\"(" << join(args[3].get_shape()) << "\"" << "<< std::endl;" << "\n"; 
                 writer << "cpu::mkldnn_utils::set_memory_ptr(ctx, " << to_string(deps[0]) << ", "
                        << args[0].get_name() << ");\n";
                 writer << "cpu::mkldnn_utils::set_memory_ptr(ctx, " << to_string(deps[1]) << ", "
@@ -668,6 +672,7 @@ namespace ngraph
 
                 writer << "cpu::mkldnn_utils::mkldnn_invoke_primitive(ctx, " << to_string(rnn_index)
                        << ");\n";
+                writer << "std::cout << " << "\"Computed Rnn kernel\" << std::endl;" << "\n"; 
             }
 
             void CPU_Emitter::emitBatchNorm(CPU_ExternalFunction* external_function,
