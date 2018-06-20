@@ -65,6 +65,8 @@ Not currently a comprehensive list.
    constant.rst
    convert.rst
    convolution.rst
+   convolution_backprop_data.rst
+   convolution_backprop_filters.rst
    cos.rst
    cosh.rst
    divide.rst
@@ -81,20 +83,46 @@ Not currently a comprehensive list.
    log.rst
    max.rst
    maximum.rst
-   max_pool.rst 
+   max_pool.rst
+   max_pool_backprop.rst 
    min.rst
    minimum.rst
    multiply.rst
    negative.rst
-   not_equal.rst
    not.rst
+   not_equal.rst
    one_hot.rst
    or.rst
    pad.rst
    parameter.rst
    power.rst
    product.rst
+   reduce.rst
    relu.rst
+   sin.rst
+   sinh.rst
+   slice.rst
    softmax.rst
+   sqrt.rst
+
+.. TBC 
+
+.. reduce_window.rst
+   relu_backprop.rst
+   remainder.rst
+   replace_slice.rst
+   reshape.rst
+   result.rst
+   reverse.rst
+   reverse_sequence.rst
+   select.rst
+   select_and_scatter.rst
+   sign.rst
+   stop_gradient.rst
+   subtract.rst
+   sum.rst
+   tan.rst
+   tanh.rst
+
 
    
