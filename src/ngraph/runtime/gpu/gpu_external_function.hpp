@@ -63,6 +63,7 @@ namespace ngraph
                 {
                     return m_primitive_emitter;
                 }
+                void set_emit_timing_flag(bool flag);
 
             protected:
                 void compile();
