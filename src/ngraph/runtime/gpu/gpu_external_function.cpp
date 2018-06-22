@@ -289,6 +289,11 @@ runtime::gpu::GPU_ExternalFunction::~GPU_ExternalFunction()
     delete m_ctx->compiled_kernel_pool;
 }
 
+void runtime::gpu::GPU_ExternalFunction::set_emit_timing_flag(bool flag)
+{
+    m_emit_timing = flag;
+}
+
 void runtime::gpu::GPU_ExternalFunction::compile()
 {
     if (m_is_compiled)

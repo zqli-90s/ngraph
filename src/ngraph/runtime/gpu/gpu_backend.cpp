@@ -52,7 +52,7 @@ bool runtime::gpu::GPU_Backend::compile(shared_ptr<Function> func)
     {
         FunctionInstance instance;
         instance.m_external_function = make_shared<GPU_ExternalFunction>(func);
-        instance.m_external_function->m_emit_timing = instance.m_performance_counters_enabled;
+        instance.m_external_function->set_emit_timing_flag(instance.m_performance_counters_enabled);
         auto cf = instance.m_external_function->make_call_frame();
         instance.m_call_frame = dynamic_pointer_cast<GPU_CallFrame>(cf);
         m_function_map.insert({func, instance});
