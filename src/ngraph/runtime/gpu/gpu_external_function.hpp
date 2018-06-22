@@ -97,7 +97,6 @@ namespace ngraph
                 std::shared_ptr<ngraph::Function> m_function;
                 bool m_release_function;
                 bool m_is_compiled;
-                bool m_timing;
 
                 std::map<std::string, size_t> m_name_index_map;
                 cublasHandle_t m_cublas_handle;
