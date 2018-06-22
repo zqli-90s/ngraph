@@ -99,6 +99,7 @@ namespace ngraph
                 bool m_is_compiled;
                 bool m_timing;
 
+                std::map<std::string, size_t> m_name_index_map;
                 cublasHandle_t m_cublas_handle;
                 cudnnHandle_t m_cudnn_handle;
                 std::unique_ptr<GPUPrimitiveEmitter> m_primitive_emitter;
