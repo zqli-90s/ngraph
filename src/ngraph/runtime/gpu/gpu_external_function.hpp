@@ -64,6 +64,7 @@ namespace ngraph
                     return m_primitive_emitter;
                 }
                 void set_emit_timing_flag(bool flag);
+                std::unique_ptr<codegen::ExecutionEngine>& get_execution_engine(){return m_execution_engine;}
 
             protected:
                 void compile();

@@ -315,6 +315,12 @@ void runtime::gpu::GPU_ExternalFunction::compile()
     pass_manager.register_pass<pass::DumpSorted>(dump_filename);
     pass_manager.run_passes(m_function);
 
+    unordered_map<shared_ptr<Function>, list<shared_ptr<Node>>> function_ordered_ops;
+    for (shared_ptr<Function> current_function : pass_manager.get_state().get_functions())
+    {
+        function_ordered_ops.insert({current_function, current_function->get_ordered_ops()});
+    }
+
     codegen::CodeWriter writer;
 
     writer +=
@@ -360,7 +366,7 @@ using namespace std;
     // to register cleanup handlers. We use it, and not atexit(), because
     // atexit() happens too late, when the JIT is no longer alive
     writer << "void *__dso_handle = 0;\n\n";
-
+/*
  if (m_emit_timing)
     {
         writer << "// Declare debug timers\n";
@@ -414,6 +420,7 @@ using namespace std;
         writer << "}\n";
         writer << "\n";
     }
+*/
 
     writer << "// Declare all constants\n";
     for (shared_ptr<Function> current_function : pass_manager.get_state().get_functions())

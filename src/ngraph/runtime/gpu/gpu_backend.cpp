@@ -106,7 +106,7 @@ vector<runtime::PerformanceCounter>
         const FunctionInstance& instance = it->second;
         if (instance.m_external_function != nullptr)
         {
-            auto* engine = instance.m_external_function->m_execution_engine.get();
+            auto* engine = instance.m_external_function->get_execution_engine().get();
             if (engine)
             {
                 auto get_count = engine->find_function<size_t()>("get_debug_timer_count");
