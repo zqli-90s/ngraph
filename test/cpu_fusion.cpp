@@ -2432,7 +2432,6 @@ TEST(cpu_fusion, fuse_rnn_across_2layer_1timestep)
     }
 }
 
-
 TEST(cpu_fusion, debug)
 {
     const std::string file_name("mxnet/mxnet-ngraph-Function_0-CompileForward-fprop.json");

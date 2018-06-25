@@ -564,6 +564,8 @@ namespace ngraph
                        << out[0].get_name() << ");\n";
                 writer << "cpu::mkldnn_utils::set_memory_ptr(ctx, " << to_string(deps[6]) << ", "
                        << out[1].get_name() << ");\n";
+                writer << "cpu::mkldnn_utils::set_memory_ptr(ctx, " << to_string(deps[7])
+                       << ", ctx->mkldnn_workspaces[" << deps[8] << "]);\n";
 
                 writer << "cpu::mkldnn_utils::mkldnn_invoke_primitive(ctx, "
                        << to_string(lstm_index) << ");\n";
@@ -650,11 +652,29 @@ namespace ngraph
                                                                    dst_layer_md,
                                                                    dst_iter_md);
                 auto& deps = mkldnn_emitter->get_primitive_deps(rnn_index);
-                writer << "std::cout << " << "\"Inside Rnn kernel \" << std::endl;" << "\n"; 
-                writer << "std::cout << " << "\"src_layer_shape:  \" << " << "\"(" << join(args[0].get_shape()) << "\"" << "<< std::endl;" << "\n"; 
-                writer << "std::cout << " << "\"src_iter_shape:  \" << " << "\"(" << join(args[1].get_shape()) << "\"" << "<< std::endl;" << "\n"; 
-                writer << "std::cout << " << "\"weights_layer_shape:  \" << " << "\"(" << join(args[2].get_shape()) << "\"" << "<< std::endl;" << "\n"; 
-                writer << "std::cout << " << "\"weights_iter_shape:  \" << " << "\"(" << join(args[3].get_shape()) << "\"" << "<< std::endl;" << "\n"; 
+                writer << "std::cout << "
+                       << "\"Inside Rnn kernel \" << std::endl;"
+                       << "\n";
+                writer << "std::cout << "
+                       << "\"src_layer_shape:  \" << "
+                       << "\"(" << join(args[0].get_shape()) << "\""
+                       << "<< std::endl;"
+                       << "\n";
+                writer << "std::cout << "
+                       << "\"src_iter_shape:  \" << "
+                       << "\"(" << join(args[1].get_shape()) << "\""
+                       << "<< std::endl;"
+                       << "\n";
+                writer << "std::cout << "
+                       << "\"weights_layer_shape:  \" << "
+                       << "\"(" << join(args[2].get_shape()) << "\""
+                       << "<< std::endl;"
+                       << "\n";
+                writer << "std::cout << "
+                       << "\"weights_iter_shape:  \" << "
+                       << "\"(" << join(args[3].get_shape()) << "\""
+                       << "<< std::endl;"
+                       << "\n";
                 writer << "cpu::mkldnn_utils::set_memory_ptr(ctx, " << to_string(deps[0]) << ", "
                        << args[0].get_name() << ");\n";
                 writer << "cpu::mkldnn_utils::set_memory_ptr(ctx, " << to_string(deps[1]) << ", "
@@ -669,10 +689,34 @@ namespace ngraph
                        << out[0].get_name() << ");\n";
                 writer << "cpu::mkldnn_utils::set_memory_ptr(ctx, " << to_string(deps[6]) << ", "
                        << out[1].get_name() << ");\n";
+                writer << "cpu::mkldnn_utils::set_memory_ptr(ctx, " << to_string(deps[7])
+                       << ", ctx->mkldnn_workspaces[" << deps[8] << "]);\n";
 
+                writer << "std::cout << "
+                       << "\"src_layer_ptr:  \" << " << args[0].get_name() << "<< std::endl;"
+                       << "\n";
+                writer << "std::cout << "
+                       << "\"src_iter_ptr:  \" << " << args[1].get_name() << "<< std::endl;"
+                       << "\n";
+                writer << "std::cout << "
+                       << "\"weights_layer_ptr:  \" << " << args[2].get_name() << "<< std::endl;"
+                       << "\n";
+                writer << "std::cout << "
+                       << "\"weights_iter_ptr:  \" << " << args[3].get_name() << "<< std::endl;"
+                       << "\n";
+                writer << "std::cout << "
+                       << "\"bias_ptr:  \" << " << args[4].get_name() << "<< std::endl;"
+                       << "\n";
+                writer << "std::cout << "
+                       << "\"workspace_ptr:  \" << (void *)ctx->mkldnn_workspaces[" << deps[8]
+                       << " ] << "
+                       << " std::endl;"
+                       << "\n";
                 writer << "cpu::mkldnn_utils::mkldnn_invoke_primitive(ctx, " << to_string(rnn_index)
                        << ");\n";
-                writer << "std::cout << " << "\"Computed Rnn kernel\" << std::endl;" << "\n"; 
+                writer << "std::cout << "
+                       << "\"Computed Rnn kernel\" << std::endl;"
+                       << "\n";
             }
 
             void CPU_Emitter::emitBatchNorm(CPU_ExternalFunction* external_function,
