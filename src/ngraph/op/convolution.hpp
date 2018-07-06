@@ -29,6 +29,10 @@ namespace ngraph
         class Convolution : public util::RequiresTensorViewArgs
         {
         public:
+            Convolution(const std::shared_ptr<Node>& data_batch,
+                        const std::shared_ptr<Node>& filters,
+                        AttributeMap* attribute_map);
+
             /// \brief Constructs a batched convolution operation.
             ///
             /// \param data_batch The node producing the input data batch tensor.<br>

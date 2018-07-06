@@ -21,17 +21,14 @@ using namespace std;
 using namespace ngraph;
 
 op::AvgPool::AvgPool(const shared_ptr<Node>& arg,
-                     const Shape& window_shape,
-                     const Strides& window_movement_strides,
-                     const Shape& padding_below,
-                     const Shape& padding_above,
-                     bool include_padding_in_avg_computation)
+                     AttributeMap* attribute_map)
     : RequiresTensorViewArgs("AvgPool", {arg})
-    , m_window_shape(window_shape)
-    , m_window_movement_strides(window_movement_strides)
-    , m_padding_below(padding_below)
-    , m_padding_above(padding_above)
-    , m_include_padding_in_avg_computation(include_padding_in_avg_computation)
+    , HasAttributes(attribute_map)
+    , m_window_shape(get_attribute<Shape>("window_shape"))
+    , m_window_movement_strides(get_attribute<Strides>("window_movement_strides"))
+    , m_padding_below(get_attribute<Shape>("padding_below"))
+    , m_padding_above(get_attribute<Shape>("padding_above"))
+    , m_include_padding_in_avg_computation(get_boxed_attribute<bool>("include_padding_in_avg_computation"))
 {
     auto& arg_shape = get_input_shape(0);
 
@@ -62,26 +59,26 @@ op::AvgPool::AvgPool(const shared_ptr<Node>& arg,
     //
     // Make sure window shape, window movement strides, and padding have same rank as Di.
     //
-    if (window_shape.size() != spatial_dimension_count)
+    if (m_window_shape.size() != spatial_dimension_count)
     {
         throw ngraph_error(
             "Average-pool window shape rank does not match number of spatial dimensions.");
     }
 
-    if (window_movement_strides.size() != spatial_dimension_count)
+    if (m_window_movement_strides.size() != spatial_dimension_count)
     {
         throw ngraph_error(
             "Average-pool window movement stride rank does not match number of spatial "
             "dimensions.");
     }
 
-    if (padding_below.size() != spatial_dimension_count)
+    if (m_padding_below.size() != spatial_dimension_count)
     {
         throw ngraph_error(
             "Average-pool below-padding rank does not match number of spatial dimensions.");
     }
 
-    if (padding_above.size() != spatial_dimension_count)
+    if (m_padding_above.size() != spatial_dimension_count)
     {
         throw ngraph_error(
             "Average-pool above-padding rank does not match number of spatial dimensions.");
@@ -95,7 +92,7 @@ op::AvgPool::AvgPool(const shared_ptr<Node>& arg,
     for (size_t i = 0; i < spatial_dimension_count; i++)
     {
         size_t dim_size = arg_shape[1 + 1 + i];
-        size_t virtual_dim_size = padding_below[i] + dim_size + padding_above[i];
+        size_t virtual_dim_size = m_padding_below[i] + dim_size + m_padding_above[i];
         input_item_virtual_shape.push_back(virtual_dim_size);
 
         if (virtual_dim_size == 0)
@@ -109,7 +106,7 @@ op::AvgPool::AvgPool(const shared_ptr<Node>& arg,
     //
     for (size_t i = 0; i < spatial_dimension_count; i++)
     {
-        if (window_shape[i] == 0)
+        if (m_window_shape[i] == 0)
         {
             throw ngraph_error("Average-pool window shape has a zero-length axis.");
         }
@@ -120,7 +117,7 @@ op::AvgPool::AvgPool(const shared_ptr<Node>& arg,
     //
     for (size_t i = 0; i < spatial_dimension_count; i++)
     {
-        if (window_shape[i] > input_item_virtual_shape[i])
+        if (m_window_shape[i] > input_item_virtual_shape[i])
         {
             throw ngraph_error(
                 "Average-pool window shape is larger than the spatial dimensions even after "
@@ -135,12 +132,12 @@ op::AvgPool::AvgPool(const shared_ptr<Node>& arg,
 
     for (size_t i = 0; i < spatial_dimension_count; i++)
     {
-        if (window_movement_strides[i] == 0)
+        if (m_window_movement_strides[i] == 0)
         {
             throw ngraph_error("Average-pool window axis movement stride is zero.");
         }
-        output_item_shape.push_back(ceil_div(input_item_virtual_shape[i] - window_shape[i] + 1,
-                                             window_movement_strides[i]));
+        output_item_shape.push_back(ceil_div(input_item_virtual_shape[i] - m_window_shape[i] + 1,
+                                             m_window_movement_strides[i]));
     }
 
     //
@@ -148,15 +145,15 @@ op::AvgPool::AvgPool(const shared_ptr<Node>& arg,
     // That will happen if the sliding window ever resides entirely over the padding area AND
     // we're planning to disregard padding when computing the window's average.
     //
-    if (!include_padding_in_avg_computation)
+    if (!m_include_padding_in_avg_computation)
     {
         for (size_t i = 0; i < spatial_dimension_count; i++)
         {
             const size_t dim_virtual_size = input_item_virtual_shape[i];
-            const size_t dim_window_size = window_shape[i];
-            const size_t dim_stride = window_movement_strides[i];
-            const size_t dim_padding_below = padding_below[i];
-            const size_t dim_padding_above = padding_above[i];
+            const size_t dim_window_size = m_window_shape[i];
+            const size_t dim_stride = m_window_movement_strides[i];
+            const size_t dim_padding_below = m_padding_below[i];
+            const size_t dim_padding_above = m_padding_above[i];
 
             // Checking the lower edge of each dimension is easy, because there's no mystery
             // regarding the window's lower-edge placement...
@@ -194,6 +191,21 @@ op::AvgPool::AvgPool(const shared_ptr<Node>& arg,
     copy(output_item_shape.begin(), output_item_shape.end(), result_shape.begin() + 2);
 
     set_value_type_checked(get_input_element_type(0), result_shape);
+}
+
+op::AvgPool::AvgPool(const shared_ptr<Node>& arg,
+                     const Shape& window_shape,
+                     const Strides& window_movement_strides,
+                     const Shape& padding_below,
+                     const Shape& padding_above,
+                     bool include_padding_in_avg_computation)
+    : AvgPool(arg, new AttributeMap{{"window_shape", window_shape},
+                                    {"window_movement_strides", window_movement_strides},
+                                    {"padding_below", padding_below},
+                                    {"padding_above", padding_above},
+                                    {"include_padding_in_avg_computation",
+                                     BoxedAttribute<bool>(include_padding_in_avg_computation)}})
+{
 }
 
 static Shape default_padding(const shared_ptr<Node>& arg)
@@ -269,23 +281,19 @@ shared_ptr<Node> op::AvgPool::copy_with_new_args(const NodeVector& new_args) con
                                 m_include_padding_in_avg_computation);
 }
 
-op::AvgPoolBackprop::AvgPoolBackprop(const Shape& forward_arg_shape,
-                                     const shared_ptr<Node>& delta,
-                                     const Shape& window_shape,
-                                     const Strides& window_movement_strides,
-                                     const Shape& padding_below,
-                                     const Shape& padding_above,
-                                     bool include_padding_in_avg_computation)
+op::AvgPoolBackprop::AvgPoolBackprop(const shared_ptr<Node>& delta,
+                                     AttributeMap* attribute_map)
     : RequiresTensorViewArgs("AvgPoolBackprop", {delta})
-    , m_forward_arg_shape(forward_arg_shape)
-    , m_window_shape(window_shape)
-    , m_window_movement_strides(window_movement_strides)
-    , m_padding_below(padding_below)
-    , m_padding_above(padding_above)
-    , m_include_padding_in_avg_computation(include_padding_in_avg_computation)
+    , HasAttributes(attribute_map)
+    , m_forward_arg_shape(get_attribute<Shape>("forward_arg_shape"))
+    , m_window_shape(get_attribute<Shape>("window_shape"))
+    , m_window_movement_strides(get_attribute<Strides>("window_movement_strides"))
+    , m_padding_below(get_attribute<Shape>("padding_below"))
+    , m_padding_above(get_attribute<Shape>("padding_above"))
+    , m_include_padding_in_avg_computation(get_boxed_attribute<bool>("include_padding_in_avg_computation"))
 {
     // --
-    // TODO: de-duplicate this code from AvgPool::AvgPool.
+    // TODO(amprocte): de-duplicate this code from AvgPool::AvgPool.
     // --
 
     auto& delta_shape = get_input_shape(0);
@@ -293,52 +301,52 @@ op::AvgPoolBackprop::AvgPoolBackprop(const Shape& forward_arg_shape,
     //
     // Make sure arg: NCDi for some Di of rank>0, N != 0, C != 0.
     //
-    if (forward_arg_shape.size() < 3)
+    if (m_forward_arg_shape.size() < 3)
     {
         throw ngraph_error(
             "Average-pool backprop: data batch shape must have rank of at least 3 (one batch axis, "
             "one channel axis, at least one spatial dimension).");
     }
 
-    size_t batch_size = forward_arg_shape[0];
+    size_t batch_size = m_forward_arg_shape[0];
     if (batch_size == 0)
     {
         throw ngraph_error("Average-pool backprop: data batch size is zero.");
     }
 
-    size_t channel_count = forward_arg_shape[1];
+    size_t channel_count = m_forward_arg_shape[1];
     if (channel_count == 0)
     {
         throw ngraph_error("Average-pool backprop: requires at least one feature channel.");
     }
 
-    size_t spatial_dimension_count = forward_arg_shape.size() - 2;
+    size_t spatial_dimension_count = m_forward_arg_shape.size() - 2;
 
     //
     // Make sure window shape, window movement strides, and padding have same rank as Di.
     //
-    if (window_shape.size() != spatial_dimension_count)
+    if (m_window_shape.size() != spatial_dimension_count)
     {
         throw ngraph_error(
             "Average-pool backprop: window shape rank does not match number of spatial "
             "dimensions.");
     }
 
-    if (window_movement_strides.size() != spatial_dimension_count)
+    if (m_window_movement_strides.size() != spatial_dimension_count)
     {
         throw ngraph_error(
             "Average-pool backprop: window movement stride rank does not match number of spatial "
             "dimensions.");
     }
 
-    if (padding_below.size() != spatial_dimension_count)
+    if (m_padding_below.size() != spatial_dimension_count)
     {
         throw ngraph_error(
             "Average-pool backprop: below-padding rank does not match number of spatial "
             "dimensions.");
     }
 
-    if (padding_above.size() != spatial_dimension_count)
+    if (m_padding_above.size() != spatial_dimension_count)
     {
         throw ngraph_error(
             "Average-pool backprop: above-padding rank does not match number of spatial "
@@ -352,8 +360,8 @@ op::AvgPoolBackprop::AvgPoolBackprop(const Shape& forward_arg_shape,
 
     for (size_t i = 0; i < spatial_dimension_count; i++)
     {
-        size_t dim_size = forward_arg_shape[1 + 1 + i];
-        size_t virtual_dim_size = padding_below[i] + dim_size + padding_above[i];
+        size_t dim_size = m_forward_arg_shape[1 + 1 + i];
+        size_t virtual_dim_size = m_padding_below[i] + dim_size + m_padding_above[i];
         input_item_virtual_shape.push_back(virtual_dim_size);
 
         if (virtual_dim_size == 0)
@@ -368,7 +376,7 @@ op::AvgPoolBackprop::AvgPoolBackprop(const Shape& forward_arg_shape,
     //
     for (size_t i = 0; i < spatial_dimension_count; i++)
     {
-        if (window_shape[i] == 0)
+        if (m_window_shape[i] == 0)
         {
             throw ngraph_error("Average-pool backprop: window shape has a zero-length axis.");
         }
@@ -379,7 +387,7 @@ op::AvgPoolBackprop::AvgPoolBackprop(const Shape& forward_arg_shape,
     //
     for (size_t i = 0; i < spatial_dimension_count; i++)
     {
-        if (window_shape[i] > input_item_virtual_shape[i])
+        if (m_window_shape[i] > input_item_virtual_shape[i])
         {
             throw ngraph_error(
                 "Average-pool backprop: window shape is larger than the spatial dimensions even "
@@ -395,12 +403,12 @@ op::AvgPoolBackprop::AvgPoolBackprop(const Shape& forward_arg_shape,
 
     for (size_t i = 0; i < spatial_dimension_count; i++)
     {
-        if (window_movement_strides[i] == 0)
+        if (m_window_movement_strides[i] == 0)
         {
             throw ngraph_error("Average-pool backprop: window axis movement stride is zero.");
         }
-        output_item_shape.push_back(ceil_div(input_item_virtual_shape[i] - window_shape[i] + 1,
-                                             window_movement_strides[i]));
+        output_item_shape.push_back(ceil_div(input_item_virtual_shape[i] - m_window_shape[i] + 1,
+                                             m_window_movement_strides[i]));
     }
 
     //
@@ -408,15 +416,15 @@ op::AvgPoolBackprop::AvgPoolBackprop(const Shape& forward_arg_shape,
     // That will happen if the sliding window ever resides entirely over the padding area AND
     // we're planning to disregard padding when computing the window's average.
     //
-    if (!include_padding_in_avg_computation)
+    if (!m_include_padding_in_avg_computation)
     {
         for (size_t i = 0; i < spatial_dimension_count; i++)
         {
             const size_t dim_virtual_size = input_item_virtual_shape[i];
-            const size_t dim_window_size = window_shape[i];
-            const size_t dim_stride = window_movement_strides[i];
-            const size_t dim_padding_below = padding_below[i];
-            const size_t dim_padding_above = padding_above[i];
+            const size_t dim_window_size = m_window_shape[i];
+            const size_t dim_stride = m_window_movement_strides[i];
+            const size_t dim_padding_below = m_padding_below[i];
+            const size_t dim_padding_above = m_padding_above[i];
 
             // Checking the lower edge of each dimension is easy, because there's no mystery
             // regarding the window's lower-edge placement...
@@ -458,7 +466,24 @@ op::AvgPoolBackprop::AvgPoolBackprop(const Shape& forward_arg_shape,
             "Average-pool backprop: forward result shape does not match delta shape.");
     }
 
-    set_value_type_checked(get_input_element_type(0), forward_arg_shape);
+    set_value_type_checked(get_input_element_type(0), m_forward_arg_shape);
+}
+
+op::AvgPoolBackprop::AvgPoolBackprop(const Shape& forward_arg_shape,
+                                     const shared_ptr<Node>& delta,
+                                     const Shape& window_shape,
+                                     const Strides& window_movement_strides,
+                                     const Shape& padding_below,
+                                     const Shape& padding_above,
+                                     bool include_padding_in_avg_computation)
+    : AvgPoolBackprop(delta, new AttributeMap{{"forward_arg_shape", forward_arg_shape},
+                                              {"window_shape", window_shape},
+                                              {"window_movement_strides", window_movement_strides},
+                                              {"padding_below", padding_below},
+                                              {"padding_above", padding_above},
+                                              {"include_padding_in_avg_computation",
+                                               BoxedAttribute<bool>(include_padding_in_avg_computation)}})
+{
 }
 
 shared_ptr<Node> op::AvgPoolBackprop::copy_with_new_args(const NodeVector& new_args) const

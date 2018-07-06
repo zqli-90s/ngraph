@@ -56,6 +56,8 @@ namespace ngraph
         }
 
         Attribute* clone() const { return new BoxedAttribute<T>(m_value); }
+
+        T& get_ref() { return m_value; }
     private:
         T m_value;
     };

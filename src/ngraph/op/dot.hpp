@@ -19,6 +19,7 @@
 #include <utility>
 
 #include "ngraph/boxed_attribute.hpp"
+#include "ngraph/has_attributes.hpp"
 #include "ngraph/op/util/requires_tensor_view_args.hpp"
 
 namespace ngraph
@@ -26,9 +27,13 @@ namespace ngraph
     namespace op
     {
         /// \brief Generalized dot product operation, including scalar-tensor product, matrix-vector product, and matrix multiplication.
-        class Dot : public util::RequiresTensorViewArgs
+        class Dot : public util::RequiresTensorViewArgs, public HasAttributes
         {
         public:
+            Dot(const std::shared_ptr<Node>& arg0,
+                const std::shared_ptr<Node>& arg1,
+                AttributeMap* attribute_map);
+
             /// \brief Constructs a dot product operation.
             ///
             /// \param arg0 The node producing the first argument.
@@ -69,7 +74,7 @@ namespace ngraph
             }
 
         protected:
-            size_t m_reduction_axes_count;
+            size_t& m_reduction_axes_count;
 
             virtual void generate_adjoints(autodiff::Adjoints& adjoints,
                                            const NodeVector& deltas) override;

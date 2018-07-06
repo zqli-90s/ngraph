@@ -18,6 +18,7 @@
 
 #include "ngraph/boxed_attribute.hpp"
 #include "ngraph/graph_util.hpp"
+#include "ngraph/has_attributes.hpp"
 #include "ngraph/op/util/requires_tensor_view_args.hpp"
 
 namespace ngraph
@@ -26,9 +27,12 @@ namespace ngraph
     {
         /// \brief Batched average pooling operation, with optional padding and window stride.
         ///
-        class AvgPool : public util::RequiresTensorViewArgs
+        class AvgPool : public util::RequiresTensorViewArgs, public HasAttributes
         {
         public:
+            AvgPool(const std::shared_ptr<Node>& arg,
+                    AttributeMap* attribute_map);
+
             /// \brief Constructs a batched average pooling operation.
             ///
             /// \param arg The node producing the input data batch tensor.<br>
@@ -106,16 +110,19 @@ namespace ngraph
             }
 
         protected:
-            Shape m_window_shape;
-            Strides m_window_movement_strides;
-            Shape m_padding_below;
-            Shape m_padding_above;
-            bool m_include_padding_in_avg_computation;
+            Shape& m_window_shape;
+            Strides& m_window_movement_strides;
+            Shape& m_padding_below;
+            Shape& m_padding_above;
+            bool& m_include_padding_in_avg_computation;
         };
 
-        class AvgPoolBackprop : public util::RequiresTensorViewArgs
+        class AvgPoolBackprop : public util::RequiresTensorViewArgs, public HasAttributes
         {
         public:
+            AvgPoolBackprop(const std::shared_ptr<Node>& delta,
+                            AttributeMap* attribute_map);
+
             AvgPoolBackprop(const Shape& forward_arg_shape,
                             const std::shared_ptr<Node>& delta,
                             const Shape& window_shape,
@@ -149,12 +156,12 @@ namespace ngraph
             }
 
         protected:
-            Shape m_forward_arg_shape;
-            Shape m_window_shape;
-            Strides m_window_movement_strides;
-            Shape m_padding_below;
-            Shape m_padding_above;
-            bool m_include_padding_in_avg_computation;
+            Shape& m_forward_arg_shape;
+            Shape& m_window_shape;
+            Strides& m_window_movement_strides;
+            Shape& m_padding_below;
+            Shape& m_padding_above;
+            bool& m_include_padding_in_avg_computation;
         };
     }
 }

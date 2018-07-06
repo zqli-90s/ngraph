@@ -50,6 +50,11 @@ namespace ngraph
             }
         }
 
+        Attribute*& at(std::string key)
+        {
+            return m_map.at(key);
+        }
+
         std::map<std::string, Attribute*>::iterator begin() { return m_map.begin(); }
         std::map<std::string, Attribute*>::const_iterator cbegin() { return m_map.cbegin(); }
         std::map<std::string, Attribute*>::iterator end() { return m_map.end(); }
