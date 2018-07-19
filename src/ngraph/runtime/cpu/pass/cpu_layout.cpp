@@ -54,6 +54,7 @@
 using namespace std;
 using namespace mkldnn;
 using namespace ngraph;
+using namespace ngraph::runtime::cpu;
 
 shared_ptr<Node> runtime::cpu::pass::CPULayout::insert_input_conversions(
     runtime::cpu::CPU_ExternalFunction* external_function,
@@ -116,6 +117,26 @@ shared_ptr<Node> runtime::cpu::pass::CPULayout::insert_input_conversions(
     return node;
 }
 
+static size_t compute_mkldnn_memory_size(std::shared_ptr<const ngraph::TensorViewType> tvt,
+                                         const mkldnn::memory::format& fmt)
+{
+    try
+    {
+        auto mem_desc = mkldnn::memory::desc(
+            mkldnn::memory::dims(tvt->get_shape().begin(), tvt->get_shape().end()),
+            mkldnn_utils::get_mkldnn_data_type(tvt->get_element_type()),
+            fmt);
+        auto mem_prim_desc =
+            mkldnn::memory::primitive_desc(mem_desc, mkldnn_utils::global_cpu_engine);
+        return mem_prim_desc.get_size();
+    }
+    catch (const mkldnn::error& e)
+    {
+        throw ngraph_error("error in computing mkldnn memory size from memory primitive desc: " +
+                           e.message);
+    }
+}
+
 void runtime::cpu::pass::CPULayout::set_output_layouts(shared_ptr<Node>& node,
                                                        const vector<memory::format>& output_formats)
 {
@@ -138,6 +159,8 @@ void runtime::cpu::pass::CPULayout::set_output_layouts(shared_ptr<Node>& node,
             std::make_shared<ngraph::runtime::cpu::LayoutDescriptor>(*tv, native_axis_order);
 
         layout->set_mkldnn_format(output_formats[i]);
+        size_t mkldnn_memory_size = compute_mkldnn_memory_size(tvt, layout->get_mkldnn_format());
+        layout->set_mkldnn_memory_size(mkldnn_memory_size);
         tv->set_tensor_view_layout(layout);
         NGRAPH_DEBUG << "Setting Node: " << node->get_name()
                      << " output layout: " << output_formats[i] << endl;
