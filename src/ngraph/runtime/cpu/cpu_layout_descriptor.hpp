@@ -43,8 +43,8 @@ namespace ngraph
                 size_t get_size() override { return size; }
                 size_t get_offset() const { return offset; }
                 size_t get_index_offset(const std::vector<size_t>& indices) override;
-                size_t get_mkldnn_memory_primitive_size() { return mkldnn_memory_size; }
-                void set_mkldnn_memory_size(const size_t size) { mkldnn_memory_size = size; }
+                void compute_mkldnn_memory_size(std::shared_ptr<const ngraph::TensorViewType> tvt,
+                                                const mkldnn::memory::format& fmt);
                 const Strides& get_strides() const override { return strides; }
                 bool operator==(const TensorViewLayout& other) const override;
 
