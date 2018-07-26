@@ -217,6 +217,7 @@ else()
     include(cmake/external_llvm.cmake)
 endif()
 include(cmake/external_tbb.cmake)
+include(cmake/external_tvm.cmake)
 
 add_subdirectory(src)
 
