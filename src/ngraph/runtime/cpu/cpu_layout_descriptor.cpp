@@ -41,6 +41,7 @@ namespace ngraph
                 : TensorViewLayout(tv)
                 , axis_order(tv_axis_order)
                 , offset(0)
+                , mkldnn_memory_size(0)
                 , mkldnn_format(mkldnn::memory::format::format_undef)
             {
                 auto shape = get_shape();
@@ -119,7 +120,6 @@ namespace ngraph
                     auto mem_prim_desc =
                         mkldnn::memory::primitive_desc(mem_desc, mkldnn_utils::global_cpu_engine);
                     mkldnn_memory_size = mem_prim_desc.get_size();
-                    size = mem_prim_desc.get_size();
                 }
                 catch (const mkldnn::error& e)
                 {

@@ -55,7 +55,6 @@ namespace ngraph
             virtual Tensor& get_tensor() = 0;
 
             virtual std::shared_ptr<const TensorViewType> get_value_type() const;
-            virtual size_t size();
             const std::string& get_name() const { return m_name; }
             std::shared_ptr<const TensorViewType> get_tensor_view_type() const
             {
@@ -77,9 +76,6 @@ namespace ngraph
             std::shared_ptr<const TensorViewType> m_tensor_view_type;
             std::shared_ptr<layout::TensorViewLayout> m_tensor_view_layout;
             std::string m_name;
-
-        private:
-            size_t m_size;
         };
 
         using TensorViewPtrs = std::vector<std::shared_ptr<TensorView>>;
