@@ -67,6 +67,10 @@ shared_ptr<Node> runtime::cpu::pass::CPULayout::insert_input_conversions(
     for (const descriptor::Input& input : node->get_inputs())
     {
         const auto& output = input.get_output();
+        auto input_node = output.get_node();
+        bool is_mkldnn = dynamic_pointer_cast<const ngraph::op::Op>(input_node)
+                             ? runtime::cpu::mkldnn_utils::use_mkldnn_kernel(input_node.get())
+                             : false;
         auto tv = output.get_tensor_view();
         auto tvt = tv->get_tensor_view_type();
         auto rank = tvt->get_shape().size();
@@ -75,7 +79,8 @@ shared_ptr<Node> runtime::cpu::pass::CPULayout::insert_input_conversions(
         if (mkldnn_tvl)
         {
             std::cout << "mkldnn_tvl populating size" << std::endl;
-            mkldnn_tvl->compute_mkldnn_memory_size(tvt, mkldnn_tvl->get_mkldnn_format());
+            mkldnn_tvl->compute_mkldnn_memory_size(
+                tvt, mkldnn_tvl->get_mkldnn_format(), is_mkldnn ? is_mkldnn : false);
         }
         if (!mkldnn_tvl ||
             !runtime::cpu::mkldnn_utils::compare_mkldnn_formats(mkldnn_tvl->get_mkldnn_format(),
@@ -86,6 +91,8 @@ shared_ptr<Node> runtime::cpu::pass::CPULayout::insert_input_conversions(
             auto layout =
                 std::make_shared<ngraph::runtime::cpu::LayoutDescriptor>(*tv, native_axis_order);
             layout->set_mkldnn_format(required_formats[index]);
+            layout->compute_mkldnn_memory_size(
+                tvt, layout->get_mkldnn_format(), is_mkldnn ? is_mkldnn : false);
             auto new_node = std::shared_ptr<Node>(
                 new runtime::cpu::op::ConvertLayout(output.get_node(), output.get_index(), layout));
             new_args.push_back(new_node);
@@ -150,6 +157,9 @@ void runtime::cpu::pass::CPULayout::set_output_layouts(shared_ptr<Node>& node,
         auto tv = node->get_output_tensor_view(i);
         auto tvt = tv->get_tensor_view_type();
         auto rank = tvt->get_shape().size();
+        bool is_mkldnn = dynamic_pointer_cast<const ngraph::op::Op>(node)
+                             ? runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node.get())
+                             : false;
         std::cout << "layout_tv " << tv->get_name() << std::endl;
         auto tvl = tv->get_tensor_view_layout();
         if (tvl)
@@ -165,7 +175,9 @@ void runtime::cpu::pass::CPULayout::set_output_layouts(shared_ptr<Node>& node,
 
         layout->set_mkldnn_format(output_formats[i]);
         //compute_memory_size(tvt, layout->get_mkldnn_format());
-        layout->compute_mkldnn_memory_size(tvt, layout->get_mkldnn_format());
+        layout->compute_mkldnn_memory_size(
+            tvt, layout->get_mkldnn_format(), is_mkldnn ? is_mkldnn : false);
+
         tv->set_tensor_view_layout(layout);
         NGRAPH_DEBUG << "Setting Node: " << node->get_name()
                      << " output layout: " << output_formats[i] << endl;
@@ -183,6 +195,10 @@ void runtime::cpu::pass::CPULayout::set_default_layouts(
     for (descriptor::Input& input : node->get_inputs())
     {
         const auto& output = input.get_output();
+        auto input_node = output.get_node();
+        bool is_mkldnn = dynamic_pointer_cast<const ngraph::op::Op>(input_node)
+                             ? runtime::cpu::mkldnn_utils::use_mkldnn_kernel(input_node.get())
+                             : false;
         auto tv = output.get_tensor_view();
         auto tvt = tv->get_tensor_view_type();
         auto rank = tvt->get_shape().size();
@@ -191,7 +207,8 @@ void runtime::cpu::pass::CPULayout::set_default_layouts(
         if (cpu_tvl)
         {
             std::cout << "cpu_tvl populating size " << tv->get_name() << std::endl;
-            cpu_tvl->compute_mkldnn_memory_size(tvt, cpu_tvl->get_mkldnn_format(), false);
+            cpu_tvl->compute_mkldnn_memory_size(
+                tvt, cpu_tvl->get_mkldnn_format(), is_mkldnn ? is_mkldnn : false);
             std::cout << tv->get_name() << " size  " << cpu_tvl->size() << std::endl;
         }
         if (cpu_tvl && cpu_tvl->get_mkldnn_format() != memory::format::format_undef &&
@@ -204,7 +221,8 @@ void runtime::cpu::pass::CPULayout::set_default_layouts(
             auto layout =
                 std::make_shared<ngraph::runtime::cpu::LayoutDescriptor>(*tv, native_axis_order);
             layout->set_mkldnn_format(runtime::cpu::mkldnn_utils::CreateNativeDataFormat(*cpu_tvl));
-            layout->compute_mkldnn_memory_size(tvt, layout->get_mkldnn_format(), false);
+            layout->compute_mkldnn_memory_size(
+                tvt, layout->get_mkldnn_format(), is_mkldnn ? is_mkldnn : false);
             auto new_node = std::shared_ptr<Node>(
                 new runtime::cpu::op::ConvertLayout(output.get_node(), output.get_index(), layout));
             new_args.push_back(new_node);
@@ -253,10 +271,11 @@ void runtime::cpu::pass::CPULayout::set_default_layouts(
         {
             continue;
         }
-
         auto tvt = tv->get_tensor_view_type();
         auto rank = tvt->get_shape().size();
-
+        bool is_mkldnn = dynamic_pointer_cast<const ngraph::op::Op>(node)
+                             ? runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node.get())
+                             : false;
         auto native_axis_order =
             ngraph::runtime::cpu::LayoutDescriptor::create_native_axis_order(rank);
 
@@ -266,7 +285,8 @@ void runtime::cpu::pass::CPULayout::set_default_layouts(
         // Set the MKLDNN format to native row-major variants
         layout->set_mkldnn_format(mkldnn_utils::CreateNativeDataFormat(*layout));
         std::cout << "cpu_tvl for node output populating size " << tv->get_name() << std::endl;
-        layout->compute_mkldnn_memory_size(tvt, layout->get_mkldnn_format(), false);
+        layout->compute_mkldnn_memory_size(
+            tvt, layout->get_mkldnn_format(), is_mkldnn ? is_mkldnn : false);
         std::cout << tv->get_name() << " size  " << layout->size() << std::endl;
         tv->set_tensor_view_layout(layout);
     }
