@@ -41,7 +41,7 @@ namespace ngraph
                 : TensorViewLayout(tv)
                 , axis_order(tv_axis_order)
                 , offset(0)
-                , mkldnn_memory_size(0)
+                , m_size(ngraph::shape_size(tv.get_tensor_view_type()->get_shape()))
                 , mkldnn_format(mkldnn::memory::format::format_undef)
             {
                 auto shape = get_shape();

@@ -40,7 +40,7 @@ namespace ngraph
                 LayoutDescriptor(const ngraph::descriptor::TensorView& tv,
                                  const AxisVector& tv_axis_order);
                 ~LayoutDescriptor() override {}
-                size_t get_size() override { return mkldnn_memory_size; }
+                size_t get_size() override { return m_size; }
                 size_t get_offset() const { return offset; }
                 size_t get_index_offset(const std::vector<size_t>& indices) override;
                 virtual size_t size() override
@@ -70,6 +70,7 @@ namespace ngraph
                 AxisVector axis_order;
                 Strides strides;
                 size_t offset;
+                size_t m_size;
                 size_t mkldnn_memory_size;
 
                 // Numeric backend-specific fields
