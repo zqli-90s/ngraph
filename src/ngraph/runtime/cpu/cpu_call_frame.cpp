@@ -84,7 +84,6 @@ void runtime::cpu::CPU_CallFrame::propagate_layouts(
     const std::vector<std::shared_ptr<runtime::TensorView>>& tvs,
     const LayoutDescriptorPtrs& layouts) const
 {
-    std::cout << "tvs size " << tvs.size() << std::endl;
     if (layouts.size() != tvs.size())
     {
         throw ngraph_error(
@@ -97,8 +96,6 @@ void runtime::cpu::CPU_CallFrame::propagate_layouts(
             throw ngraph_error(
                 "Error propagating layouts - layout information missing from tensor view");
         }
-        std::cout << "call_frame: " << tvs[i]->get_descriptor()->get_name() << " "
-                  << layouts[i]->size() << std::endl;
         tvs[i]->get_descriptor()->set_tensor_view_layout(layouts[i]);
     }
 }

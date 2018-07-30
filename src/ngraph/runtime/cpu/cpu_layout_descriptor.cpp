@@ -123,7 +123,6 @@ namespace ngraph
                         auto mem_prim_desc = mkldnn::memory::primitive_desc(
                             mem_desc, mkldnn_utils::global_cpu_engine);
                         mkldnn_memory_size = mem_prim_desc.get_size();
-                        std::cout << "mkldnn_memory_size: " << mkldnn_memory_size << std::endl;
                     }
                     else
                     {
