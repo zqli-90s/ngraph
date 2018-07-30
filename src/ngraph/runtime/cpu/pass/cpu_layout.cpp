@@ -72,6 +72,11 @@ shared_ptr<Node> runtime::cpu::pass::CPULayout::insert_input_conversions(
         auto rank = tvt->get_shape().size();
         auto tvl = tv->get_tensor_view_layout();
         auto mkldnn_tvl = dynamic_cast<runtime::cpu::LayoutDescriptor*>(tvl.get());
+        if (mkldnn_tvl)
+        {
+            std::cout << "mkldnn_tvl populating size" << std::endl;
+            mkldnn_tvl->compute_mkldnn_memory_size(tvt, mkldnn_tvl->get_mkldnn_format());
+        }
         if (!mkldnn_tvl ||
             !runtime::cpu::mkldnn_utils::compare_mkldnn_formats(mkldnn_tvl->get_mkldnn_format(),
                                                                 required_formats[index]))
@@ -117,7 +122,7 @@ shared_ptr<Node> runtime::cpu::pass::CPULayout::insert_input_conversions(
     return node;
 }
 
-static void compute_memory_size(std::shared_ptr<const ngraph::TensorViewType> tvt,
+/*static void compute_memory_size(std::shared_ptr<const ngraph::TensorViewType> tvt,
                                 const mkldnn::memory::format& fmt)
 {
     try
@@ -136,7 +141,7 @@ static void compute_memory_size(std::shared_ptr<const ngraph::TensorViewType> tv
         throw ngraph_error("error in computing mkldnn memory size from memory primitive desc: " +
                            e.message);
     }
-}
+}*/
 void runtime::cpu::pass::CPULayout::set_output_layouts(shared_ptr<Node>& node,
                                                        const vector<memory::format>& output_formats)
 {
@@ -159,7 +164,7 @@ void runtime::cpu::pass::CPULayout::set_output_layouts(shared_ptr<Node>& node,
             std::make_shared<ngraph::runtime::cpu::LayoutDescriptor>(*tv, native_axis_order);
 
         layout->set_mkldnn_format(output_formats[i]);
-        compute_memory_size(tvt, layout->get_mkldnn_format());
+        //compute_memory_size(tvt, layout->get_mkldnn_format());
         layout->compute_mkldnn_memory_size(tvt, layout->get_mkldnn_format());
         tv->set_tensor_view_layout(layout);
         NGRAPH_DEBUG << "Setting Node: " << node->get_name()
@@ -183,6 +188,12 @@ void runtime::cpu::pass::CPULayout::set_default_layouts(
         auto rank = tvt->get_shape().size();
         auto tvl = tv->get_tensor_view_layout();
         auto cpu_tvl = dynamic_cast<runtime::cpu::LayoutDescriptor*>(tvl.get());
+        if (cpu_tvl)
+        {
+            std::cout << "cpu_tvl populating size " << tv->get_name() << std::endl;
+            cpu_tvl->compute_mkldnn_memory_size(tvt, cpu_tvl->get_mkldnn_format(), false);
+            std::cout << tv->get_name() << " size  " << cpu_tvl->size() << std::endl;
+        }
         if (cpu_tvl && cpu_tvl->get_mkldnn_format() != memory::format::format_undef &&
             !runtime::cpu::mkldnn_utils::compare_mkldnn_formats(
                 cpu_tvl->get_mkldnn_format(),
@@ -193,7 +204,7 @@ void runtime::cpu::pass::CPULayout::set_default_layouts(
             auto layout =
                 std::make_shared<ngraph::runtime::cpu::LayoutDescriptor>(*tv, native_axis_order);
             layout->set_mkldnn_format(runtime::cpu::mkldnn_utils::CreateNativeDataFormat(*cpu_tvl));
-            layout->compute_mkldnn_memory_size(tvt, layout->get_mkldnn_format());
+            layout->compute_mkldnn_memory_size(tvt, layout->get_mkldnn_format(), false);
             auto new_node = std::shared_ptr<Node>(
                 new runtime::cpu::op::ConvertLayout(output.get_node(), output.get_index(), layout));
             new_args.push_back(new_node);
@@ -254,6 +265,9 @@ void runtime::cpu::pass::CPULayout::set_default_layouts(
 
         // Set the MKLDNN format to native row-major variants
         layout->set_mkldnn_format(mkldnn_utils::CreateNativeDataFormat(*layout));
+        std::cout << "cpu_tvl for node output populating size " << tv->get_name() << std::endl;
+        layout->compute_mkldnn_memory_size(tvt, layout->get_mkldnn_format(), false);
+        std::cout << tv->get_name() << " size  " << layout->size() << std::endl;
         tv->set_tensor_view_layout(layout);
     }
 }
@@ -1587,6 +1601,7 @@ bool runtime::cpu::pass::CPULayout::run_on_call_graph(const std::list<std::share
 {
     for (const auto& node : nodes)
     {
+        std::cout << "call_graph: " << node->get_name() << std::endl;
         auto& n = *node;
         auto handler = s_dispatcher.find(TI(n));
         if (handler != s_dispatcher.end())

@@ -109,17 +109,31 @@ namespace ngraph
 
             void LayoutDescriptor::compute_mkldnn_memory_size(
                 std::shared_ptr<const ngraph::TensorViewType> tvt,
-                const mkldnn::memory::format& fmt)
+                const mkldnn::memory::format& fmt,
+                bool is_mkldnn)
             {
                 try
                 {
-                    auto mem_desc = mkldnn::memory::desc(
-                        mkldnn::memory::dims(tvt->get_shape().begin(), tvt->get_shape().end()),
-                        mkldnn_utils::get_mkldnn_data_type(tvt->get_element_type()),
-                        fmt);
-                    auto mem_prim_desc =
-                        mkldnn::memory::primitive_desc(mem_desc, mkldnn_utils::global_cpu_engine);
-                    mkldnn_memory_size = mem_prim_desc.get_size();
+                    if (is_mkldnn)
+                    {
+                        auto mem_desc = mkldnn::memory::desc(
+                            mkldnn::memory::dims(tvt->get_shape().begin(), tvt->get_shape().end()),
+                            mkldnn_utils::get_mkldnn_data_type(tvt->get_element_type()),
+                            fmt);
+                        auto mem_prim_desc = mkldnn::memory::primitive_desc(
+                            mem_desc, mkldnn_utils::global_cpu_engine);
+                        mkldnn_memory_size = mem_prim_desc.get_size();
+                        std::cout << "mkldnn_memory_size: " << mkldnn_memory_size << std::endl;
+                    }
+                    else
+                    {
+                        size_t size = 1;
+                        for (size_t s : tvt->get_shape())
+                        {
+                            size *= s;
+                        }
+                        mkldnn_memory_size = size * tvt->get_element_type().size();
+                    }
                 }
                 catch (const mkldnn::error& e)
                 {
