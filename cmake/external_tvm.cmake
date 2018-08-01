@@ -33,6 +33,8 @@ if (${CMAKE_VERSION} VERSION_LESS 3.2)
         GIT_TAG ${TVM_GIT_LABEL}
         UPDATE_COMMAND ""
         CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                   -DCMAKE_INSTALL_PREFIX=${EXTERNAL_PROJECTS_ROOT}/tvm
+                   -DINSTALL_DEV=ON
                    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                    -DCMAKE_CXX_FLAGS="-fPIC"
         TMP_DIR "${EXTERNAL_PROJECTS_ROOT}/tvm/tmp"
@@ -52,6 +54,8 @@ else()
         UPDATE_COMMAND ""
         CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                   -DCMAKE_INSTALL_PREFIX=${EXTERNAL_PROJECTS_ROOT}/tvm
+                   -DINSTALL_DEV=ON
                    -DCMAKE_CXX_FLAGS="-fPIC"
         TMP_DIR "${EXTERNAL_PROJECTS_ROOT}/tvm/tmp"
         STAMP_DIR "${EXTERNAL_PROJECTS_ROOT}/tvm/stamp"
@@ -75,5 +79,7 @@ set(TVM_LINK_LIBS
 
 add_library(libtvm INTERFACE)
 add_dependencies(libtvm ext_tvm)
-target_include_directories(libtvm SYSTEM INTERFACE ${EXTERNAL_PROJECTS_ROOT}/tvm/include)
+target_include_directories(libtvm SYSTEM INTERFACE
+                           ${EXTERNAL_PROJECTS_ROOT}/tvm/include 
+                           ${EXTERNAL_PROJECTS_ROOT}/tvm/include/HalideIR)
 target_link_libraries(libtvm INTERFACE ${TVM_LINK_LIBS})
