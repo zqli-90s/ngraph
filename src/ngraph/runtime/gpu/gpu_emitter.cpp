@@ -2040,7 +2040,6 @@ namespace ngraph
                     auto softmax = static_cast<const ngraph::op::Softmax*>(node);
                     auto tensor_shape = args[0].get_shape();
                     auto axes = softmax->get_axes();
-
                     auto& cudnn_emitter =
                         external_function->get_primitive_emitter()->get_cudnn_emitter();
                     auto& cuda_emitter =
@@ -2058,11 +2057,12 @@ namespace ngraph
                             reduced_shape[axis] = 1;
                         }
                         size_t reduced_size = shape_size(reduced_shape);
+                        size_t tensor_size = shape_size(tensor_shape);
 
                         size_t reduce_buffer_idx = allocator.reserve_workspace(
                             reduced_size * out[0].get_element_type().size());
                         size_t workspace_buffer_idx = allocator.reserve_workspace(
-                            shape_size(tensor_shape) * out[0].get_element_type().size());
+                            tensor_size * out[0].get_element_type().size());
 
                         auto exp_index = cuda_emitter->build_elementwise<ngraph::op::Exp>(
                             {{args[0].get_type(), out[0].get_type()}}, tensor_shape);
@@ -2071,6 +2071,7 @@ namespace ngraph
 
                         writer << "void* workspace_buffer = gpu::invoke_memory_primitive(ctx, "
                                << workspace_buffer_idx << ");\n";
+
                         writer << "gpu::invoke_primitive(ctx, " << exp_index << ", ";
                         writer << "std::vector<void*>{" << args[0].get_name() << "}.data(), ";
                         writer << "std::vector<void*>{workspace_buffer}.data()";
@@ -2078,10 +2079,22 @@ namespace ngraph
 
                         writer << "void* reduce_buffer = gpu::invoke_memory_primitive(ctx, "
                                << reduce_buffer_idx << ");\n";
-                        writer << "gpu::invoke_primitive(ctx, " << reduce_index << ", ";
-                        writer << "std::vector<void*>{workspace_buffer}.data(), ";
-                        writer << "std::vector<void*>{reduce_buffer}.data()";
-                        writer << ");\n";
+
+                        if (tensor_size == reduced_size)
+                        {
+                            writer
+                                << "runtime::gpu::cuda_memcpyDtD(reduce_buffer, workspace_buffer," 
+                                << tensor_size << " * " << out[0].get_element_type().size()
+                                << ");\n";
+                        }
+
+                        else
+                        {
+                            writer << "gpu::invoke_primitive(ctx, " << reduce_index << ", ";
+                            writer << "std::vector<void*>{workspace_buffer}.data(), ";
+                            writer << "std::vector<void*>{reduce_buffer}.data()";
+                            writer << ");\n";
+                        }
 
                         // inplace binary division with fused broadcast to calculate softmax
                         size_t div_broadcast =
@@ -2090,7 +2103,6 @@ namespace ngraph
                                 out[0].get_shape(),
                                 {1},
                                 axes);
-
                         writer << "gpu::invoke_primitive(ctx, " << div_broadcast << ", ";
                         writer << "std::vector<void*>{workspace_buffer, reduce_buffer}.data(), ";
                         writer << "std::vector<void*>{" << out[0].get_name() << "}.data()";
