@@ -1335,6 +1335,14 @@ size_t runtime::gpu::CUDAEmitter::build_broadcast2(const std::array<std::string,
                                                        GPUShape output_shape,
                                                        const std::set<size_t>& axes)
 {
+    auto input_shape = output_shape;
+    std::vector<size_t> axes_flag(output_shape.size(), 0);
+    for (auto const& axis : axes)
+    {
+        input_shape[axis] = 1;
+        axes_flag[axis] = 1;
+    }
+
     std::string kernel_name =
         "broadcast2_" + join(dtypes, "_") + "_axes_" + join(axes_flag, "_");
     std::replace(kernel_name.begin(), kernel_name.end(), ' ', '_');
@@ -1348,14 +1356,6 @@ size_t runtime::gpu::CUDAEmitter::build_broadcast2(const std::array<std::string,
     if (primitive_index != std::numeric_limits<size_t>::max())
     {
         return primitive_index;
-    }
-
-    auto input_shape = output_shape;
-    std::vector<size_t> axes_flag(output_shape.size(), 0);
-    for (auto const& axis : axes)
-    {
-        reduced_shape[axis] = 1;
-        axes_flag[axis] = 1;
     }
 
     // if the kernel has not been compiled, build it
