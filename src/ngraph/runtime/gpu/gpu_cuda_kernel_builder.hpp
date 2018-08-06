@@ -132,6 +132,12 @@ namespace ngraph
                                                   std::vector<size_t> axes_flag,
                                                   size_t rank);
 
+                static void get_boradcast2_op(codegen::CodeWriter& writer,
+                                                  const std::string& name,
+                                                  const std::vector<std::string>& data_types,
+                                                  std::vector<size_t> axes_flag,
+                                                  size_t rank);
+
                 static void add_pod_typedefs(codegen::CodeWriter& writer);
 
                 /// \brief Given kernel input variables i_* produce register variables o_coordinates{i}

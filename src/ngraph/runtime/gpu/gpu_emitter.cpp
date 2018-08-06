@@ -456,7 +456,7 @@ namespace ngraph
 
                 auto& cuda_emitter = external_function->get_primitive_emitter()->get_cuda_emitter();
 
-                auto bcast_index = cuda_emitter->build_broadcast(
+                auto bcast_index = cuda_emitter->build_broadcast2(
                     {{args[0].get_type(), out[0].get_type()}}, result_shape, axes);
                 writer << "gpu::invoke_primitive(ctx, " << bcast_index << ", ";
                 writer << "std::vector<void*>{" << args[0].get_name() << "}.data(), ";
