@@ -165,7 +165,7 @@ namespace ngraph
 
                 size_t build_broadcast2(const std::array<std::string, 2>& dtypes,
                                             GPUShape output_shape,
-                                            onst std::set<size_t>& axes);
+                                            const std::set<size_t>& axes);
 
                 void debug_sync();
                 void sync();
