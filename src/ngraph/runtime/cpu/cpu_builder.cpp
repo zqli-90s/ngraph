@@ -200,6 +200,10 @@ namespace ngraph
                   }
               }
             }
+
+            void tvm_test_topi() {
+
+            }
             template <>
             void Builder::BUILDER_DECL(ngraph::op::Add)
             {
