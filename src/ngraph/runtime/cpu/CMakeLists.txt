@@ -18,10 +18,7 @@ set(SRC
     cpu_backend.cpp
     cpu_builder.cpp
     cpu_call_frame.cpp
-    cpu_emitter.cpp
     cpu_external_function.cpp
-    cpu_kernel_emitters.cpp
-    cpu_kernel_utils.cpp
     cpu_kernels.cpp
     cpu_layout_descriptor.cpp
     cpu_tensor_view_wrapper.cpp
@@ -41,7 +38,6 @@ set(SRC
     builder/max_pool.cpp
     builder/min.cpp
     builder/relu.cpp
-    builder/pad.cpp
     builder/product.cpp
     builder/reshape.cpp
     builder/reverse.cpp
@@ -83,6 +79,15 @@ set(SRC
     pass/cpu_workspace_insertion.cpp
 )
 
+if (NOT NGRAPH_DEX_ONLY)
+    set(SRC
+        ${SRC}
+        cpu_emitter.cpp
+        cpu_kernel_emitters.cpp
+        cpu_kernel_utils.cpp
+        )
+endif()
+
 if (NGRAPH_TBB_ENABLE)
     include(${TBB_ROOT}/cmake/TBBBuild.cmake)
     tbb_build(TBB_ROOT ${TBB_ROOT} MAKE_ARGS tbb_build_dir=${CMAKE_CURRENT_BINARY_DIR}/tbb_build
@@ -116,7 +121,11 @@ if (NGRAPH_CPU_ENABLE)
     set(NGRAPH_CPU_DEBUGINFO_ENABLE 0 CACHE STRING "Enable debuginfo in the CPU backend")
 
     add_library(cpu_backend SHARED ${SRC})
+    add_dependencies(cpu_backend ext_mkldnn ext_eigen ext_tvm)
     set_target_properties(cpu_backend PROPERTIES VERSION ${NGRAPH_VERSION} SOVERSION ${NGRAPH_API_VERSION})
+    if (NGRAPH_DEX_ONLY)
+        target_compile_definitions(cpu_backend PRIVATE "NGRAPH_DEX_ONLY")
+    endif()
 
     if(NGRAPH_DISTRIBUTED_ENABLE)
         find_package(MPI REQUIRED)
@@ -126,7 +135,10 @@ if (NGRAPH_CPU_ENABLE)
         target_link_libraries(cpu_backend PRIVATE ${MPI_CXX_LIBRARIES})
     endif()
 
-    target_link_libraries(cpu_backend PUBLIC ngraph codegen libmkldnn libeigen libjson libtbb)
+    target_link_libraries(cpu_backend PUBLIC ngraph libmkldnn libeigen libjson libtbb)
+    if (NOT NGRAPH_DEX_ONLY)
+        target_link_libraries(cpu_backend PUBLIC codegen)
+    endif()
     target_link_libraries(cpu_backend PRIVATE libtvm)
     target_include_directories(cpu_backend SYSTEM PUBLIC INTERFACE libmkldnn libtvm)
     set_target_properties(cpu_backend PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${NGRAPH_BUILD_DIR})
