@@ -224,9 +224,8 @@ void runtime::gpu::CudaKernelBuilder::get_onehot_op(codegen::CodeWriter& writer,
 }
 
 void runtime::gpu::CudaKernelBuilder::get_reshape_op(codegen::CodeWriter& writer,
-                                                     const std::string& name,
-                                                     const std::array<std::string, 2>& data_types,
-                                                     size_t rank)
+                                                     const GPUKernelArgs& args,
+                                                     const std::string& name)
 {
     writer << name << args.get_input_signature();
     writer.block_begin();
@@ -238,7 +237,7 @@ void runtime::gpu::CudaKernelBuilder::get_reshape_op(codegen::CodeWriter& writer
             writer << "uint32_t input_idx = tid;\n";
             writer << "uint32_t output_idx = 0;\n";
             size_t i = 0;
-            for (; i < rank - 1; i++)
+            for (; i < args.get_value("rank") - 1; i++)
             {
                 writer << "output_idx += (input_idx / "
                        << args("input_strides", i) << ") * "
