@@ -140,6 +140,7 @@ namespace ngraph
     {
         namespace cpu
         {
+#if 0
             tvm::Var tvm_test(){
               using namespace tvm;
               auto n = var("n");
@@ -205,6 +206,7 @@ namespace ngraph
             void tvm_test_topi() {
 
             }
+#endif
             template <>
             void Builder::BUILDER_DECL(ngraph::op::Add)
             {
@@ -227,7 +229,7 @@ namespace ngraph
             void Builder::BUILDER_DECL(ngraph::op::Divide)
             {
 //                BUILD_BINARY_ELEMWISE_FUNCTOR(runtime::cpu::kernel::divide);
-                BUILD_BINARY_ELEMWISE_FUNCTOR(runtime::cpu::tvm::divide);
+                BUILD_TVM_BINARY_ELEMWISE_FUNCTOR(runtime::cpu::tvm_kernel::build_divide);
             }
 
             template <>

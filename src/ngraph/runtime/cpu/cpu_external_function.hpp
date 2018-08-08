@@ -39,6 +39,7 @@
 #include "ngraph/runtime/cpu/cpu_layout_descriptor.hpp"
 #include "ngraph/runtime/cpu/cpu_tensor_view_wrapper.hpp"
 #include "ngraph/runtime/cpu/mkldnn_emitter.hpp"
+#include "ngraph/runtime/cpu/tvm_emitter.hpp"
 
 namespace ngraph
 {
@@ -96,6 +97,10 @@ namespace ngraph
                 const std::unique_ptr<MKLDNNEmitter>& get_mkldnn_emitter() const
                 {
                     return m_mkldnn_emitter;
+                }
+                const std::unique_ptr<TVMInstance>& get_tvm_instance() const
+                {
+                    return m_tvm_instance;
                 }
 
                 const std::string& get_function_name() const { return m_function_name; }
@@ -207,6 +212,7 @@ namespace ngraph
                 std::unordered_map<std::string, std::shared_ptr<CPU_ExternalFunction>> callees;
                 bool m_is_built;
                 bool m_direct_execution;
+                std::unique_ptr<TVMInstance> m_tvm_instance;
             };
         }
     }
