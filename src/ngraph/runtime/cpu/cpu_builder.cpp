@@ -306,6 +306,7 @@ namespace ngraph
             void Builder::BUILDER_DECL(ngraph::op::Relu)
             {
                 BUILD_UNARY_ELEMWISE_FUNCTOR(runtime::cpu::kernel::relu);
+                //BUILD_TVM_UNARY_ELEMWISE_FUNCTOR(topi::relu);
             }
 
             template <>
@@ -323,7 +324,8 @@ namespace ngraph
             template <>
             void Builder::BUILDER_DECL(ngraph::op::Exp)
             {
-                BUILD_UNARY_ELEMWISE_FUNCTOR(runtime::cpu::kernel::exp);
+                //BUILD_UNARY_ELEMWISE_FUNCTOR(runtime::cpu::kernel::exp);
+                BUILD_TVM_UNARY_ELEMWISE_FUNCTOR(topi::exp);
             }
 
             template <>
