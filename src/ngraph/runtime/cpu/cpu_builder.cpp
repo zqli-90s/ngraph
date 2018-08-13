@@ -27,7 +27,6 @@
 #include "ngraph/node.hpp"
 #include "ngraph/op/abs.hpp"
 #include "ngraph/op/acos.hpp"
-#include "ngraph/op/add.hpp"
 #include "ngraph/op/and.hpp"
 #include "ngraph/op/asin.hpp"
 #include "ngraph/op/atan.hpp"
@@ -68,7 +67,6 @@
 #include "ngraph/runtime/cpu/cpu_op_annotations.hpp"
 #include "ngraph/runtime/cpu/kernel/abs.hpp"
 #include "ngraph/runtime/cpu/kernel/acos.hpp"
-#include "ngraph/runtime/cpu/kernel/add.hpp"
 #include "ngraph/runtime/cpu/kernel/and.hpp"
 #include "ngraph/runtime/cpu/kernel/asin.hpp"
 #include "ngraph/runtime/cpu/kernel/atan.hpp"
@@ -120,12 +118,6 @@ namespace ngraph
     {
         namespace cpu
         {
-            template <>
-            void Builder::BUILDER_DECL(ngraph::op::Add)
-            {
-                BUILD_BINARY_ELEMWISE_FUNCTOR(runtime::cpu::kernel::add);
-            }
-
             template <>
             void Builder::BUILDER_DECL(ngraph::op::Subtract)
             {
@@ -390,7 +382,6 @@ namespace ngraph
 
             REGISTER_OP_BUILDER(Constant);
             REGISTER_OP_BUILDER(Result);
-            REGISTER_OP_BUILDER(Add);
             REGISTER_OP_BUILDER(Subtract);
             REGISTER_OP_BUILDER(Multiply);
             REGISTER_OP_BUILDER(Divide);
