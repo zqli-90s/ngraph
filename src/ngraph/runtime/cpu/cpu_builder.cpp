@@ -349,7 +349,8 @@ namespace ngraph
                             result->get_output_tensor(0).get_name()));
                     }
                 }
-                auto& src = tensor_data[node->get_output_tensor(0).get_name()];
+                auto& src =
+                    external_function->get_tensor_data(node->get_output_tensor(0).get_name());
                 auto size = node->get_output_tensor(0)
                                 .get_primary_tensor_view()
                                 ->get_tensor_view_layout()
