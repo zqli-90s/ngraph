@@ -250,6 +250,7 @@ ngraph::FpropCache ngraph::cache_fprop(std::shared_ptr<ngraph::Function> fprop,
         {
             throw ngraph_error("Expected op::Result values for op::Result keys in node_param_map");
         }
+        std::cout << node->get_friendly_name() << std::endl;
         cloned_results.push_back(result);
         result_nodes.push_back(result);
     }
