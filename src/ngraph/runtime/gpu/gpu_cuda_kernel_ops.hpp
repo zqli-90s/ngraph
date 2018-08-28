@@ -60,6 +60,9 @@ namespace ngraph
         class Select;
         class And;
         class Or;
+        class Nop;
+        class Sigmoid;
+        class SigmoidBackprop;
     }
     namespace runtime
     {
@@ -207,6 +210,7 @@ namespace ngraph
             {
                 static constexpr const char* op = "subtractf";
                 static constexpr const char* math_kernel = "x0-x1";
+                static constexpr const char* atomic = "atomicSub";
             };
 
             template <>
@@ -287,6 +291,13 @@ namespace ngraph
             };
 
             template <>
+            struct CudaOpMap<ngraph::op::Negative>
+            {
+                static constexpr const char* op = "negative";
+                static constexpr const char* math_kernel = "-x0";
+            };
+
+            template <>
             struct CudaOpMap<ngraph::op::Select>
             {
                 static constexpr const char* op = "select";
@@ -305,6 +316,7 @@ namespace ngraph
             {
                 static constexpr const char* op = "logical_and";
                 static constexpr const char* math_kernel = "x0 & x1";
+                static constexpr const char* atomic = "atomicAnd";
             };
 
             template <>
@@ -312,6 +324,7 @@ namespace ngraph
             {
                 static constexpr const char* op = "logical_or";
                 static constexpr const char* math_kernel = "x0 | x1";
+                static constexpr const char* atomic = "atomicOr";
             };
 
             template <>
@@ -319,6 +332,7 @@ namespace ngraph
             {
                 static constexpr const char* op = "add";
                 static constexpr const char* math_kernel = "x0 + x1";
+                static constexpr const char* atomic = "atomicAdd";
             };
 
             template <>
@@ -333,6 +347,7 @@ namespace ngraph
             {
                 static constexpr const char* op = "min";
                 static constexpr const char* math_kernel = "x0 > x1 ? x1 : x0";
+                static constexpr const char* atomic = "atomicMin";
             };
 
             template <>
@@ -340,6 +355,29 @@ namespace ngraph
             {
                 static constexpr const char* op = "max";
                 static constexpr const char* math_kernel = "x0 > x1 ? x0 : x1";
+                static constexpr const char* atomic = "atomicMax";
+            };
+
+            template <>
+            struct CudaOpMap<ngraph::op::Nop>
+            {
+                static constexpr const char* op = "";
+                static constexpr const char* math_kernel = "";
+                static constexpr const char* atomic = "";
+            };
+
+            template <>
+            struct CudaOpMap<ngraph::op::Sigmoid>
+            {
+                static constexpr const char* op = "sigmoid";
+                static constexpr const char* math_kernel = "1 / (1 + expf(-x0))";
+            };
+
+            template <>
+            struct CudaOpMap<ngraph::op::SigmoidBackprop>
+            {
+                static constexpr const char* op = "sigmoid_backprop";
+                static constexpr const char* math_kernel = "x1 / (2 + expf(-x0) + expf(x0))";
             };
         }
     }

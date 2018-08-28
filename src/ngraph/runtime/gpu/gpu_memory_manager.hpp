@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <list>
 #include <memory>
 #include <stack>
 #include <vector>
@@ -35,15 +36,20 @@ namespace ngraph
             {
             public:
                 GPUAllocator() = delete;
-                GPUAllocator(GPUMemoryManager* mgr)
-                    : m_manager(mgr)
-                {
-                }
+                GPUAllocator(GPUMemoryManager* mgr);
                 GPUAllocator(const GPUAllocator& g);
 
                 ~GPUAllocator();
+                template <typename T>
+                size_t reserve_argspace(const T& container)
+                {
+                    return reserve_argspace(container.data(),
+                                            container.size() * sizeof(typename T::value_type));
+                }
                 size_t reserve_argspace(const void* data, size_t size);
-                size_t reserve_workspace(size_t size);
+                size_t reserve_workspace(size_t size, bool zero_initialize = true);
+
+                void close();
 
             private:
                 GPUMemoryManager* m_manager;
@@ -59,7 +65,7 @@ namespace ngraph
                 ~GPUMemoryManager();
 
                 void allocate();
-                size_t get_allocation_size() { return m_allocation_size; }
+                size_t get_allocation_size() const;
                 GPUAllocator build_allocator() { return GPUAllocator(this); }
             private:
                 GPUMemoryManager(GPUPrimitiveEmitter* emitter);
@@ -67,12 +73,17 @@ namespace ngraph
 
                 size_t m_buffer_offset;
                 std::vector<uint8_t> m_buffered_mem;
-                pass::MemoryManager m_workspace_manager;
-                static constexpr const uint16_t alignment = 4;
-                void* m_argspace;
-                void* m_workspace;
-                size_t m_allocation_size;
+                ngraph::pass::MemoryManager m_workspace_manager;
+                static constexpr const uint16_t alignment = 8;
 
+                struct allocation
+                {
+                    void* ptr;
+                    size_t size;
+                };
+
+                std::list<allocation> m_argspace_mem;
+                std::list<allocation> m_workspace_mem;
                 GPUPrimitiveEmitter* m_primitive_emitter;
             };
         }
