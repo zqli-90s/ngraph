@@ -24,13 +24,6 @@
 #include "ngraph/runtime/ccpu/ccpu_external_function.hpp"
 #include "ngraph/runtime/ccpu/ccpu_tensor_view_wrapper.hpp"
 
-#define EMITTER_DECL(op_name)                                                                      \
-    emit<op_name>(CCPUExternalFunction * external_function,                                        \
-                  codegen::CodeWriter & writer,                                                    \
-                  const ngraph::Node* node,                                                        \
-                  const std::vector<TensorViewWrapper>& args,                                      \
-                  const std::vector<TensorViewWrapper>& out)
-
 namespace ngraph
 {
     namespace runtime
@@ -57,7 +50,6 @@ namespace ngraph
                                 const std::vector<TensorViewWrapper>& out)
                 {
                 }
-
                 static void emitBatchNorm(CCPUExternalFunction* external_function,
                                           codegen::CodeWriter& writer,
                                           const ngraph::Node* node,

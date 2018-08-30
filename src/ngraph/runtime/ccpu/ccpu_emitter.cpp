@@ -141,7 +141,11 @@ namespace ngraph
         namespace cpu
         {
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Add)
+            void CCPUEmitter::emit<ngraph::op::Add>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 // TODO: Audit all uses of Add and fix this to use
                 // the right alignment instead of Eigen::Unaligned
@@ -334,7 +338,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::MatmulBias)
+            void CCPUEmitter::emit<ngraph::op::MatmulBias>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::MatmulBias* cg = static_cast<const ngraph::op::MatmulBias*>(node);
 
@@ -455,7 +464,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::BatchDot)
+            void CCPUEmitter::emit<ngraph::op::BatchDot>(CCPUExternalFunction* external_function,
+                                                         codegen::CodeWriter& writer,
+                                                         const ngraph::Node* node,
+                                                         const std::vector<TensorViewWrapper>& args,
+                                                         const std::vector<TensorViewWrapper>& out)
             {
                 const auto* cg = static_cast<const ngraph::op::BatchDot*>(node);
                 emitBatchDot<ngraph::op::BatchDot>(node,
@@ -468,7 +481,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Lstm)
+            void CCPUEmitter::emit<ngraph::op::Lstm>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::Lstm* lstm_node = static_cast<const ngraph::op::Lstm*>(node);
                 if (args.size() != 5 || !lstm_node->get_fused_inputs())
@@ -502,7 +519,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Rnn)
+            void CCPUEmitter::emit<ngraph::op::Rnn>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 auto& mkldnn_emitter = external_function->get_mkldnn_emitter();
                 auto rnn_index = mkldnn_emitter->build_rnn<ngraph::op::Rnn>(node, args, out);
@@ -637,7 +658,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::BatchNorm)
+            void
+                CCPUEmitter::emit<ngraph::op::BatchNorm>(CCPUExternalFunction* external_function,
+                                                         codegen::CodeWriter& writer,
+                                                         const ngraph::Node* node,
+                                                         const std::vector<TensorViewWrapper>& args,
+                                                         const std::vector<TensorViewWrapper>& out)
             {
                 if (!mkldnn_utils::use_mkldnn_kernel(node))
                 {
@@ -676,7 +702,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::BatchNormRelu)
+            void CCPUEmitter::emit<ngraph::op::BatchNormRelu>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 if (!mkldnn_utils::use_mkldnn_kernel(node))
                 {
@@ -686,7 +717,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::BatchNormBackprop)
+            void CCPUEmitter::emit<ngraph::op::BatchNormBackprop>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::BatchNormBackprop* batchnorm =
                     static_cast<const ngraph::op::BatchNormBackprop*>(node);
@@ -754,7 +790,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Dot)
+            void CCPUEmitter::emit<ngraph::op::Dot>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::Dot* dot = static_cast<const ngraph::op::Dot*>(node);
 
@@ -892,7 +932,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Multiply)
+            void CCPUEmitter::emit<ngraph::op::Multiply>(CCPUExternalFunction* external_function,
+                                                         codegen::CodeWriter& writer,
+                                                         const ngraph::Node* node,
+                                                         const std::vector<TensorViewWrapper>& args,
+                                                         const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -905,7 +949,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::GetOutputElement)
+            void CCPUEmitter::emit<ngraph::op::GetOutputElement>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto get_tuple_element = static_cast<const ngraph::op::GetOutputElement*>(node);
 
@@ -917,7 +966,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Abs)
+            void CCPUEmitter::emit<ngraph::op::Abs>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 // Some C++ implementations don't like it when we call std::abs on unsigned types, so we will
@@ -935,7 +988,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Concat)
+            void CCPUEmitter::emit<ngraph::op::Concat>(CCPUExternalFunction* external_function,
+                                                       codegen::CodeWriter& writer,
+                                                       const ngraph::Node* node,
+                                                       const std::vector<TensorViewWrapper>& args,
+                                                       const std::vector<TensorViewWrapper>& out)
             {
                 auto result_shape = out[0].get_shape();
                 if (runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node))
@@ -992,7 +1049,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Divide)
+            void CCPUEmitter::emit<ngraph::op::Divide>(CCPUExternalFunction* external_function,
+                                                       codegen::CodeWriter& writer,
+                                                       const ngraph::Node* node,
+                                                       const std::vector<TensorViewWrapper>& args,
+                                                       const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 if (node->get_element_type().is_real() == false)
@@ -1015,7 +1076,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Equal)
+            void CCPUEmitter::emit<ngraph::op::Equal>(CCPUExternalFunction* external_function,
+                                                      codegen::CodeWriter& writer,
+                                                      const ngraph::Node* node,
+                                                      const std::vector<TensorViewWrapper>& args,
+                                                      const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1028,7 +1093,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Greater)
+            void CCPUEmitter::emit<ngraph::op::Greater>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1041,7 +1110,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::GreaterEq)
+            void
+                CCPUEmitter::emit<ngraph::op::GreaterEq>(CCPUExternalFunction* external_function,
+                                                         codegen::CodeWriter& writer,
+                                                         const ngraph::Node* node,
+                                                         const std::vector<TensorViewWrapper>& args,
+                                                         const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1054,7 +1128,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Less)
+            void CCPUEmitter::emit<ngraph::op::Less>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1067,7 +1145,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::LessEq)
+            void CCPUEmitter::emit<ngraph::op::LessEq>(CCPUExternalFunction* external_function,
+                                                       codegen::CodeWriter& writer,
+                                                       const ngraph::Node* node,
+                                                       const std::vector<TensorViewWrapper>& args,
+                                                       const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1080,7 +1162,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::LRN)
+            void CCPUEmitter::emit<ngraph::op::LRN>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::LRN* lrn = static_cast<const ngraph::op::LRN*>(node);
 
@@ -1123,7 +1209,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Log)
+            void CCPUEmitter::emit<ngraph::op::Log>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1135,7 +1225,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Maximum)
+            void CCPUEmitter::emit<ngraph::op::Maximum>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1149,7 +1243,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Minimum)
+            void CCPUEmitter::emit<ngraph::op::Minimum>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1163,7 +1261,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Negative)
+            void CCPUEmitter::emit<ngraph::op::Negative>(CCPUExternalFunction* external_function,
+                                                         codegen::CodeWriter& writer,
+                                                         const ngraph::Node* node,
+                                                         const std::vector<TensorViewWrapper>& args,
+                                                         const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1175,7 +1277,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::NotEqual)
+            void CCPUEmitter::emit<ngraph::op::NotEqual>(CCPUExternalFunction* external_function,
+                                                         codegen::CodeWriter& writer,
+                                                         const ngraph::Node* node,
+                                                         const std::vector<TensorViewWrapper>& args,
+                                                         const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1188,7 +1294,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Select)
+            void CCPUEmitter::emit<ngraph::op::Select>(CCPUExternalFunction* external_function,
+                                                       codegen::CodeWriter& writer,
+                                                       const ngraph::Node* node,
+                                                       const std::vector<TensorViewWrapper>& args,
+                                                       const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1201,7 +1311,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Subtract)
+            void CCPUEmitter::emit<ngraph::op::Subtract>(CCPUExternalFunction* external_function,
+                                                         codegen::CodeWriter& writer,
+                                                         const ngraph::Node* node,
+                                                         const std::vector<TensorViewWrapper>& args,
+                                                         const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1214,7 +1328,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Broadcast)
+            void
+                CCPUEmitter::emit<ngraph::op::Broadcast>(CCPUExternalFunction* external_function,
+                                                         codegen::CodeWriter& writer,
+                                                         const ngraph::Node* node,
+                                                         const std::vector<TensorViewWrapper>& args,
+                                                         const std::vector<TensorViewWrapper>& out)
             {
                 auto broadcast = static_cast<const ngraph::op::Broadcast*>(node);
 
@@ -1230,7 +1349,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Convert)
+            void CCPUEmitter::emit<ngraph::op::Convert>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 auto& result_element_type = out[0].get_element_type();
 
@@ -1245,7 +1368,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Constant)
+            void CCPUEmitter::emit<ngraph::op::Constant>(CCPUExternalFunction* external_function,
+                                                         codegen::CodeWriter& writer,
+                                                         const ngraph::Node* node,
+                                                         const std::vector<TensorViewWrapper>& args,
+                                                         const std::vector<TensorViewWrapper>& out)
             {
                 // If an output is a constant then copy it
                 size_t output_index = 0;
@@ -1262,7 +1389,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Reshape)
+            void CCPUEmitter::emit<ngraph::op::Reshape>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 auto reshape = static_cast<const ngraph::op::Reshape*>(node);
                 auto can_skip_reshape = [&]() {
@@ -1329,7 +1460,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::FunctionCall)
+            void CCPUEmitter::emit<ngraph::op::FunctionCall>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto function_call = static_cast<const ngraph::op::FunctionCall*>(node);
                 shared_ptr<Function> function = function_call->get_functions()[0];
@@ -1374,7 +1510,11 @@ namespace ngraph
             // to what's seen there (for now atleast)
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Reduce)
+            void CCPUEmitter::emit<ngraph::op::Reduce>(CCPUExternalFunction* external_function,
+                                                       codegen::CodeWriter& writer,
+                                                       const ngraph::Node* node,
+                                                       const std::vector<TensorViewWrapper>& args,
+                                                       const std::vector<TensorViewWrapper>& out)
             {
                 auto reduce = static_cast<const ngraph::op::Reduce*>(node);
                 auto reduction_function = reduce->get_functions()[0];
@@ -1411,7 +1551,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Sign)
+            void CCPUEmitter::emit<ngraph::op::Sign>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1424,7 +1568,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Slice)
+            void CCPUEmitter::emit<ngraph::op::Slice>(CCPUExternalFunction* external_function,
+                                                      codegen::CodeWriter& writer,
+                                                      const ngraph::Node* node,
+                                                      const std::vector<TensorViewWrapper>& args,
+                                                      const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::Slice* slice = static_cast<const ngraph::op::Slice*>(node);
 
@@ -1442,7 +1590,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Sum)
+            void CCPUEmitter::emit<ngraph::op::Sum>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::Sum* sum = static_cast<const ngraph::op::Sum*>(node);
                 writer.block_begin();
@@ -1507,7 +1659,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Exp)
+            void CCPUEmitter::emit<ngraph::op::Exp>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1519,7 +1675,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Sin)
+            void CCPUEmitter::emit<ngraph::op::Sin>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1531,7 +1691,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Sinh)
+            void CCPUEmitter::emit<ngraph::op::Sinh>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1543,7 +1707,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Cos)
+            void CCPUEmitter::emit<ngraph::op::Cos>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1555,7 +1723,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Cosh)
+            void CCPUEmitter::emit<ngraph::op::Cosh>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1567,7 +1739,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Tan)
+            void CCPUEmitter::emit<ngraph::op::Tan>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1579,7 +1755,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Tanh)
+            void CCPUEmitter::emit<ngraph::op::Tanh>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 // Eigen's generic_fast_tanh_float<float> is currently miscompiled by Clang/LLVM
                 // so we fall-back to tanh
@@ -1595,7 +1775,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Asin)
+            void CCPUEmitter::emit<ngraph::op::Asin>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1607,7 +1791,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Acos)
+            void CCPUEmitter::emit<ngraph::op::Acos>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1619,7 +1807,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Atan)
+            void CCPUEmitter::emit<ngraph::op::Atan>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1654,21 +1846,33 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ArgMin)
+            void CCPUEmitter::emit<ngraph::op::ArgMin>(CCPUExternalFunction* external_function,
+                                                       codegen::CodeWriter& writer,
+                                                       const ngraph::Node* node,
+                                                       const std::vector<TensorViewWrapper>& args,
+                                                       const std::vector<TensorViewWrapper>& out)
             {
                 auto argmin = static_cast<const ngraph::op::ArgMin*>(node);
                 emitArgMinArgMax(args, out, argmin->get_reduction_axis(), "argmin", writer);
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ArgMax)
+            void CCPUEmitter::emit<ngraph::op::ArgMax>(CCPUExternalFunction* external_function,
+                                                       codegen::CodeWriter& writer,
+                                                       const ngraph::Node* node,
+                                                       const std::vector<TensorViewWrapper>& args,
+                                                       const std::vector<TensorViewWrapper>& out)
             {
                 auto argmax = static_cast<const ngraph::op::ArgMax*>(node);
                 emitArgMinArgMax(args, out, argmax->get_reduction_axis(), "argmax", writer);
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Power)
+            void CCPUEmitter::emit<ngraph::op::Power>(CCPUExternalFunction* external_function,
+                                                      codegen::CodeWriter& writer,
+                                                      const ngraph::Node* node,
+                                                      const std::vector<TensorViewWrapper>& args,
+                                                      const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 writer << "#pragma omp parallel for\n";
@@ -1681,7 +1885,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ReplaceSlice)
+            void CCPUEmitter::emit<ngraph::op::ReplaceSlice>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto replace_slice = static_cast<const ngraph::op::ReplaceSlice*>(node);
                 writer.block_begin();
@@ -1699,7 +1908,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::OneHot)
+            void CCPUEmitter::emit<ngraph::op::OneHot>(CCPUExternalFunction* external_function,
+                                                       codegen::CodeWriter& writer,
+                                                       const ngraph::Node* node,
+                                                       const std::vector<TensorViewWrapper>& args,
+                                                       const std::vector<TensorViewWrapper>& out)
             {
                 auto oh = static_cast<const ngraph::op::OneHot*>(node);
 
@@ -1783,7 +1996,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Ceiling)
+            void CCPUEmitter::emit<ngraph::op::Ceiling>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 size_t element_count = out[0].get_size();
@@ -1796,7 +2013,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Floor)
+            void CCPUEmitter::emit<ngraph::op::Floor>(CCPUExternalFunction* external_function,
+                                                      codegen::CodeWriter& writer,
+                                                      const ngraph::Node* node,
+                                                      const std::vector<TensorViewWrapper>& args,
+                                                      const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 size_t element_count = out[0].get_size();
@@ -1809,7 +2030,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Sqrt)
+            void CCPUEmitter::emit<ngraph::op::Sqrt>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 writer.block_begin();
                 size_t element_count = out[0].get_size();
@@ -1822,7 +2047,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ConvolutionRelu)
+            void CCPUEmitter::emit<ngraph::op::ConvolutionRelu>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 if (runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node))
                 {
@@ -1844,7 +2074,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::GroupConvolution)
+            void CCPUEmitter::emit<ngraph::op::GroupConvolution>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto convolution = static_cast<const ngraph::op::GroupConvolution*>(node);
 
@@ -1956,7 +2191,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Convolution)
+            void CCPUEmitter::emit<ngraph::op::Convolution>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto convolution = static_cast<const ngraph::op::Convolution*>(node);
 
@@ -2005,7 +2245,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ConvolutionBackpropFilters)
+            void CCPUEmitter::emit<ngraph::op::ConvolutionBackpropFilters>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto convolution = static_cast<const ngraph::op::ConvolutionBackpropFilters*>(node);
 
@@ -2056,7 +2301,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ConvolutionBackpropData)
+            void CCPUEmitter::emit<ngraph::op::ConvolutionBackpropData>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto convolution = static_cast<const ngraph::op::ConvolutionBackpropData*>(node);
 
@@ -2108,7 +2358,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ConvolutionBias)
+            void CCPUEmitter::emit<ngraph::op::ConvolutionBias>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 if (runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node))
                 {
@@ -2137,7 +2392,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ConvolutionBiasAdd)
+            void CCPUEmitter::emit<ngraph::op::ConvolutionBiasAdd>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 if (runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node))
                 {
@@ -2165,7 +2425,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ConvolutionBiasBackpropFiltersBias)
+            void CCPUEmitter::emit<ngraph::op::ConvolutionBiasBackpropFiltersBias>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 if (mkldnn_utils::use_mkldnn_kernel(node))
                 {
@@ -2194,7 +2459,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Not)
+            void CCPUEmitter::emit<ngraph::op::Not>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 writer << "reference::logical_not(" << args[0].get_name() << ",\n"
                        << "                    " << out[0].get_name() << ",\n"
@@ -2202,7 +2471,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::MaxPool)
+            void CCPUEmitter::emit<ngraph::op::MaxPool>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 auto max_pool = static_cast<const ngraph::op::MaxPool*>(node);
 
@@ -2251,7 +2524,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::MaxPoolWithIndices)
+            void CCPUEmitter::emit<ngraph::op::MaxPoolWithIndices>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto max_pool = static_cast<const ngraph::op::MaxPoolWithIndices*>(node);
 
@@ -2288,7 +2566,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Reverse)
+            void CCPUEmitter::emit<ngraph::op::Reverse>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 auto reverse = static_cast<const ngraph::op::Reverse*>(node);
 
@@ -2304,7 +2586,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ReverseSequence)
+            void CCPUEmitter::emit<ngraph::op::ReverseSequence>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto rs = static_cast<const ngraph::op::ReverseSequence*>(node);
 
@@ -2380,7 +2667,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ReduceWindow)
+            void CCPUEmitter::emit<ngraph::op::ReduceWindow>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto reduce_window = static_cast<const ngraph::op::ReduceWindow*>(node);
 
@@ -2418,7 +2710,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::SelectAndScatter)
+            void CCPUEmitter::emit<ngraph::op::SelectAndScatter>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto select_and_scatter = static_cast<const ngraph::op::SelectAndScatter*>(node);
                 auto selection_function = select_and_scatter->get_functions()[0];
@@ -2472,7 +2769,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::AvgPool)
+            void CCPUEmitter::emit<ngraph::op::AvgPool>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 auto avg_pool = static_cast<const ngraph::op::AvgPool*>(node);
 
@@ -2526,7 +2827,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Pad)
+            void CCPUEmitter::emit<ngraph::op::Pad>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 auto pad = static_cast<const ngraph::op::Pad*>(node);
 
@@ -2561,7 +2866,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::AvgPoolBackprop)
+            void CCPUEmitter::emit<ngraph::op::AvgPoolBackprop>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto apb = static_cast<const ngraph::op::AvgPoolBackprop*>(node);
 
@@ -2615,7 +2925,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::MaxPoolBackprop)
+            void CCPUEmitter::emit<ngraph::op::MaxPoolBackprop>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto mpb = static_cast<const ngraph::op::MaxPoolBackprop*>(node);
 
@@ -2678,7 +2993,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::MaxPoolWithIndicesBackprop)
+            void CCPUEmitter::emit<ngraph::op::MaxPoolWithIndicesBackprop>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto mpb = static_cast<const ngraph::op::MaxPoolWithIndicesBackprop*>(node);
 
@@ -2716,7 +3036,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Product)
+            void CCPUEmitter::emit<ngraph::op::Product>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::Product* product = static_cast<const ngraph::op::Product*>(node);
                 writer.block_begin();
@@ -2732,7 +3056,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Max)
+            void CCPUEmitter::emit<ngraph::op::Max>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::Max* max = static_cast<const ngraph::op::Max*>(node);
                 writer.block_begin();
@@ -2760,7 +3088,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Min)
+            void CCPUEmitter::emit<ngraph::op::Min>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::Min* min = static_cast<const ngraph::op::Min*>(node);
                 writer.block_begin();
@@ -2776,7 +3108,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::runtime::cpu::op::ConvertLayout)
+            void CCPUEmitter::emit<ngraph::runtime::cpu::op::ConvertLayout>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto& mkldnn_emitter = external_function->get_mkldnn_emitter();
 
@@ -2796,7 +3133,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::ReluBackprop)
+            void CCPUEmitter::emit<ngraph::op::ReluBackprop>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 if (runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node))
                 {
@@ -2831,7 +3173,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Relu)
+            void CCPUEmitter::emit<ngraph::op::Relu>(CCPUExternalFunction* external_function,
+                                                     codegen::CodeWriter& writer,
+                                                     const ngraph::Node* node,
+                                                     const std::vector<TensorViewWrapper>& args,
+                                                     const std::vector<TensorViewWrapper>& out)
             {
                 if (runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node))
                 {
@@ -2862,7 +3208,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::BoundedRelu)
+            void CCPUEmitter::emit<ngraph::op::BoundedRelu>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto bounded_relu_node = static_cast<const ngraph::op::BoundedRelu*>(node);
                 float alpha = bounded_relu_node->get_alpha();
@@ -2893,7 +3244,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Sigmoid)
+            void CCPUEmitter::emit<ngraph::op::Sigmoid>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 auto input_shape = args[0].get_shape();
                 auto result_shape = out[0].get_shape();
@@ -2924,7 +3279,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::SigmoidBackprop)
+            void CCPUEmitter::emit<ngraph::op::SigmoidBackprop>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto input_shape = args[0].get_shape();
                 auto delta_shape = args[1].get_shape();
@@ -3012,7 +3372,12 @@ namespace ngraph
                 return func_block;
             }
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::SigmoidMultiply)
+            void CCPUEmitter::emit<ngraph::op::SigmoidMultiply>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 auto sigmoid_mul = static_cast<const ngraph::op::SigmoidMultiply*>(node);
                 std::string numer_0 = "numer_0";
@@ -3054,7 +3419,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::SigmoidMultiplyBackprop)
+            void CCPUEmitter::emit<ngraph::op::SigmoidMultiplyBackprop>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 // math: we have sigmoid functions f(x) and g(y) multiplied, z = f(x) * g(y)
                 // dz/dx = dz/df * df/dx = g(y) * f'(x)
@@ -3115,7 +3485,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Softmax)
+            void CCPUEmitter::emit<ngraph::op::Softmax>(CCPUExternalFunction* external_function,
+                                                        codegen::CodeWriter& writer,
+                                                        const ngraph::Node* node,
+                                                        const std::vector<TensorViewWrapper>& args,
+                                                        const std::vector<TensorViewWrapper>& out)
             {
                 if (runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node))
                 {
@@ -3329,7 +3703,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Result)
+            void CCPUEmitter::emit<ngraph::op::Result>(CCPUExternalFunction* external_function,
+                                                       codegen::CodeWriter& writer,
+                                                       const ngraph::Node* node,
+                                                       const std::vector<TensorViewWrapper>& args,
+                                                       const std::vector<TensorViewWrapper>& out)
             {
                 const ngraph::op::Result* result = static_cast<const ngraph::op::Result*>(node);
 
@@ -3345,7 +3723,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::And)
+            void CCPUEmitter::emit<ngraph::op::And>(CCPUExternalFunction* external_function,
+                                                    codegen::CodeWriter& writer,
+                                                    const ngraph::Node* node,
+                                                    const std::vector<TensorViewWrapper>& args,
+                                                    const std::vector<TensorViewWrapper>& out)
             {
                 writer << "reference::logical_and(" << args[0].get_name() << ",\n"
                        << "                       " << args[1].get_name() << ",\n"
@@ -3354,7 +3736,11 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::Or)
+            void CCPUEmitter::emit<ngraph::op::Or>(CCPUExternalFunction* external_function,
+                                                   codegen::CodeWriter& writer,
+                                                   const ngraph::Node* node,
+                                                   const std::vector<TensorViewWrapper>& args,
+                                                   const std::vector<TensorViewWrapper>& out)
             {
                 writer << "reference::logical_or(" << args[0].get_name() << ",\n"
                        << "                      " << args[1].get_name() << ",\n"
@@ -3437,7 +3823,12 @@ namespace ngraph
             }
 
             template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::runtime::cpu::op::LoopKernel)
+            void CCPUEmitter::emit<ngraph::runtime::cpu::op::LoopKernel>(
+                CCPUExternalFunction* external_function,
+                codegen::CodeWriter& writer,
+                const ngraph::Node* node,
+                const std::vector<TensorViewWrapper>& args,
+                const std::vector<TensorViewWrapper>& out)
             {
                 std::unordered_map<const ngraph::descriptor::Output*, std::string>
                     loop_symbol_table;
