@@ -21,8 +21,8 @@
 
 #include "ngraph/codegen/code_writer.hpp"
 #include "ngraph/node.hpp"
-#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
-#include "ngraph/runtime/ccpu/cpu_tensor_view_wrapper.hpp"
+#include "ngraph/runtime/ccpu/ccpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/ccpu_tensor_view_wrapper.hpp"
 
 #define EMITTER_DECL(op_name)                                                                      \
     emit<op_name>(CPU_ExternalFunction * external_function,                                        \

@@ -14,4 +14,4 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/ccpu/cpu_kernels.hpp"
+#include "ngraph/runtime/ccpu/ccpu_kernels.hpp"

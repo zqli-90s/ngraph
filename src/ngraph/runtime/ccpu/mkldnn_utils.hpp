@@ -20,7 +20,7 @@
 
 #include "ngraph/axis_vector.hpp"
 #include "ngraph/node.hpp"
-#include "ngraph/runtime/ccpu/cpu_layout_descriptor.hpp"
+#include "ngraph/runtime/ccpu/ccpu_layout_descriptor.hpp"
 #include "ngraph/type/element_type.hpp"
 
 namespace ngraph

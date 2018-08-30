@@ -14,7 +14,7 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/ccpu_builder.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -61,8 +61,8 @@
 #include "ngraph/op/subtract.hpp"
 #include "ngraph/op/tan.hpp"
 #include "ngraph/op/tanh.hpp"
-#include "ngraph/runtime/ccpu/cpu_kernels.hpp"
-#include "ngraph/runtime/ccpu/cpu_op_annotations.hpp"
+#include "ngraph/runtime/ccpu/ccpu_kernels.hpp"
+#include "ngraph/runtime/ccpu/ccpu_op_annotations.hpp"
 #include "ngraph/runtime/ccpu/kernel/abs.hpp"
 #include "ngraph/runtime/ccpu/kernel/acos.hpp"
 #include "ngraph/runtime/ccpu/kernel/and.hpp"

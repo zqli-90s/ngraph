@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/ccpu_external_function.hpp"
 #include "nlohmann/json.hpp"
 
 namespace ngraph

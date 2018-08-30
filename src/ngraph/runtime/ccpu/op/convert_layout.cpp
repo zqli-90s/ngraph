@@ -15,7 +15,7 @@
 //*****************************************************************************
 
 #include "ngraph/runtime/ccpu/op/convert_layout.hpp"
-#include "ngraph/runtime/ccpu/cpu_layout_descriptor.hpp"
+#include "ngraph/runtime/ccpu/ccpu_layout_descriptor.hpp"
 
 using namespace std;
 using namespace ngraph;

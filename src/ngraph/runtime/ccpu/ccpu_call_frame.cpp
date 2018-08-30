@@ -17,10 +17,10 @@
 #include <algorithm>
 
 #include "ngraph/runtime/aligned_buffer.hpp"
-#include "ngraph/runtime/ccpu/cpu_call_frame.hpp"
-#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
-#include "ngraph/runtime/ccpu/cpu_tensor_view.hpp"
-#include "ngraph/runtime/ccpu/cpu_tracing.hpp"
+#include "ngraph/runtime/ccpu/ccpu_call_frame.hpp"
+#include "ngraph/runtime/ccpu/ccpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/ccpu_tensor_view.hpp"
+#include "ngraph/runtime/ccpu/ccpu_tracing.hpp"
 
 using namespace std;
 using namespace ngraph;

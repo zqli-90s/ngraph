@@ -19,8 +19,8 @@
 
 #include "mkldnn_emitter.hpp"
 
-#include "ngraph/runtime/ccpu/cpu_layout_descriptor.hpp"
-#include "ngraph/runtime/ccpu/cpu_tensor_view_wrapper.hpp"
+#include "ngraph/runtime/ccpu/ccpu_layout_descriptor.hpp"
+#include "ngraph/runtime/ccpu/ccpu_tensor_view_wrapper.hpp"
 #include "ngraph/runtime/ccpu/mkldnn_invoke.hpp"
 #include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
 #include "ngraph/type/element_type.hpp"

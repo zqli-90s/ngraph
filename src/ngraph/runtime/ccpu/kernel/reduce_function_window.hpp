@@ -17,8 +17,8 @@
 #pragma once
 
 #include "ngraph/runtime/backend.hpp"
-#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
-#include "ngraph/runtime/ccpu/cpu_tensor_view.hpp"
+#include "ngraph/runtime/ccpu/ccpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/ccpu_tensor_view.hpp"
 
 #include "ngraph/runtime/reference/reduce_window.hpp"
 

@@ -17,7 +17,7 @@
 #include <fstream>
 #include <map>
 
-#include "cpu_tracing.hpp"
+#include "ccpu_tracing.hpp"
 
 void ngraph::runtime::cpu::to_json(nlohmann::json& json, const TraceEvent& event)
 {

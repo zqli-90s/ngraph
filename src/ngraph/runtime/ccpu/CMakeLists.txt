@@ -15,18 +15,18 @@
 # ******************************************************************************
 
 set(SRC
-    cpu_backend.cpp
-    cpu_builder.cpp
-    cpu_call_frame.cpp
-    cpu_emitter.cpp
-    cpu_external_function.cpp
-    cpu_kernel_emitters.cpp
-    cpu_kernel_utils.cpp
-    cpu_kernels.cpp
-    cpu_layout_descriptor.cpp
-    cpu_tensor_view_wrapper.cpp
-    cpu_tensor_view.cpp
-    cpu_tracing.cpp
+    ccpu_backend.cpp
+    ccpu_builder.cpp
+    ccpu_call_frame.cpp
+    ccpu_emitter.cpp
+    ccpu_external_function.cpp
+    ccpu_kernel_emitters.cpp
+    ccpu_kernel_utils.cpp
+    ccpu_kernels.cpp
+    ccpu_layout_descriptor.cpp
+    ccpu_tensor_view_wrapper.cpp
+    ccpu_tensor_view.cpp
+    ccpu_tracing.cpp
     kernel/eigen_thread_pool.cpp
     kernel/pad.cpp
     kernel/reduce_max.cpp

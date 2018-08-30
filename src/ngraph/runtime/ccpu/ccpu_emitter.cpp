@@ -14,7 +14,7 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/ccpu/cpu_emitter.hpp"
+#include "ngraph/runtime/ccpu/ccpu_emitter.hpp"
 #include <algorithm>
 #include <cmath>
 #include <numeric>
@@ -92,8 +92,8 @@
 #include "ngraph/op/sum.hpp"
 #include "ngraph/op/tan.hpp"
 #include "ngraph/op/tanh.hpp"
-#include "ngraph/runtime/ccpu/cpu_kernel_emitters.hpp"
-#include "ngraph/runtime/ccpu/cpu_op_annotations.hpp"
+#include "ngraph/runtime/ccpu/ccpu_kernel_emitters.hpp"
+#include "ngraph/runtime/ccpu/ccpu_op_annotations.hpp"
 #include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
 #include "ngraph/runtime/ccpu/op/batch_dot.hpp"
 #include "ngraph/runtime/ccpu/op/batch_norm_relu.hpp"

@@ -17,8 +17,8 @@
 #pragma once
 
 #include "ngraph/pass/pass.hpp"
-#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
-#include "ngraph/runtime/ccpu/cpu_tensor_view.hpp"
+#include "ngraph/runtime/ccpu/ccpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/ccpu_tensor_view.hpp"
 
 #define ASSIGN_DECL(op_name)                                                                       \
     assign<op_name>(ngraph::runtime::cpu::CPU_ExternalFunction * external_function,                \

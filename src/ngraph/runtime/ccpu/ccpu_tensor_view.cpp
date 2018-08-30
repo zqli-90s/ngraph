@@ -17,11 +17,11 @@
 #include <cstring>
 #include <memory>
 
-#include "cpu_tensor_view.hpp"
+#include "ccpu_tensor_view.hpp"
 #include "ngraph/descriptor/layout/tensor_view_layout.hpp"
 #include "ngraph/descriptor/primary_tensor_view.hpp"
 #include "ngraph/except.hpp"
-#include "ngraph/runtime/ccpu/cpu_layout_descriptor.hpp"
+#include "ngraph/runtime/ccpu/ccpu_layout_descriptor.hpp"
 #include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
 #include "ngraph/shape.hpp"
 

@@ -14,12 +14,12 @@
 // limitations under the License.
 //*****************************************************************************
 
+#include "ngraph/runtime/ccpu/ccpu_backend.hpp"
 #include "ngraph/graph_util.hpp"
 #include "ngraph/runtime/backend_manager.hpp"
-#include "ngraph/runtime/ccpu/cpu_backend.hpp"
-#include "ngraph/runtime/ccpu/cpu_call_frame.hpp"
-#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
-#include "ngraph/runtime/ccpu/cpu_tensor_view.hpp"
+#include "ngraph/runtime/ccpu/ccpu_call_frame.hpp"
+#include "ngraph/runtime/ccpu/ccpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/ccpu_tensor_view.hpp"
 #include "ngraph/util.hpp"
 
 using namespace ngraph;

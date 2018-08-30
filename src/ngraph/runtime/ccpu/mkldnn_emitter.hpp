@@ -26,7 +26,7 @@
 #include "ngraph/coordinate_diff.hpp"
 #include "ngraph/node.hpp"
 #include "ngraph/op/convolution.hpp"
-#include "ngraph/runtime/ccpu/cpu_tensor_view_wrapper.hpp"
+#include "ngraph/runtime/ccpu/ccpu_tensor_view_wrapper.hpp"
 #include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
 #include "ngraph/runtime/ccpu/op/bounded_relu.hpp"
 #include "ngraph/runtime/ccpu/op/conv_bias.hpp"

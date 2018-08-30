@@ -14,7 +14,7 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/ccpu/cpu_kernel_utils.hpp"
+#include "ngraph/runtime/ccpu/ccpu_kernel_utils.hpp"
 #include "ngraph/codegen/code_writer.hpp"
 #include "ngraph/coordinate_transform.hpp"
 #include "ngraph/util.hpp"

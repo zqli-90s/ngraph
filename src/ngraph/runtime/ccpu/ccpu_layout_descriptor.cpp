@@ -14,9 +14,10 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "cpu_layout_descriptor.hpp"
 #include <algorithm>
 #include <numeric>
+
+#include "ccpu_layout_descriptor.hpp"
 #include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
 
 namespace ngraph

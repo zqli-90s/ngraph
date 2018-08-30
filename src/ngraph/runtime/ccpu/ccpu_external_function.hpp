@@ -36,9 +36,9 @@
 #endif
 
 #include "ngraph/function.hpp"
-#include "ngraph/runtime/ccpu/cpu_call_frame.hpp"
-#include "ngraph/runtime/ccpu/cpu_layout_descriptor.hpp"
-#include "ngraph/runtime/ccpu/cpu_tensor_view_wrapper.hpp"
+#include "ngraph/runtime/ccpu/ccpu_call_frame.hpp"
+#include "ngraph/runtime/ccpu/ccpu_layout_descriptor.hpp"
+#include "ngraph/runtime/ccpu/ccpu_tensor_view_wrapper.hpp"
 #include "ngraph/runtime/ccpu/mkldnn_emitter.hpp"
 
 namespace ngraph

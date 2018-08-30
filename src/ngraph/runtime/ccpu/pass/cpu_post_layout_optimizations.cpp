@@ -29,7 +29,7 @@
 #include "ngraph/pattern/matcher.hpp"
 #include "ngraph/pattern/op/label.hpp"
 #include "ngraph/pattern/op/skip.hpp"
-#include "ngraph/runtime/ccpu/cpu_layout_descriptor.hpp"
+#include "ngraph/runtime/ccpu/ccpu_layout_descriptor.hpp"
 #include "ngraph/runtime/ccpu/op/convert_layout.hpp"
 #include "ngraph/runtime/ccpu/pass/cpu_post_layout_optimizations.hpp"
 

@@ -34,7 +34,7 @@
 #include "ngraph/op/max_pool.hpp"
 #include "ngraph/op/relu.hpp"
 #include "ngraph/op/softmax.hpp"
-#include "ngraph/runtime/ccpu/cpu_op_annotations.hpp"
+#include "ngraph/runtime/ccpu/ccpu_op_annotations.hpp"
 #include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
 #include "ngraph/runtime/ccpu/op/batch_norm_relu.hpp"
 #include "ngraph/runtime/ccpu/op/bounded_relu.hpp"
