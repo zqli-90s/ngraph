@@ -151,10 +151,6 @@
 #include "ngraph/runtime/ccpu/pass/cpu_rnn_fusion.hpp"
 #include "ngraph/runtime/ccpu/pass/cpu_workspace_insertion.hpp"
 
-#ifdef NGRAPH_DISTRIBUTED
-#include "ngraph/op/allreduce.hpp"
-#endif
-
 using namespace std;
 using namespace ngraph;
 
@@ -174,7 +170,7 @@ runtime::cpu::CCPUExternalFunction::~CCPUExternalFunction()
 {
 }
 
-static const string s_output_dir = "cpu_codegen";
+static const string s_output_dir = "ccpu_codegen";
 
 class StaticInitializers
 {
@@ -220,9 +216,6 @@ static StaticInitializers s_static_initializers;
 
 static const runtime::cpu::OpMap dispatcher{
     {TI(ngraph::op::Add), &runtime::cpu::CCPUEmitter::emit<op::Add>},
-#ifdef NGRAPH_DISTRIBUTED
-    {TI(ngraph::op::AllReduce), &runtime::cpu::CCPUEmitter::emit<op::AllReduce>},
-#endif
     {TI(ngraph::op::MatmulBias), &runtime::cpu::CCPUEmitter::emit<op::MatmulBias>},
     {TI(ngraph::op::Dot), &runtime::cpu::CCPUEmitter::emit<op::Dot>},
     {TI(ngraph::op::Multiply), &runtime::cpu::CCPUEmitter::emit<op::Multiply>},
@@ -436,10 +429,6 @@ using namespace ngraph::runtime::cpu::eigen;
 using namespace ngraph::runtime;
 
 )";
-
-#ifdef NGRAPH_DISTRIBUTED
-    writer << "#include <mpi.h>\n\n";
-#endif
 
     string pch_header_source = writer.get_code();
 

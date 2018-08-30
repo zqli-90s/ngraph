@@ -187,30 +187,6 @@ namespace ngraph
                 writer.block_end();
             }
 
-#ifdef NGRAPH_DISTRIBUTED
-            template <>
-            void CCPUEmitter::EMITTER_DECL(ngraph::op::AllReduce)
-            {
-                const element::Type& element_type = args[0].get_element_type();
-                auto data_type = "MPI_FLOAT";
-
-                if (element_type == element::f32)
-                {
-                    data_type = "MPI_FLOAT";
-                }
-                else if (element_type == element::f64)
-                {
-                    data_type = "MPI_DOUBLE";
-                }
-
-                writer.block_begin();
-                writer << "MPI_Allreduce(" << args[0].get_name() << ", " << out[0].get_name()
-                       << ", " << out[0].get_size() << ", " << data_type
-                       << ", MPI_SUM, MPI_COMM_WORLD);\n";
-                writer.block_end();
-            }
-#endif
-
             static void emitCblasSgemmBatch(codegen::CodeWriter& writer,
                                             const Shape& shape_a,
                                             const Shape& shape_b,
