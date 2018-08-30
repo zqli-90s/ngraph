@@ -121,7 +121,6 @@
 #include "ngraph/pass/result_copy_elimination.hpp"
 #include "ngraph/runtime/aligned_buffer.hpp"
 #include "ngraph/runtime/ccpu/ccpu_backend.hpp"
-#include "ngraph/runtime/ccpu/ccpu_builder.hpp"
 #include "ngraph/runtime/ccpu/ccpu_call_frame.hpp"
 #include "ngraph/runtime/ccpu/ccpu_emitter.hpp"
 #include "ngraph/runtime/ccpu/ccpu_external_function.hpp"

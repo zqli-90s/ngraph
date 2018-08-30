@@ -16,7 +16,6 @@
 
 set(SRC
     ccpu_backend.cpp
-    ccpu_builder.cpp
     ccpu_call_frame.cpp
     ccpu_emitter.cpp
     ccpu_external_function.cpp
