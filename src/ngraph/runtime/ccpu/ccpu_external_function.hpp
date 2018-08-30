@@ -161,8 +161,6 @@ namespace ngraph
                 std::shared_ptr<ngraph::Function> m_function;
                 bool m_release_function;
 
-                bool m_use_tbb;
-
                 EntryPoint m_compiled_function;
                 std::unordered_map<std::string, std::string> m_variable_name_map;
 
