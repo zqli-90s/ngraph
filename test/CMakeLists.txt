@@ -135,6 +135,11 @@ if (NGRAPH_CPU_ENABLE)
     target_link_libraries(unit-test libmkldnn)
 endif()
 
+if (NGRAPH_CODEGEN_CPU_ENABLE)
+    target_link_libraries(unit-test ccpu_backend)
+    target_link_libraries(unit-test libmkldnn)
+endif()
+
 if (NGRAPH_TBB_ENABLE)
     add_definitions(-DNGRAPH_TBB_ENABLE)
 endif()
