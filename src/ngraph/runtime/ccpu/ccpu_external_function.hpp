@@ -120,9 +120,8 @@ namespace ngraph
                 {
                     return callees;
                 }
-                bool is_direct_execution() const { return m_direct_execution; }
+
             protected:
-                void build();
                 void compile();
 
             private:
@@ -206,7 +205,6 @@ namespace ngraph
                 std::list<std::pair<std::reference_wrapper<void*>, size_t>> function_output_index;
                 std::unordered_map<std::string, std::shared_ptr<CCPUExternalFunction>> callees;
                 bool m_is_built;
-                bool m_direct_execution;
             };
         }
     }
