@@ -29,12 +29,9 @@
 
 #pragma clang diagnostic pop
 
-#if !defined(NGRAPH_DEX_ONLY)
 #include "ngraph/codegen/code_writer.hpp"
 #include "ngraph/codegen/compiler.hpp"
 #include "ngraph/codegen/execution_engine.hpp"
-#endif
-
 #include "ngraph/descriptor/input.hpp"
 #include "ngraph/descriptor/output.hpp"
 #include "ngraph/descriptor/primary_tensor_view.hpp"
@@ -168,10 +165,8 @@ runtime::cpu::CCPUExternalFunction::CCPUExternalFunction(
     , m_release_function(release_function)
     , m_use_tbb(std::getenv("NGRAPH_CPU_USE_TBB") != nullptr)
     , m_compiled_function(nullptr)
-#if !defined(NGRAPH_DEX_ONLY)
     , m_is_compiled(false)
     , m_emit_timing(false)
-#endif
     , m_function_name(function->get_name())
     , m_is_built(false)
 #if !defined(NGRAPH_DEX_ONLY)
@@ -1360,40 +1355,40 @@ void runtime::cpu::CCPUExternalFunction::build()
         }
 
         auto functor = functors.begin();
-            for (const auto& p : enables)
+        for (const auto& p : enables)
+        {
+            if (p.first(ctx) || ctx->first_iteration)
             {
-                if (p.first(ctx) || ctx->first_iteration)
-                {
-                    for (size_t j = 0; j < p.second; j++)
-                    {
-                        if (runtime::cpu::IsTracingEnabled())
-                        {
-                            start_ts = cpu::Clock::now();
-                        }
-                        (*functor)(ctx);
-                        if (runtime::cpu::IsTracingEnabled())
-                        {
-                            ctx->op_durations[profiler_count++] =
-                                (std::chrono::duration_cast<cpu::Timescale>(cpu::Clock::now() -
-                                                                            start_ts))
-                                    .count();
-                        }
-
-                        std::advance(functor, 1);
-                    }
-                }
-                else
+                for (size_t j = 0; j < p.second; j++)
                 {
                     if (runtime::cpu::IsTracingEnabled())
                     {
-                        for (size_t j = 0; j < p.second; j++)
-                        {
-                            ctx->op_durations[profiler_count++] = 0;
-                        }
+                        start_ts = cpu::Clock::now();
                     }
-                    std::advance(functor, p.second);
+                    (*functor)(ctx);
+                    if (runtime::cpu::IsTracingEnabled())
+                    {
+                        ctx->op_durations[profiler_count++] =
+                            (std::chrono::duration_cast<cpu::Timescale>(cpu::Clock::now() -
+                                                                        start_ts))
+                                .count();
+                    }
+
+                    std::advance(functor, 1);
                 }
             }
+            else
+            {
+                if (runtime::cpu::IsTracingEnabled())
+                {
+                    for (size_t j = 0; j < p.second; j++)
+                    {
+                        ctx->op_durations[profiler_count++] = 0;
+                    }
+                }
+                std::advance(functor, p.second);
+            }
+        }
         ctx->first_iteration = false;
 
         if (runtime::cpu::IsTracingEnabled())
