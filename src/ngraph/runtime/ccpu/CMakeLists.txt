@@ -25,7 +25,6 @@ set(SRC
     ccpu_layout_descriptor.cpp
     ccpu_tensor_view_wrapper.cpp
     ccpu_tensor_view.cpp
-    ccpu_tracing.cpp
     kernel/eigen_thread_pool.cpp
     kernel/pad.cpp
     kernel/reduce_max.cpp

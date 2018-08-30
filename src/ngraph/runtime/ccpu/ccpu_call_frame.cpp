@@ -20,7 +20,6 @@
 #include "ngraph/runtime/ccpu/ccpu_call_frame.hpp"
 #include "ngraph/runtime/ccpu/ccpu_external_function.hpp"
 #include "ngraph/runtime/ccpu/ccpu_tensor_view.hpp"
-#include "ngraph/runtime/ccpu/ccpu_tracing.hpp"
 
 using namespace std;
 using namespace ngraph;
@@ -63,13 +62,6 @@ void runtime::cpu::CCPUCallFrame::call(
 
     // Invoke compiled computation
     m_compiled_function(inputs.data(), outputs.data(), ctx);
-
-    if (runtime::cpu::IsTracingEnabled())
-    {
-        GenerateTimeline(m_external_function->get_op_attrs(),
-                         ctx->op_durations,
-                         m_external_function->get_function_name() + ".timeline.json");
-    }
 }
 
 void runtime::cpu::CCPUCallFrame::propagate_layouts(
@@ -96,11 +88,6 @@ void runtime::cpu::CCPUCallFrame::setup_runtime_context()
 {
     ctx = new CCPURuntimeContext;
 
-    ctx->op_durations = nullptr;
-    if (runtime::cpu::IsTracingEnabled())
-    {
-        ctx->op_durations = new int64_t[m_external_function->get_op_attrs().size()];
-    }
     ctx->p_en = new bool[m_external_function->get_parameter_layout_descriptors().size()];
 
     // Create temporary buffer pools
@@ -117,7 +104,6 @@ void runtime::cpu::CCPUCallFrame::setup_runtime_context()
 
 void runtime::cpu::CCPUCallFrame::cleanup_runtime_context()
 {
-    delete[] ctx->op_durations;
     delete[] ctx->p_en;
     for (auto buffer : ctx->memory_buffers)
     {

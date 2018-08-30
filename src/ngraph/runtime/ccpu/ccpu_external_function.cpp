@@ -125,7 +125,6 @@
 #include "ngraph/runtime/ccpu/ccpu_emitter.hpp"
 #include "ngraph/runtime/ccpu/ccpu_external_function.hpp"
 #include "ngraph/runtime/ccpu/ccpu_tensor_view.hpp"
-#include "ngraph/runtime/ccpu/ccpu_tracing.hpp"
 #include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
 #include "ngraph/runtime/ccpu/op/batch_dot.hpp"
 #include "ngraph/runtime/ccpu/op/batch_norm_relu.hpp"
@@ -583,13 +582,6 @@ using namespace ngraph::runtime;
         writer << "{\n";
         writer.indent++;
 
-        // Execution tracing support
-        if (runtime::cpu::IsTracingEnabled() && current_function->get_name() == m_function_name)
-        {
-            writer << "cpu::Timestamp start_ts;\n"
-                   << "int profiler_count = 0;\n\n";
-        }
-
         if (temporaries_used)
         {
             writer << "size_t pool_base_ptr = (size_t) ctx->memory_buffers["
@@ -695,11 +687,6 @@ using namespace ngraph::runtime;
                     m_op_attrs.emplace_back(
                         node->description(), node_output_names, node_input_names);
                 }
-                if (runtime::cpu::IsTracingEnabled() &&
-                    current_function->get_name() == m_function_name)
-                {
-                    writer << "start_ts = cpu::Clock::now();\n";
-                }
             }
 
             if (!node->is_parameter() && !node->is_constant())
@@ -710,17 +697,7 @@ using namespace ngraph::runtime;
                     parameter_nodes.end(), node_output_names.begin(), node_output_names.end());
                 writer << join(parameter_nodes);
                 writer << ")\n";
-            }
-
-            // Emit operation body
-            if (!node->is_parameter() && !node->is_constant())
-            {
                 emit_debug_function_entry(writer, node.get(), in, out);
-            }
-
-            // Op Control
-            if (!node->is_parameter() && !node->is_constant())
-            {
             }
 
             auto it = node_function_map.find(node.get());

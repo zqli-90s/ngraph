@@ -38,14 +38,9 @@ namespace ngraph
     {
         namespace cpu
         {
-            typedef std::chrono::high_resolution_clock Clock;
-            typedef std::chrono::time_point<Clock> Timestamp;
-            typedef std::chrono::microseconds Timescale;
-
             extern "C" {
             struct CCPURuntimeContext
             {
-                int64_t* op_durations;
                 bool* p_en;
                 mkldnn::primitive* const* mkldnn_primitives;
                 std::vector<AlignedBuffer*> memory_buffers;
