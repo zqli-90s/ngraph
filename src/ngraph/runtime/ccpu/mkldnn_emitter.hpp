@@ -41,7 +41,7 @@ namespace ngraph
     {
         namespace cpu
         {
-            class CPU_ExternalFunction;
+            class CCPUExternalFunction;
             class TensorViewWrapper;
 
             class MKLDNNWorkspace

@@ -25,7 +25,7 @@
 using namespace std;
 using namespace ngraph;
 
-runtime::cpu::CPU_CallFrame::CPU_CallFrame(std::shared_ptr<CPU_ExternalFunction> external_function,
+runtime::cpu::CCPUCallFrame::CCPUCallFrame(std::shared_ptr<CCPUExternalFunction> external_function,
                                            EntryPoint compiled_function)
     : m_external_function(external_function)
     , m_compiled_function(compiled_function)
@@ -33,12 +33,12 @@ runtime::cpu::CPU_CallFrame::CPU_CallFrame(std::shared_ptr<CPU_ExternalFunction>
     setup_runtime_context();
 }
 
-runtime::cpu::CPU_CallFrame::~CPU_CallFrame()
+runtime::cpu::CCPUCallFrame::~CCPUCallFrame()
 {
     cleanup_runtime_context();
 }
 
-void runtime::cpu::CPU_CallFrame::call(
+void runtime::cpu::CCPUCallFrame::call(
     const std::vector<std::shared_ptr<runtime::TensorView>>& output_tvs,
     const std::vector<std::shared_ptr<runtime::TensorView>>& input_tvs)
 {
@@ -79,7 +79,7 @@ void runtime::cpu::CPU_CallFrame::call(
     }
 }
 
-void runtime::cpu::CPU_CallFrame::propagate_layouts(
+void runtime::cpu::CCPUCallFrame::propagate_layouts(
     const std::vector<std::shared_ptr<runtime::TensorView>>& tvs,
     const LayoutDescriptorPtrs& layouts) const
 {
@@ -99,9 +99,9 @@ void runtime::cpu::CPU_CallFrame::propagate_layouts(
     }
 }
 
-void runtime::cpu::CPU_CallFrame::setup_runtime_context()
+void runtime::cpu::CCPUCallFrame::setup_runtime_context()
 {
-    ctx = new CPURuntimeContext;
+    ctx = new CCPURuntimeContext;
 
     ctx->op_durations = nullptr;
     if (runtime::cpu::IsTracingEnabled())
@@ -113,7 +113,7 @@ void runtime::cpu::CPU_CallFrame::setup_runtime_context()
     ctx->first_iteration = true;
 
     // Create temporary buffer pools
-    size_t alignment = runtime::cpu::CPU_ExternalFunction::s_memory_pool_alignment;
+    size_t alignment = runtime::cpu::CCPUExternalFunction::s_memory_pool_alignment;
     for (auto buffer_size : m_external_function->get_memory_buffer_sizes())
     {
         auto buffer = new AlignedBuffer(buffer_size, alignment);
@@ -124,7 +124,7 @@ void runtime::cpu::CPU_CallFrame::setup_runtime_context()
     ctx->mkldnn_workspaces = mkldnn_emitter->get_mkldnn_workspaces().data();
 }
 
-void runtime::cpu::CPU_CallFrame::cleanup_runtime_context()
+void runtime::cpu::CCPUCallFrame::cleanup_runtime_context()
 {
     delete[] ctx->op_durations;
     delete[] ctx->p_en;

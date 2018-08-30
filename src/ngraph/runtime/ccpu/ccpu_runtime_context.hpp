@@ -43,7 +43,7 @@ namespace ngraph
             typedef std::chrono::microseconds Timescale;
 
             extern "C" {
-            struct CPURuntimeContext
+            struct CCPURuntimeContext
             {
                 int64_t* op_durations;
                 bool* p_en;

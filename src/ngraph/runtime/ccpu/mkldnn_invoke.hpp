@@ -24,13 +24,13 @@ namespace ngraph
     {
         namespace cpu
         {
-            struct CPURuntimeContext;
+            struct CCPURuntimeContext;
 
             namespace mkldnn_utils
             {
                 extern "C" void
-                    set_memory_ptr(CPURuntimeContext* ctx, size_t primitive_index, void* ptr);
-                extern "C" void mkldnn_invoke_primitive(CPURuntimeContext* ctx,
+                    set_memory_ptr(CCPURuntimeContext* ctx, size_t primitive_index, void* ptr);
+                extern "C" void mkldnn_invoke_primitive(CCPURuntimeContext* ctx,
                                                         size_t primitive_index);
             }
         }

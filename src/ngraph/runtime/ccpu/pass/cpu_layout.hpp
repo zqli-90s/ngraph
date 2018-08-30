@@ -20,7 +20,7 @@
 #include "ngraph/runtime/ccpu/ccpu_external_function.hpp"
 
 #define LAYOUT_DECL(op_type)                                                                       \
-    layout<op_type>(ngraph::runtime::cpu::CPU_ExternalFunction * external_function,                \
+    layout<op_type>(ngraph::runtime::cpu::CCPUExternalFunction * external_function,                \
                     std::shared_ptr<ngraph::Node> node)
 
 namespace ngraph
@@ -32,14 +32,14 @@ namespace ngraph
             namespace pass
             {
                 using LayoutFunction =
-                    std::function<void(CPU_ExternalFunction*, std::shared_ptr<ngraph::Node>)>;
+                    std::function<void(CCPUExternalFunction*, std::shared_ptr<ngraph::Node>)>;
 
                 using LayoutOpMap = std::unordered_map<std::type_index, LayoutFunction>;
 
                 class CPULayout : public ngraph::pass::CallGraphPass
                 {
                 public:
-                    CPULayout(CPU_ExternalFunction* external_function)
+                    CPULayout(CCPUExternalFunction* external_function)
                         : m_external_function(external_function)
                     {
                     }
@@ -48,19 +48,19 @@ namespace ngraph
 
                     template <typename OP>
                     static void
-                        layout(ngraph::runtime::cpu::CPU_ExternalFunction* external_function,
+                        layout(ngraph::runtime::cpu::CCPUExternalFunction* external_function,
                                std::shared_ptr<ngraph::Node> node);
 
                 private:
-                    CPU_ExternalFunction* m_external_function;
+                    CCPUExternalFunction* m_external_function;
                     static std::shared_ptr<Node> insert_input_conversions(
-                        CPU_ExternalFunction* external_function,
+                        CCPUExternalFunction* external_function,
                         std::shared_ptr<Node>& node,
                         const std::vector<mkldnn::memory::desc>& required_mds);
                     static void
                         set_output_layouts(std::shared_ptr<Node>& node,
                                            const std::vector<mkldnn::memory::desc>& output_mds);
-                    static void set_native_layouts(CPU_ExternalFunction* external_function,
+                    static void set_native_layouts(CCPUExternalFunction* external_function,
                                                    std::shared_ptr<Node> node,
                                                    bool use_replace);
                 };

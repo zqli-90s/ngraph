@@ -31,20 +31,20 @@ namespace ngraph
     {
         namespace cpu
         {
-            class CPU_CallFrame;
-            class CPU_ExternalFunction;
+            class CCPUCallFrame;
+            class CCPUExternalFunction;
 
-            using EntryPoint_t = void(void** inputs, void** outputs, CPURuntimeContext* ctx);
+            using EntryPoint_t = void(void** inputs, void** outputs, CCPURuntimeContext* ctx);
 
             using EntryPoint = std::function<EntryPoint_t>;
 
             // Compile and execute graphs
-            class CPU_CallFrame
+            class CCPUCallFrame
             {
             public:
-                CPU_CallFrame(std::shared_ptr<CPU_ExternalFunction> external_function,
+                CCPUCallFrame(std::shared_ptr<CCPUExternalFunction> external_function,
                               EntryPoint compiled_function);
-                ~CPU_CallFrame();
+                ~CCPUCallFrame();
 
                 /// \brief Invoke the function with values matching the signature of the function.
                 ///
@@ -59,9 +59,9 @@ namespace ngraph
                 void cleanup_runtime_context();
 
             protected:
-                std::shared_ptr<CPU_ExternalFunction> m_external_function;
+                std::shared_ptr<CCPUExternalFunction> m_external_function;
                 EntryPoint m_compiled_function;
-                CPURuntimeContext* ctx;
+                CCPURuntimeContext* ctx;
             };
         }
     }

@@ -47,13 +47,13 @@ namespace ngraph
     {
         namespace cpu
         {
-            class CPU_ExternalFunction;
-            class CPU_Emitter;
-            class CPU_CallFrame;
+            class CCPUExternalFunction;
+            class CCPUEmitter;
+            class CCPUCallFrame;
 
 #if !defined(NGRAPH_DEX_ONLY)
 
-            using OpFunction = std::function<void(CPU_ExternalFunction* external_function,
+            using OpFunction = std::function<void(CCPUExternalFunction* external_function,
                                                   codegen::CodeWriter&,
                                                   const ngraph::Node*,
                                                   const std::vector<TensorViewWrapper>& inputs,
@@ -77,9 +77,9 @@ namespace ngraph
                 }
             };
 
-            class CPU_ExternalFunction : public std::enable_shared_from_this<CPU_ExternalFunction>
+            class CCPUExternalFunction : public std::enable_shared_from_this<CCPUExternalFunction>
             {
-                friend class CPU_Backend;
+                friend class CCPUBackend;
 
             public:
                 enum class CPUTensorRole
@@ -90,10 +90,10 @@ namespace ngraph
                     INTERMEDIATE
                 };
 
-                CPU_ExternalFunction(const std::shared_ptr<ngraph::Function>& function,
+                CCPUExternalFunction(const std::shared_ptr<ngraph::Function>& function,
                                      bool release_function = true);
-                ~CPU_ExternalFunction();
-                std::shared_ptr<ngraph::runtime::cpu::CPU_CallFrame> make_call_frame();
+                ~CCPUExternalFunction();
+                std::shared_ptr<ngraph::runtime::cpu::CCPUCallFrame> make_call_frame();
 
                 const LayoutDescriptorPtrs& get_parameter_layout_descriptors();
                 const LayoutDescriptorPtrs& get_result_layout_descriptors();
@@ -112,18 +112,18 @@ namespace ngraph
                 // Temporary Memory Pool alignment
                 static constexpr size_t s_memory_pool_alignment = 4096;
 
-                std::list<std::function<void(CPURuntimeContext*)>>& get_functors()
+                std::list<std::function<void(CCPURuntimeContext*)>>& get_functors()
                 {
                     return functors;
                 }
                 std::unordered_map<std::string, void*>& get_tensor_data() { return tensor_data; }
                 void*& get_tensor_data(const std::string& name);
-                std::function<void(CPURuntimeContext*, std::vector<void*>&, std::vector<void*>&)>&
+                std::function<void(CCPURuntimeContext*, std::vector<void*>&, std::vector<void*>&)>&
                     get_executor()
                 {
                     return executor;
                 }
-                std::unordered_map<std::string, std::shared_ptr<CPU_ExternalFunction>>&
+                std::unordered_map<std::string, std::shared_ptr<CCPUExternalFunction>>&
                     get_callees()
                 {
                     return callees;
@@ -208,11 +208,11 @@ namespace ngraph
 
                 std::string m_function_name;
 
-                std::list<std::function<void(CPURuntimeContext*)>> functors;
-                std::list<std::pair<std::function<bool(CPURuntimeContext*)>, size_t>> enables;
-                std::list<std::pair<std::function<bool(CPURuntimeContext*)>, std::string>>
+                std::list<std::function<void(CCPURuntimeContext*)>> functors;
+                std::list<std::pair<std::function<bool(CCPURuntimeContext*)>, size_t>> enables;
+                std::list<std::pair<std::function<bool(CCPURuntimeContext*)>, std::string>>
                     enable_nodename_list;
-                std::function<void(CPURuntimeContext*, std::vector<void*>&, std::vector<void*>&)>
+                std::function<void(CCPURuntimeContext*, std::vector<void*>&, std::vector<void*>&)>
                     executor;
                 std::unordered_map<std::string, void*> tensor_data;
                 std::unordered_map<std::string, bool> tensor_stale;
@@ -222,7 +222,7 @@ namespace ngraph
                     std::tuple<std::reference_wrapper<void*>, size_t, std::reference_wrapper<bool>>>
                     function_input_index;
                 std::list<std::pair<std::reference_wrapper<void*>, size_t>> function_output_index;
-                std::unordered_map<std::string, std::shared_ptr<CPU_ExternalFunction>> callees;
+                std::unordered_map<std::string, std::shared_ptr<CCPUExternalFunction>> callees;
                 bool m_is_built;
                 bool m_direct_execution;
             };

@@ -24,7 +24,7 @@
 #include "ngraph/runtime/ccpu/ccpu_tensor_view_wrapper.hpp"
 
 #define BUILDER_DECL(op_name)                                                                      \
-    build<op_name>(CPU_ExternalFunction * external_function,                                       \
+    build<op_name>(CCPUExternalFunction * external_function,                                       \
                    const ngraph::Node* node,                                                       \
                    const std::vector<TensorViewWrapper>& args,                                     \
                    const std::vector<TensorViewWrapper>& out)
@@ -194,7 +194,7 @@
     auto& arg0_tensor = external_function->get_tensor_data(args[0].get_name());                    \
     auto& out0_tensor = external_function->get_tensor_data(out[0].get_name());                     \
                                                                                                    \
-    auto functor = [&, kernel, element_count](CPURuntimeContext* ctx) {                            \
+    auto functor = [&, kernel, element_count](CCPURuntimeContext* ctx) {                            \
         kernel(arg0_tensor, out0_tensor, element_count);                                           \
     };                                                                                             \
     functors.emplace_back(functor);
@@ -210,7 +210,7 @@
     auto& arg1_tensor = external_function->get_tensor_data(args[1].get_name());                    \
     auto& out0_tensor = external_function->get_tensor_data(out[0].get_name());                     \
                                                                                                    \
-    auto functor = [&, kernel, element_count](CPURuntimeContext* ctx) {                            \
+    auto functor = [&, kernel, element_count](CCPURuntimeContext* ctx) {                            \
         kernel(arg0_tensor, arg1_tensor, out0_tensor, element_count);                              \
     };                                                                                             \
     functors.emplace_back(functor);
@@ -232,7 +232,7 @@ namespace ngraph
         namespace cpu
         {
             using BuildOpFunction =
-                std::function<void(CPU_ExternalFunction* external_function,
+                std::function<void(CCPUExternalFunction* external_function,
                                    const ngraph::Node*,
                                    const std::vector<TensorViewWrapper>& inputs,
                                    const std::vector<TensorViewWrapper>& outputs)>;
@@ -245,7 +245,7 @@ namespace ngraph
             {
             public:
                 template <typename OP>
-                static void build(CPU_ExternalFunction* external_function,
+                static void build(CCPUExternalFunction* external_function,
                                   const ngraph::Node* node,
                                   const std::vector<TensorViewWrapper>& args,
                                   const std::vector<TensorViewWrapper>& out)
@@ -253,7 +253,7 @@ namespace ngraph
                     throw std::runtime_error("Unimplemented op in CPU builder");
                 }
 
-                static void nop(CPU_ExternalFunction* external_function,
+                static void nop(CCPUExternalFunction* external_function,
                                 const ngraph::Node* node,
                                 const std::vector<TensorViewWrapper>& args,
                                 const std::vector<TensorViewWrapper>& out)

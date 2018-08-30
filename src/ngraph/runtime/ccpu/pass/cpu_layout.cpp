@@ -63,7 +63,7 @@ using namespace ngraph::runtime::cpu;
 // If not, insert a layout conversion node between the input tensorview and
 // the `node`. For now, only MKLDNN nodes/kernels can request specific layouts
 shared_ptr<Node> runtime::cpu::pass::CPULayout::insert_input_conversions(
-    runtime::cpu::CPU_ExternalFunction* external_function,
+    runtime::cpu::CCPUExternalFunction* external_function,
     shared_ptr<Node>& node,
     const vector<memory::desc>& required_mds)
 {
@@ -162,7 +162,7 @@ void runtime::cpu::pass::CPULayout::set_output_layouts(shared_ptr<Node>& node,
 }
 
 void runtime::cpu::pass::CPULayout::set_native_layouts(
-    runtime::cpu::CPU_ExternalFunction* external_function,
+    runtime::cpu::CCPUExternalFunction* external_function,
     std::shared_ptr<Node> node,
     bool use_replace = true)
 {
@@ -1124,7 +1124,7 @@ namespace ngraph
                             else
                             {
                                 op_annotations =
-                                    std::make_shared<ngraph::runtime::cpu::CPUOpAnnotations>();
+                                    std::make_shared<ngraph::runtime::cpu::CCPUOpAnnotations>();
                                 // pass-through
                                 op_annotations->add_in_place_oi_pair({0, 0, false});
                                 reshape->set_op_annotations(op_annotations);
@@ -1159,7 +1159,7 @@ namespace ngraph
                         else
                         {
                             op_annotations =
-                                std::make_shared<ngraph::runtime::cpu::CPUOpAnnotations>();
+                                std::make_shared<ngraph::runtime::cpu::CCPUOpAnnotations>();
                             // pass-through
                             op_annotations->add_in_place_oi_pair({0, 0, false});
                             reshape->set_op_annotations(op_annotations);

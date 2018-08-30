@@ -39,7 +39,7 @@ namespace ngraph
                     const Shape& output_shape,
                     const Shape& window_shape,
                     const Strides& window_movement_strides,
-                    const std::shared_ptr<CPU_ExternalFunction>& external_function)
+                    const std::shared_ptr<CCPUExternalFunction>& external_function)
                 {
                     auto backend = runtime::Backend::create("CPU");
 

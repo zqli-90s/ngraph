@@ -42,10 +42,10 @@ namespace ngraph
                     static const bool IsStateful = false;
 
                     ElementType initial;
-                    const std::shared_ptr<CPU_ExternalFunction>& external_function;
+                    const std::shared_ptr<CCPUExternalFunction>& external_function;
                     std::shared_ptr<Backend> backend;
 
-                    Reducer(ElementType x, const std::shared_ptr<CPU_ExternalFunction>& ef)
+                    Reducer(ElementType x, const std::shared_ptr<CCPUExternalFunction>& ef)
                         : initial(x)
                         , external_function(ef)
                         , backend(runtime::Backend::create("CPU"))
@@ -80,7 +80,7 @@ namespace ngraph
                                      const Shape& input_shape,
                                      const Shape& output_shape,
                                      const AxisSet& reduction_axes,
-                                     const std::shared_ptr<CPU_ExternalFunction>& external_function)
+                                     const std::shared_ptr<CCPUExternalFunction>& external_function)
                 {
                     Eigen::array<Eigen::Index, Rank> in_dims;
                     Eigen::array<Eigen::Index, Rank - ReductionDims> out_dims;
@@ -121,7 +121,7 @@ namespace ngraph
                     const Shape& input_shape,
                     const Shape& output_shape,
                     const AxisSet& reduction_axes,
-                    const std::shared_ptr<CPU_ExternalFunction>& external_function)
+                    const std::shared_ptr<CCPUExternalFunction>& external_function)
                 {
                     reduce_function<ElementType, Rank, 1>(input0,
                                                           input1,
@@ -140,7 +140,7 @@ namespace ngraph
                     const Shape& input_shape,
                     const Shape& output_shape,
                     const AxisSet& reduction_axes,
-                    const std::shared_ptr<CPU_ExternalFunction>& external_function)
+                    const std::shared_ptr<CCPUExternalFunction>& external_function)
                 {
                     reduce_function<ElementType, 2, 2>(input0,
                                                        input1,
@@ -159,7 +159,7 @@ namespace ngraph
                     const Shape& input_shape,
                     const Shape& output_shape,
                     const AxisSet& reduction_axes,
-                    const std::shared_ptr<CPU_ExternalFunction>& external_function)
+                    const std::shared_ptr<CCPUExternalFunction>& external_function)
                 {
                     reduce_function<ElementType, 3, 2>(input0,
                                                        input1,

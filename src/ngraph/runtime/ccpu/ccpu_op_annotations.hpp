@@ -25,10 +25,10 @@ namespace ngraph
         namespace cpu
         {
             /// \brief Annotations added to graph ops by CPU backend passes
-            class CPUOpAnnotations : public ngraph::op::util::OpAnnotations
+            class CCPUOpAnnotations : public ngraph::op::util::OpAnnotations
             {
             public:
-                CPUOpAnnotations() {}
+                CCPUOpAnnotations() {}
                 bool is_mkldnn_op() { return m_mkldnn_op; }
                 void set_mkldnn_op(bool val) { m_mkldnn_op = val; }
             private:

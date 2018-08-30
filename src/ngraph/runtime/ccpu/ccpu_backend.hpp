@@ -27,14 +27,14 @@ namespace ngraph
     {
         namespace cpu
         {
-            class CPU_ExternalFunction;
-            class CPU_CallFrame;
+            class CCPUExternalFunction;
+            class CCPUCallFrame;
 
-            class CPU_Backend : public runtime::Backend
+            class CCPUBackend : public runtime::Backend
             {
             public:
-                std::shared_ptr<CPU_CallFrame>
-                    make_call_frame(const std::shared_ptr<CPU_ExternalFunction>& external_function);
+                std::shared_ptr<CCPUCallFrame>
+                    make_call_frame(const std::shared_ptr<CCPUExternalFunction>& external_function);
 
                 std::shared_ptr<ngraph::runtime::TensorView>
                     create_tensor(const ngraph::element::Type& element_type,
@@ -63,8 +63,8 @@ namespace ngraph
                 class FunctionInstance
                 {
                 public:
-                    std::shared_ptr<CPU_ExternalFunction> m_external_function;
-                    std::shared_ptr<CPU_CallFrame> m_call_frame;
+                    std::shared_ptr<CCPUExternalFunction> m_external_function;
+                    std::shared_ptr<CCPUCallFrame> m_call_frame;
                     bool m_performance_counters_enabled = false;
                 };
 
