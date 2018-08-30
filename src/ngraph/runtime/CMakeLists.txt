@@ -20,7 +20,7 @@ if (NGRAPH_CPU_ENABLE)
     add_subdirectory(cpu)
 endif()
 
-if (NGRAPH_CODEGEN_CPU_ENABLE)
+if (NGRAPH_CCPU_ENABLE)
     add_subdirectory(ccpu)
 endif()
 

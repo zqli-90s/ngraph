@@ -135,7 +135,7 @@ if (NGRAPH_CPU_ENABLE)
     target_link_libraries(unit-test libmkldnn)
 endif()
 
-if (NGRAPH_CODEGEN_CPU_ENABLE)
+if (NGRAPH_CCPU_ENABLE)
     target_link_libraries(unit-test ccpu_backend)
     target_link_libraries(unit-test libmkldnn)
 endif()

@@ -18,7 +18,10 @@ set(SRC
     cpu_backend.cpp
     cpu_builder.cpp
     cpu_call_frame.cpp
+    cpu_emitter.cpp
     cpu_external_function.cpp
+    cpu_kernel_emitters.cpp
+    cpu_kernel_utils.cpp
     cpu_kernels.cpp
     cpu_layout_descriptor.cpp
     cpu_tensor_view_wrapper.cpp
@@ -35,10 +38,10 @@ set(SRC
     op/batch_dot.cpp
     op/batch_norm_relu.cpp
     op/bounded_relu.cpp
-    op/group_conv.cpp
     op/conv_bias.cpp
     op/conv_relu.cpp
     op/convert_layout.cpp
+    op/group_conv.cpp
     op/loop_kernel.cpp
     op/lstm.cpp
     op/matmul_bias.cpp
@@ -57,23 +60,11 @@ set(SRC
     pass/cpu_workspace_insertion.cpp
 )
 
-if (NOT NGRAPH_DEX_ONLY)
-    set(SRC
-        ${SRC}
-        cpu_emitter.cpp
-        cpu_kernel_emitters.cpp
-        cpu_kernel_utils.cpp
-        )
-endif()
-
-if (NGRAPH_CODEGEN_CPU_ENABLE)
+if (NGRAPH_CCPU_ENABLE)
     set(NGRAPH_CPU_DEBUGINFO_ENABLE 0 CACHE STRING "Enable debuginfo in the CPU backend")
 
     add_library(ccpu_backend SHARED ${SRC})
-    set_target_properties(ccpu_backend PROPERTIES VERSION ${NGRAPH_VERSION} SOVERSION ${NGRAPH_API_VERSION})
-    if (NGRAPH_DEX_ONLY)
-        target_compile_definitions(ccpu_backend PRIVATE "NGRAPH_DEX_ONLY")
-    endif()
+    set_target_properties(ccpu_backend PROPERTIES VERSION ${NGRAPH_VERSION})
 
     if(NGRAPH_DISTRIBUTED_ENABLE)
         find_package(MPI REQUIRED)
@@ -85,9 +76,7 @@ if (NGRAPH_CODEGEN_CPU_ENABLE)
 
     add_dependencies(ccpu_backend ext_mkldnn ext_eigen)
     target_link_libraries(ccpu_backend PUBLIC ngraph libmkldnn libeigen libjson)
-    if (NOT NGRAPH_DEX_ONLY)
-        target_link_libraries(ccpu_backend PUBLIC codegen)
-    endif()
+    target_link_libraries(ccpu_backend PUBLIC codegen)
     target_include_directories(ccpu_backend SYSTEM PUBLIC libmkldnn)
     set_target_properties(ccpu_backend PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${NGRAPH_BUILD_DIR})
 
