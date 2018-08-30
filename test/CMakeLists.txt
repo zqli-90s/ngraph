@@ -54,10 +54,6 @@ if (NGRAPH_INTERPRETER_ENABLE)
     set(SRC ${SRC} backend_debug_api.cpp builder.cpp backend_api.cpp)
 endif()
 
-if (NGRAPH_CPU_ENABLE)
-    set(SRC ${SRC} core_fusion.cpp)
-endif()
-
 add_subdirectory(models)
 add_subdirectory(files)
 add_subdirectory(util)
