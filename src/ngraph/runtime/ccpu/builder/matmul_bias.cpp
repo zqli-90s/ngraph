@@ -14,10 +14,10 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/cpu/op/matmul_bias.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/cpu_kernels.hpp"
-#include "ngraph/runtime/cpu/op/batch_dot.hpp"
+#include "ngraph/runtime/ccpu/op/matmul_bias.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/cpu_kernels.hpp"
+#include "ngraph/runtime/ccpu/op/batch_dot.hpp"
 
 using namespace std;
 using namespace ngraph;

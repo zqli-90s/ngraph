@@ -14,7 +14,7 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/cpu/op/sigmoid.hpp"
+#include "ngraph/runtime/ccpu/op/sigmoid.hpp"
 #include "ngraph/log.hpp"
 #include "ngraph/util.hpp"
 

@@ -17,8 +17,8 @@
 #define EIGEN_USE_THREADS
 #include <unsupported/Eigen/CXX11/Tensor>
 #include "ngraph/op/sigmoid.hpp"
-#include "ngraph/runtime/cpu/kernel/eigen_thread_pool.hpp"
-#include "ngraph/runtime/cpu/op/sigmoid_mul.hpp"
+#include "ngraph/runtime/ccpu/kernel/eigen_thread_pool.hpp"
+#include "ngraph/runtime/ccpu/op/sigmoid_mul.hpp"
 
 template <typename ElementType>
 static Eigen::TensorMap<Eigen::Tensor<ElementType, 1, Eigen::RowMajor>>

@@ -18,11 +18,11 @@
 #include <cstring>
 
 #include "ngraph/op/batch_norm.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/batchnorm.hpp"
-#include "ngraph/runtime/cpu/mkldnn_invoke.hpp"
-#include "ngraph/runtime/cpu/mkldnn_utils.hpp"
-#include "ngraph/runtime/cpu/op/batch_norm_relu.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/batchnorm.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_invoke.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
+#include "ngraph/runtime/ccpu/op/batch_norm_relu.hpp"
 
 using namespace std;
 using namespace ngraph;

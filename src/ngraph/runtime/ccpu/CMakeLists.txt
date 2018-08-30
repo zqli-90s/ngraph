@@ -103,37 +103,7 @@ if (NOT NGRAPH_DEX_ONLY)
         )
 endif()
 
-if (NGRAPH_TBB_ENABLE)
-    include(${TBB_ROOT}/cmake/TBBBuild.cmake)
-    tbb_build(TBB_ROOT ${TBB_ROOT} MAKE_ARGS tbb_build_dir=${CMAKE_CURRENT_BINARY_DIR}/tbb_build
-                tbb_build_prefix=tbb CONFIG_DIR TBB_DIR)
-    find_package(TBB REQUIRED tbb)
-    if (NOT TBB_FOUND)
-        message(FATAL_ERROR "TBB is needed by the CPU backend and was not found")
-    else()
-        message(STATUS "Found TBB and imported target ${TBB_IMPORTED_TARGETS}")
-    endif()
-
-    set_source_files_properties(cpu_external_function.cpp
-        PROPERTIES COMPILE_DEFINITIONS "NGRAPH_TBB_ENABLE")
-
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tbb_build/tbb_release/
-        DESTINATION ${NGRAPH_INSTALL_LIB}
-        FILES_MATCHING REGEX "/libtbb${CMAKE_SHARED_LIBRARY_SUFFIX}(\\.[0-9]+)*$"
-    )
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tbb_build/tbb_debug/
-        DESTINATION ${NGRAPH_INSTALL_LIB}
-        FILES_MATCHING REGEX "/libtbb_debug${CMAKE_SHARED_LIBRARY_SUFFIX}(\\.[0-9]+)*$"
-    )
-    add_library(libtbb INTERFACE)
-    target_link_libraries(libtbb INTERFACE
-        ${CMAKE_CURRENT_BINARY_DIR}/tbb_build/tbb_release/libtbb${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    target_include_directories(libtbb SYSTEM INTERFACE ${TBB_ROOT}/include)
-endif()
-
 if (NGRAPH_CODEGEN_CPU_ENABLE)
-    message(STATUS "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
     set(NGRAPH_CPU_DEBUGINFO_ENABLE 0 CACHE STRING "Enable debuginfo in the CPU backend")
 
     add_library(ccpu_backend SHARED ${SRC})
@@ -151,7 +121,7 @@ if (NGRAPH_CODEGEN_CPU_ENABLE)
     endif()
 
     add_dependencies(ccpu_backend ext_mkldnn ext_eigen)
-    target_link_libraries(ccpu_backend PUBLIC ngraph libmkldnn libeigen libjson libtbb)
+    target_link_libraries(ccpu_backend PUBLIC ngraph libmkldnn libeigen libjson)
     if (NOT NGRAPH_DEX_ONLY)
         target_link_libraries(ccpu_backend PUBLIC codegen)
     endif()

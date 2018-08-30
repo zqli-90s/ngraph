@@ -27,12 +27,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wreserved-id-macro"
 
-#undef __TBB_PREVIEW_LIGHTWEIGHT_POLICY
-#define __TBB_PREVIEW_LIGHTWEIGHT_POLICY 1
-
 #pragma clang diagnostic pop
-
-#include <tbb/flow_graph.h>
 
 #if !defined(NGRAPH_DEX_ONLY)
 #include "ngraph/codegen/code_writer.hpp"
@@ -128,37 +123,37 @@
 #include "ngraph/pass/nop_elimination.hpp"
 #include "ngraph/pass/result_copy_elimination.hpp"
 #include "ngraph/runtime/aligned_buffer.hpp"
-#include "ngraph/runtime/cpu/cpu_backend.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/cpu_call_frame.hpp"
-#include "ngraph/runtime/cpu/cpu_emitter.hpp"
-#include "ngraph/runtime/cpu/cpu_external_function.hpp"
-#include "ngraph/runtime/cpu/cpu_tensor_view.hpp"
-#include "ngraph/runtime/cpu/cpu_tracing.hpp"
-#include "ngraph/runtime/cpu/mkldnn_utils.hpp"
-#include "ngraph/runtime/cpu/op/batch_dot.hpp"
-#include "ngraph/runtime/cpu/op/batch_norm_relu.hpp"
-#include "ngraph/runtime/cpu/op/bounded_relu.hpp"
-#include "ngraph/runtime/cpu/op/conv_bias.hpp"
-#include "ngraph/runtime/cpu/op/conv_relu.hpp"
-#include "ngraph/runtime/cpu/op/convert_layout.hpp"
-#include "ngraph/runtime/cpu/op/group_conv.hpp"
-#include "ngraph/runtime/cpu/op/loop_kernel.hpp"
-#include "ngraph/runtime/cpu/op/lstm.hpp"
-#include "ngraph/runtime/cpu/op/matmul_bias.hpp"
-#include "ngraph/runtime/cpu/op/max_pool_with_indices.hpp"
-#include "ngraph/runtime/cpu/op/rnn.hpp"
-#include "ngraph/runtime/cpu/op/sigmoid.hpp"
-#include "ngraph/runtime/cpu/op/sigmoid_mul.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_assignment.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_collapse_dims.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_concat_inputs.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_fusion.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_layout.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_mat_fusion.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_post_layout_optimizations.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_rnn_fusion.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_workspace_insertion.hpp"
+#include "ngraph/runtime/ccpu/cpu_backend.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/cpu_call_frame.hpp"
+#include "ngraph/runtime/ccpu/cpu_emitter.hpp"
+#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/cpu_tensor_view.hpp"
+#include "ngraph/runtime/ccpu/cpu_tracing.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
+#include "ngraph/runtime/ccpu/op/batch_dot.hpp"
+#include "ngraph/runtime/ccpu/op/batch_norm_relu.hpp"
+#include "ngraph/runtime/ccpu/op/bounded_relu.hpp"
+#include "ngraph/runtime/ccpu/op/conv_bias.hpp"
+#include "ngraph/runtime/ccpu/op/conv_relu.hpp"
+#include "ngraph/runtime/ccpu/op/convert_layout.hpp"
+#include "ngraph/runtime/ccpu/op/group_conv.hpp"
+#include "ngraph/runtime/ccpu/op/loop_kernel.hpp"
+#include "ngraph/runtime/ccpu/op/lstm.hpp"
+#include "ngraph/runtime/ccpu/op/matmul_bias.hpp"
+#include "ngraph/runtime/ccpu/op/max_pool_with_indices.hpp"
+#include "ngraph/runtime/ccpu/op/rnn.hpp"
+#include "ngraph/runtime/ccpu/op/sigmoid.hpp"
+#include "ngraph/runtime/ccpu/op/sigmoid_mul.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_assignment.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_collapse_dims.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_concat_inputs.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_fusion.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_layout.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_mat_fusion.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_post_layout_optimizations.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_rnn_fusion.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_workspace_insertion.hpp"
 
 #ifdef NGRAPH_DISTRIBUTED
 #include "ngraph/op/allreduce.hpp"
@@ -423,10 +418,10 @@ void runtime::cpu::CPU_ExternalFunction::compile()
 #include <cmath>
 #include "ngraph/except.hpp"
 #include "ngraph/runtime/aligned_buffer.hpp"
-#include "ngraph/runtime/cpu/cpu_eigen_utils.hpp"
-#include "ngraph/runtime/cpu/cpu_kernels.hpp"
-#include "ngraph/runtime/cpu/cpu_runtime_context.hpp"
-#include "ngraph/runtime/cpu/mkldnn_invoke.hpp"
+#include "ngraph/runtime/ccpu/cpu_eigen_utils.hpp"
+#include "ngraph/runtime/ccpu/cpu_kernels.hpp"
+#include "ngraph/runtime/ccpu/cpu_runtime_context.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_invoke.hpp"
 #include "ngraph/runtime/reference/and.hpp"
 #include "ngraph/runtime/reference/argmax.hpp"
 #include "ngraph/runtime/reference/argmin.hpp"
@@ -1365,109 +1360,6 @@ void runtime::cpu::CPU_ExternalFunction::build()
         }
 
         auto functor = functors.begin();
-        if (m_use_tbb)
-        {
-            // Build the flow graph
-            if (ctx->first_iteration)
-            {
-                std::unordered_map<
-                    std::string,
-                    tbb::flow::continue_node<tbb::flow::continue_msg, tbb::flow::lightweight>*>
-                    nodename_tbbnode_map;
-                tbb::flow::continue_node<tbb::flow::continue_msg,
-                                         tbb::flow::lightweight>* flowgraph_node_start =
-                    new tbb::flow::continue_node<tbb::flow::continue_msg, tbb::flow::lightweight>(
-                        *(ctx->G), [&](const tbb::flow::continue_msg& msg) {});
-                auto it = enable_nodename_list.begin();
-                for (const auto& p : enables)
-                {
-                    std::vector<std::function<void(CPURuntimeContext*)>> ftrs;
-                    for (size_t j = 0; j < p.second; j++)
-                    {
-                        ftrs.push_back(*functor);
-                        std::advance(functor, 1);
-                    }
-
-                    tbb::flow::continue_node<tbb::flow::continue_msg, tbb::flow::lightweight>*
-                        flowgraph_node = new tbb::flow::continue_node<tbb::flow::continue_msg,
-                                                                      tbb::flow::lightweight>(
-                            *(ctx->G), [&, ftrs](const tbb::flow::continue_msg& msg) {
-                                if (p.first(ctx) || ctx->first_iteration)
-                                {
-                                    for (size_t j = 0; j < p.second; j++)
-                                    {
-                                        if (runtime::cpu::IsTracingEnabled())
-                                        {
-                                            start_ts = cpu::Clock::now();
-                                        }
-                                        ftrs[j](ctx);
-                                        if (runtime::cpu::IsTracingEnabled())
-                                        {
-                                            ctx->op_durations[profiler_count++] =
-                                                (std::chrono::duration_cast<cpu::Timescale>(
-                                                     cpu::Clock::now() - start_ts))
-                                                    .count();
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    if (runtime::cpu::IsTracingEnabled())
-                                    {
-                                        for (size_t j = 0; j < p.second; j++)
-                                        {
-                                            ctx->op_durations[profiler_count++] = 0;
-                                        }
-                                    }
-                                }
-                            });
-                    nodename_tbbnode_map.insert({it->second, flowgraph_node});
-                    it++;
-                }
-
-                traverse_nodes(
-                    m_function, [&flowgraph_node_start, &nodename_tbbnode_map](shared_ptr<Node> n) {
-                        if (!n->is_parameter() && !n->is_constant())
-                        {
-                            bool is_head = true;
-                            for (auto arg : n->get_arguments())
-                            {
-                                if (!arg->is_parameter() && !arg->is_constant())
-                                {
-                                    is_head = false;
-                                    tbb::flow::make_edge(*(nodename_tbbnode_map[arg->get_name()]),
-                                                         *(nodename_tbbnode_map[n->get_name()]));
-                                }
-                            }
-                            if (is_head)
-                            {
-                                tbb::flow::make_edge(*flowgraph_node_start,
-                                                     *(nodename_tbbnode_map[n->get_name()]));
-                            }
-                        }
-                    });
-
-                if (m_release_function)
-                {
-                    release_function();
-                }
-            }
-            // Execute the flow graph
-            (static_cast<
-                 tbb::flow::continue_node<tbb::flow::continue_msg, tbb::flow::lightweight>*>(
-                 &(*(ctx->G->begin()))))
-                ->try_put(tbb::flow::continue_msg());
-            try
-            {
-                ctx->G->wait_for_all();
-            }
-            catch (...)
-            {
-                throw;
-            }
-        }
-        else
-        {
             for (const auto& p : enables)
             {
                 if (p.first(ctx) || ctx->first_iteration)
@@ -1502,7 +1394,6 @@ void runtime::cpu::CPU_ExternalFunction::build()
                     std::advance(functor, p.second);
                 }
             }
-        }
         ctx->first_iteration = false;
 
         if (runtime::cpu::IsTracingEnabled())

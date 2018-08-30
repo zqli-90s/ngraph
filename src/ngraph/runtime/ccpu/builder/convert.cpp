@@ -15,8 +15,8 @@
 //*****************************************************************************
 
 #include "ngraph/op/convert.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/convert.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/convert.hpp"
 
 using namespace std;
 using namespace ngraph;

@@ -19,7 +19,7 @@
 #define EIGEN_USE_THREADS
 #include <unsupported/Eigen/CXX11/Tensor>
 
-#include "ngraph/runtime/cpu/kernel/eigen_thread_pool.hpp"
+#include "ngraph/runtime/ccpu/kernel/eigen_thread_pool.hpp"
 #include "ngraph/runtime/reference/relu.hpp"
 
 namespace ngraph

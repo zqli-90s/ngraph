@@ -17,8 +17,8 @@
 #include <cstring>
 
 #include "ngraph/op/replace_slice.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/replace_slice.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/replace_slice.hpp"
 
 using namespace std;
 using namespace ngraph;

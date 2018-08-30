@@ -15,8 +15,8 @@
 //*****************************************************************************
 
 #include "ngraph/op/select.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/select.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/select.hpp"
 
 using namespace std;
 using namespace ngraph;

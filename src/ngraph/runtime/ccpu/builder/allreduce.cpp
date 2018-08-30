@@ -17,7 +17,7 @@
 
 #include "ngraph/op/allreduce.hpp"
 #include <mpi.h>
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
 
 using namespace std;
 using namespace ngraph;

@@ -15,8 +15,8 @@
 //*****************************************************************************
 
 #include "ngraph/op/reverse_sequence.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/reverse_sequence.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/reverse_sequence.hpp"
 
 using namespace std;
 using namespace ngraph;

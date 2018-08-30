@@ -18,9 +18,9 @@
 #include <cstring>
 
 #include "ngraph/op/dot.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/cpu_kernels.hpp"
-#include "ngraph/runtime/cpu/kernel/dot.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/cpu_kernels.hpp"
+#include "ngraph/runtime/ccpu/kernel/dot.hpp"
 
 using namespace std;
 using namespace ngraph;

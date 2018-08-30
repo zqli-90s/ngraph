@@ -19,8 +19,8 @@
 #include <mkldnn.hpp>
 
 #include "mkldnn_invoke.hpp"
-#include "ngraph/runtime/cpu/cpu_runtime_context.hpp"
-#include "ngraph/runtime/cpu/mkldnn_utils.hpp"
+#include "ngraph/runtime/ccpu/cpu_runtime_context.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
 
 mkldnn::engine ngraph::runtime::cpu::mkldnn_utils::global_cpu_engine(mkldnn::engine::cpu, 0);
 

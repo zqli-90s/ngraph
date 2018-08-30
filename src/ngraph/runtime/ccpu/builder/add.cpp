@@ -17,10 +17,10 @@
 #include <vector>
 
 #include "ngraph/op/add.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/add.hpp"
-#include "ngraph/runtime/cpu/mkldnn_invoke.hpp"
-#include "ngraph/runtime/cpu/mkldnn_utils.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/add.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_invoke.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
 
 using namespace std;
 using namespace ngraph;

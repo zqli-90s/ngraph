@@ -17,7 +17,7 @@
 #include <cstring>
 
 #include "ngraph/op/argmin.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
 #include "ngraph/runtime/reference/argmin.hpp"
 
 using namespace std;

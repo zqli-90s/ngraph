@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //*****************************************************************************
-#include "ngraph/runtime/cpu/op/bounded_relu.hpp"
+#include "ngraph/runtime/ccpu/op/bounded_relu.hpp"
 #include "ngraph/util.hpp"
 
 using namespace std;

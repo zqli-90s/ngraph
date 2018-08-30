@@ -14,8 +14,8 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/cpu/op/convert_layout.hpp"
-#include "ngraph/runtime/cpu/cpu_layout_descriptor.hpp"
+#include "ngraph/runtime/ccpu/op/convert_layout.hpp"
+#include "ngraph/runtime/ccpu/cpu_layout_descriptor.hpp"
 
 using namespace std;
 using namespace ngraph;

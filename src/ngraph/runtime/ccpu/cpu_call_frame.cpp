@@ -17,10 +17,10 @@
 #include <algorithm>
 
 #include "ngraph/runtime/aligned_buffer.hpp"
-#include "ngraph/runtime/cpu/cpu_call_frame.hpp"
-#include "ngraph/runtime/cpu/cpu_external_function.hpp"
-#include "ngraph/runtime/cpu/cpu_tensor_view.hpp"
-#include "ngraph/runtime/cpu/cpu_tracing.hpp"
+#include "ngraph/runtime/ccpu/cpu_call_frame.hpp"
+#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/cpu_tensor_view.hpp"
+#include "ngraph/runtime/ccpu/cpu_tracing.hpp"
 
 using namespace std;
 using namespace ngraph;
@@ -122,15 +122,6 @@ void runtime::cpu::CPU_CallFrame::setup_runtime_context()
     const auto& mkldnn_emitter = m_external_function->get_mkldnn_emitter();
     ctx->mkldnn_primitives = mkldnn_emitter->get_mkldnn_primitives().data();
     ctx->mkldnn_workspaces = mkldnn_emitter->get_mkldnn_workspaces().data();
-
-    if (std::getenv("NGRAPH_CPU_USE_TBB") != nullptr)
-    {
-        ctx->G = new tbb::flow::graph;
-        const auto envParallelism = std::getenv("NGRAPH_INTER_OP_PARALLELISM");
-        const auto parallelism = envParallelism == nullptr ? 1 : std::atoi(envParallelism);
-        ctx->c = new tbb::global_control(tbb::global_control::max_allowed_parallelism, parallelism);
-        ctx->init = new tbb::task_scheduler_init(parallelism);
-    }
 }
 
 void runtime::cpu::CPU_CallFrame::cleanup_runtime_context()
@@ -140,23 +131,6 @@ void runtime::cpu::CPU_CallFrame::cleanup_runtime_context()
     for (auto buffer : ctx->memory_buffers)
     {
         delete buffer;
-    }
-    if (std::getenv("NGRAPH_CPU_USE_TBB") != nullptr)
-    {
-        // delete graph G and nodes in G
-        ctx->G->wait_for_all();
-        std::vector<tbb::flow::graph_node*> to_be_deleted;
-        for (auto it = ctx->G->begin(); it != ctx->G->end(); it++)
-        {
-            to_be_deleted.push_back(&(*it));
-        }
-        delete ctx->G;
-        for (auto node : to_be_deleted)
-        {
-            delete node;
-        }
-        delete ctx->c;
-        delete ctx->init;
     }
     delete ctx;
 }

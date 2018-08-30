@@ -17,8 +17,8 @@
 #include <cstring>
 
 #include "ngraph/op/product.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/reduce_product.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/reduce_product.hpp"
 
 #include "reduction.hpp"
 

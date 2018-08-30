@@ -17,8 +17,8 @@
 #include <map>
 
 #include "ngraph/codegen/code_writer.hpp"
-#include "ngraph/runtime/cpu/cpu_kernel_emitters.hpp"
-#include "ngraph/runtime/cpu/cpu_kernel_utils.hpp"
+#include "ngraph/runtime/ccpu/cpu_kernel_emitters.hpp"
+#include "ngraph/runtime/ccpu/cpu_kernel_utils.hpp"
 #include "ngraph/util.hpp"
 
 using namespace ngraph;

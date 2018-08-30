@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "ngraph/function.hpp"
-#include "ngraph/runtime/cpu/cpu_layout_descriptor.hpp"
-#include "ngraph/runtime/cpu/cpu_runtime_context.hpp"
+#include "ngraph/runtime/ccpu/cpu_layout_descriptor.hpp"
+#include "ngraph/runtime/ccpu/cpu_runtime_context.hpp"
 #include "ngraph/runtime/tensor_view.hpp"
 
 namespace ngraph

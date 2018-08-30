@@ -17,7 +17,7 @@
 #include <cstring>
 
 #include "ngraph/op/argmax.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
 #include "ngraph/runtime/reference/argmax.hpp"
 
 using namespace std;

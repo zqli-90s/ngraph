@@ -31,8 +31,8 @@
 #include "ngraph/op/subtract.hpp"
 #include "ngraph/op/util/binary_elementwise_arithmetic.hpp"
 #include "ngraph/op/util/unary_elementwise_arithmetic.hpp"
-#include "ngraph/runtime/cpu/op/loop_kernel.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_loop_kernel_fusion.hpp"
+#include "ngraph/runtime/ccpu/op/loop_kernel.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_loop_kernel_fusion.hpp"
 
 #define TI(x) std::type_index(typeid(x))
 

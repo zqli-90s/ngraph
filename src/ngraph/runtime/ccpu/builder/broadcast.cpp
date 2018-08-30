@@ -17,8 +17,8 @@
 #include <cstring>
 
 #include "ngraph/op/broadcast.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/broadcast.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/broadcast.hpp"
 
 using namespace std;
 using namespace ngraph;

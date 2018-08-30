@@ -48,12 +48,12 @@
 #include "ngraph/pattern/matcher.hpp"
 #include "ngraph/pattern/op/label.hpp"
 #include "ngraph/pattern/op/skip.hpp"
-#include "ngraph/runtime/cpu/op/batch_norm_relu.hpp"
-#include "ngraph/runtime/cpu/op/bounded_relu.hpp"
-#include "ngraph/runtime/cpu/op/conv_bias.hpp"
-#include "ngraph/runtime/cpu/op/conv_relu.hpp"
-#include "ngraph/runtime/cpu/op/matmul_bias.hpp"
-#include "ngraph/runtime/cpu/op/sigmoid_mul.hpp"
+#include "ngraph/runtime/ccpu/op/batch_norm_relu.hpp"
+#include "ngraph/runtime/ccpu/op/bounded_relu.hpp"
+#include "ngraph/runtime/ccpu/op/conv_bias.hpp"
+#include "ngraph/runtime/ccpu/op/conv_relu.hpp"
+#include "ngraph/runtime/ccpu/op/matmul_bias.hpp"
+#include "ngraph/runtime/ccpu/op/sigmoid_mul.hpp"
 #include "ngraph/util.hpp"
 
 extern template ngraph::Shape ngraph::apply_permutation<ngraph::Shape>(ngraph::Shape input,

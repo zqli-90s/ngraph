@@ -14,9 +14,9 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/cpu/kernel/one_hot.hpp"
+#include "ngraph/runtime/ccpu/kernel/one_hot.hpp"
 #include "ngraph/op/one_hot.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
 
 using namespace std;
 using namespace ngraph;

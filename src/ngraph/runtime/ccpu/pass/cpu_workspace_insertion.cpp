@@ -45,12 +45,12 @@
 #include "ngraph/pattern/matcher.hpp"
 #include "ngraph/pattern/op/label.hpp"
 #include "ngraph/pattern/op/skip.hpp"
-#include "ngraph/runtime/cpu/op/batch_norm_relu.hpp"
-#include "ngraph/runtime/cpu/op/conv_bias.hpp"
-#include "ngraph/runtime/cpu/op/conv_relu.hpp"
-#include "ngraph/runtime/cpu/op/matmul_bias.hpp"
-#include "ngraph/runtime/cpu/op/max_pool_with_indices.hpp"
-#include "ngraph/runtime/cpu/op/sigmoid.hpp"
+#include "ngraph/runtime/ccpu/op/batch_norm_relu.hpp"
+#include "ngraph/runtime/ccpu/op/conv_bias.hpp"
+#include "ngraph/runtime/ccpu/op/conv_relu.hpp"
+#include "ngraph/runtime/ccpu/op/matmul_bias.hpp"
+#include "ngraph/runtime/ccpu/op/max_pool_with_indices.hpp"
+#include "ngraph/runtime/ccpu/op/sigmoid.hpp"
 
 using namespace ngraph;
 

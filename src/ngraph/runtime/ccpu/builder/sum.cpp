@@ -17,8 +17,8 @@
 #include <cstring>
 
 #include "ngraph/op/sum.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/reduce_sum.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/reduce_sum.hpp"
 
 #include "reduction.hpp"
 

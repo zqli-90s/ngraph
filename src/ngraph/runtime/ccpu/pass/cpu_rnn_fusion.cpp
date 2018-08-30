@@ -44,9 +44,9 @@
 #include "ngraph/pattern/matcher.hpp"
 #include "ngraph/pattern/op/label.hpp"
 #include "ngraph/pattern/op/skip.hpp"
-#include "ngraph/runtime/cpu/op/lstm.hpp"
-#include "ngraph/runtime/cpu/op/rnn.hpp"
-#include "ngraph/runtime/cpu/op/sigmoid.hpp"
+#include "ngraph/runtime/ccpu/op/lstm.hpp"
+#include "ngraph/runtime/ccpu/op/rnn.hpp"
+#include "ngraph/runtime/ccpu/op/sigmoid.hpp"
 
 using namespace ngraph;
 void ngraph::runtime::cpu::pass::LSTMFusion::construct_sigmoid()

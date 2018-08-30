@@ -17,8 +17,8 @@
 #include <cstring>
 
 #include "ngraph/op/pad.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/pad.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/pad.hpp"
 #include "ngraph/shape.hpp"
 
 using namespace std;

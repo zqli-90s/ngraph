@@ -20,7 +20,7 @@
 #include <unsupported/Eigen/CXX11/Tensor>
 
 #include "ngraph/coordinate.hpp"
-#include "ngraph/runtime/cpu/kernel/eigen_thread_pool.hpp"
+#include "ngraph/runtime/ccpu/kernel/eigen_thread_pool.hpp"
 #include "ngraph/shape.hpp"
 
 namespace ngraph

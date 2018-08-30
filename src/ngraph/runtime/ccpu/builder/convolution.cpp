@@ -15,13 +15,13 @@
 //*****************************************************************************
 
 #include "ngraph/op/convolution.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/convolution.hpp"
-#include "ngraph/runtime/cpu/mkldnn_invoke.hpp"
-#include "ngraph/runtime/cpu/mkldnn_utils.hpp"
-#include "ngraph/runtime/cpu/op/conv_bias.hpp"
-#include "ngraph/runtime/cpu/op/conv_relu.hpp"
-#include "ngraph/runtime/cpu/op/group_conv.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/convolution.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_invoke.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
+#include "ngraph/runtime/ccpu/op/conv_bias.hpp"
+#include "ngraph/runtime/ccpu/op/conv_relu.hpp"
+#include "ngraph/runtime/ccpu/op/group_conv.hpp"
 
 using namespace std;
 using namespace ngraph;

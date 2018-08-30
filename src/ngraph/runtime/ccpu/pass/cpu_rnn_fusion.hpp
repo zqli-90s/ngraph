@@ -17,7 +17,7 @@
 #pragma once
 
 #include "ngraph/pass/graph_rewrite.hpp"
-#include "ngraph/runtime/cpu/pass/cpu_fusion.hpp"
+#include "ngraph/runtime/ccpu/pass/cpu_fusion.hpp"
 
 namespace ngraph
 {

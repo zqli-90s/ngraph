@@ -14,7 +14,7 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/cpu/op/max_pool_with_indices.hpp"
+#include "ngraph/runtime/ccpu/op/max_pool_with_indices.hpp"
 #include "ngraph/function.hpp"
 #include "ngraph/op/add.hpp"
 #include "ngraph/op/constant.hpp"

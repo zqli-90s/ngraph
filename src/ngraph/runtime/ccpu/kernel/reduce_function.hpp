@@ -21,9 +21,9 @@
 
 #include "ngraph/axis_set.hpp"
 #include "ngraph/runtime/backend.hpp"
-#include "ngraph/runtime/cpu/cpu_external_function.hpp"
-#include "ngraph/runtime/cpu/cpu_tensor_view.hpp"
-#include "ngraph/runtime/cpu/kernel/eigen_thread_pool.hpp"
+#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/cpu_tensor_view.hpp"
+#include "ngraph/runtime/ccpu/kernel/eigen_thread_pool.hpp"
 #include "ngraph/shape.hpp"
 #include "ngraph/type/element_type.hpp"
 

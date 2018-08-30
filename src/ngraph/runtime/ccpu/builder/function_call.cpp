@@ -16,7 +16,7 @@
 
 #include "ngraph/op/function_call.hpp"
 #include "ngraph/runtime/backend.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
 #include "ngraph/runtime/tensor_view.hpp"
 
 using namespace std;

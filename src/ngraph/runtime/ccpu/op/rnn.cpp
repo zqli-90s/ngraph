@@ -14,7 +14,7 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/cpu/op/rnn.hpp"
+#include "ngraph/runtime/ccpu/op/rnn.hpp"
 #include "ngraph/log.hpp"
 #include "ngraph/util.hpp"
 

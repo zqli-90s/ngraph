@@ -14,14 +14,12 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include <tbb/tbb_stddef.h>
-
 #include "ngraph/graph_util.hpp"
 #include "ngraph/runtime/backend_manager.hpp"
-#include "ngraph/runtime/cpu/cpu_backend.hpp"
-#include "ngraph/runtime/cpu/cpu_call_frame.hpp"
-#include "ngraph/runtime/cpu/cpu_external_function.hpp"
-#include "ngraph/runtime/cpu/cpu_tensor_view.hpp"
+#include "ngraph/runtime/ccpu/cpu_backend.hpp"
+#include "ngraph/runtime/ccpu/cpu_call_frame.hpp"
+#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/cpu_tensor_view.hpp"
 #include "ngraph/util.hpp"
 
 using namespace ngraph;
@@ -34,8 +32,6 @@ extern "C" const char* get_ngraph_version_string()
 
 extern "C" runtime::Backend* new_backend(const char* configuration_string)
 {
-    // Force TBB to link to the backend
-    tbb::TBB_runtime_interface_version();
     return new runtime::cpu::CPU_Backend();
 }
 

@@ -14,7 +14,7 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/cpu/op/lstm.hpp"
+#include "ngraph/runtime/ccpu/op/lstm.hpp"
 #include "ngraph/log.hpp"
 #include "ngraph/util.hpp"
 

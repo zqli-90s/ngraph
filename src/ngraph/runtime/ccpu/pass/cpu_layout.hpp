@@ -17,7 +17,7 @@
 #pragma once
 
 #include "ngraph/pass/pass.hpp"
-#include "ngraph/runtime/cpu/cpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
 
 #define LAYOUT_DECL(op_type)                                                                       \
     layout<op_type>(ngraph::runtime::cpu::CPU_ExternalFunction * external_function,                \

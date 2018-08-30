@@ -15,11 +15,11 @@
 //*****************************************************************************
 
 #include "ngraph/op/sigmoid.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/kernel/sigmoid_multiply.hpp"
-#include "ngraph/runtime/cpu/mkldnn_invoke.hpp"
-#include "ngraph/runtime/cpu/mkldnn_utils.hpp"
-#include "ngraph/runtime/cpu/op/sigmoid_mul.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/kernel/sigmoid_multiply.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_invoke.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
+#include "ngraph/runtime/ccpu/op/sigmoid_mul.hpp"
 
 using namespace std;
 using namespace ngraph;

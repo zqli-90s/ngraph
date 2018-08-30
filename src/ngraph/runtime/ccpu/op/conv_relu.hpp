@@ -18,7 +18,7 @@
 
 #include "ngraph/op/convolution.hpp"
 #include "ngraph/op/util/requires_tensor_view_args.hpp"
-#include "ngraph/runtime/cpu/op/conv_bias.hpp"
+#include "ngraph/runtime/ccpu/op/conv_bias.hpp"
 
 namespace ngraph
 {

@@ -14,12 +14,12 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/cpu/kernel/max_pool.hpp"
+#include "ngraph/runtime/ccpu/kernel/max_pool.hpp"
 #include "ngraph/op/max_pool.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/mkldnn_invoke.hpp"
-#include "ngraph/runtime/cpu/mkldnn_utils.hpp"
-#include "ngraph/runtime/cpu/op/max_pool_with_indices.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_invoke.hpp"
+#include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
+#include "ngraph/runtime/ccpu/op/max_pool_with_indices.hpp"
 
 using namespace std;
 using namespace ngraph;

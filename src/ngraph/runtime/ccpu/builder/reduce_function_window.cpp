@@ -14,10 +14,10 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include "ngraph/runtime/cpu/kernel/reduce_function_window.hpp"
+#include "ngraph/runtime/ccpu/kernel/reduce_function_window.hpp"
 #include "ngraph/op/reduce_window.hpp"
-#include "ngraph/runtime/cpu/cpu_builder.hpp"
-#include "ngraph/runtime/cpu/cpu_external_function.hpp"
+#include "ngraph/runtime/ccpu/cpu_builder.hpp"
+#include "ngraph/runtime/ccpu/cpu_external_function.hpp"
 #include "ngraph/runtime/tensor_view.hpp"
 
 using namespace std;
