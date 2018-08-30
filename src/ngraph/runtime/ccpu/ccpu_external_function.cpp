@@ -733,31 +733,6 @@ using namespace ngraph::runtime;
             // Op Control
             if (!node->is_parameter() && !node->is_constant())
             {
-                writer << "if (ctx->first_iteration ";
-                for (const descriptor::Input& input : node->get_inputs())
-                {
-                    const descriptor::Output& output = input.get_output();
-                    shared_ptr<descriptor::TensorView> tv = output.get_tensor_view();
-                    auto input_name = tv->get_tensor().get_name();
-
-                    if (output.get_node()->is_parameter())
-                    {
-                        writer << " || ctx->p_en[" << param_index_map[input_name] << "]";
-                    }
-                    else if (!output.get_node()->is_constant())
-                    {
-                        writer << " || t_en[" << tensor_index_map[input_name] << "]";
-                    }
-                }
-
-                // Always enable nodes computing output tensors or nodes whose outputs might get
-                // overwritten due to inplace kernels
-                if (computes_result(node.get()) || possibly_overwritten(node.get()))
-                {
-                    writer << " || 1";
-                }
-                writer << ") {\n";
-                writer.indent++;
             }
 
             auto it = node_function_map.find(node.get());
@@ -806,31 +781,9 @@ using namespace ngraph::runtime;
             // Emit operation epilogue
             if (!node->is_parameter() && !node->is_constant())
             {
-                for (auto output_name : node_output_names)
-                {
-                    writer << "t_en[" << tensor_index_map[output_name] << "] = true;\n";
-                }
-                writer.indent--;
-                writer << "} else {\n";
-                writer.indent++;
-                for (auto output_name : node_output_names)
-                {
-                    writer << "t_en[" << tensor_index_map[output_name] << "] = false;\n";
-                }
-                writer.indent--;
-                writer << "}\n";
                 emit_debug_function_exit(writer, node.get(), in, out);
-                if (runtime::cpu::IsTracingEnabled() &&
-                    current_function->get_name() == m_function_name)
-                {
-                    writer << "ctx->op_durations[profiler_count++] = "
-                           << "(std::chrono::duration_cast<cpu::Timescale>(cpu::Clock::now() - "
-                              "start_ts)).count();\n";
-                }
             }
         }
-
-        writer << "ctx->first_iteration = false;\n";
 
         writer.indent--;
         // End generated function

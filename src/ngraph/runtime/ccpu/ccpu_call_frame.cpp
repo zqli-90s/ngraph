@@ -103,8 +103,6 @@ void runtime::cpu::CCPUCallFrame::setup_runtime_context()
     }
     ctx->p_en = new bool[m_external_function->get_parameter_layout_descriptors().size()];
 
-    ctx->first_iteration = true;
-
     // Create temporary buffer pools
     size_t alignment = runtime::cpu::CCPUExternalFunction::s_memory_pool_alignment;
     for (auto buffer_size : m_external_function->get_memory_buffer_sizes())
