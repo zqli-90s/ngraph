@@ -48,15 +48,15 @@ void runtime::cpu::CCPUCallFrame::call(
 
     for (size_t i = 0; i < input_tvs.size(); i++)
     {
-        shared_ptr<runtime::cpu::CPUTensorView> tv =
-            static_pointer_cast<runtime::cpu::CPUTensorView>(input_tvs[i]);
+        shared_ptr<runtime::cpu::CCPUTensorView> tv =
+            static_pointer_cast<runtime::cpu::CCPUTensorView>(input_tvs[i]);
         ctx->p_en[i] = tv->get_stale();
         inputs.push_back(tv->get_data_ptr());
     }
     for (size_t i = 0; i < output_tvs.size(); i++)
     {
-        shared_ptr<runtime::cpu::CPUTensorView> tv =
-            static_pointer_cast<runtime::cpu::CPUTensorView>(output_tvs[i]);
+        shared_ptr<runtime::cpu::CCPUTensorView> tv =
+            static_pointer_cast<runtime::cpu::CCPUTensorView>(output_tvs[i]);
         outputs.push_back(tv->get_data_ptr());
     }
 

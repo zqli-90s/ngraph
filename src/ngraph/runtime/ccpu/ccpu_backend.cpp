@@ -59,13 +59,13 @@ shared_ptr<runtime::cpu::CCPUCallFrame> runtime::cpu::CCPUBackend::make_call_fra
 shared_ptr<runtime::TensorView>
     runtime::cpu::CCPUBackend::create_tensor(const element::Type& element_type, const Shape& shape)
 {
-    return make_shared<runtime::cpu::CPUTensorView>(element_type, shape);
+    return make_shared<runtime::cpu::CCPUTensorView>(element_type, shape);
 }
 
 shared_ptr<runtime::TensorView> runtime::cpu::CCPUBackend::create_tensor(
     const element::Type& element_type, const Shape& shape, void* memory_pointer)
 {
-    return make_shared<runtime::cpu::CPUTensorView>(element_type, shape, memory_pointer);
+    return make_shared<runtime::cpu::CCPUTensorView>(element_type, shape, memory_pointer);
 }
 
 bool runtime::cpu::CCPUBackend::compile(shared_ptr<Function> func)

@@ -19,7 +19,6 @@
 
 #include "ccpu_tensor_view.hpp"
 #include "ngraph/descriptor/layout/tensor_view_layout.hpp"
-#include "ngraph/descriptor/primary_tensor_view.hpp"
 #include "ngraph/except.hpp"
 #include "ngraph/runtime/ccpu/ccpu_layout_descriptor.hpp"
 #include "ngraph/runtime/ccpu/mkldnn_utils.hpp"
@@ -32,12 +31,12 @@ using namespace std;
 // TODO(jmenon): Refactor all the alignment specifications into
 // a single place and allow lower or no alignment when possible
 
-runtime::cpu::CPUTensorView::CPUTensorView(const ngraph::element::Type& element_type,
-                                           const Shape& shape,
-                                           void* memory_pointer,
-                                           const string& name)
-    : runtime::TensorView(std::make_shared<ngraph::descriptor::PrimaryTensorView>(
-          std::make_shared<ngraph::TensorViewType>(element_type, shape), name))
+runtime::cpu::CCPUTensorView::CCPUTensorView(const ngraph::element::Type& element_type,
+                                             const Shape& shape,
+                                             void* memory_pointer,
+                                             const string& name)
+    : runtime::TensorView(
+          std::make_shared<ngraph::descriptor::TensorView>(element_type, shape, name))
     , buffer(nullptr)
     , aligned_buffer(nullptr)
 {
@@ -76,29 +75,29 @@ runtime::cpu::CPUTensorView::CPUTensorView(const ngraph::element::Type& element_
     }
 }
 
-runtime::cpu::CPUTensorView::CPUTensorView(const ngraph::element::Type& element_type,
-                                           const Shape& shape,
-                                           const string& name)
-    : CPUTensorView(element_type, shape, nullptr, name)
+runtime::cpu::CCPUTensorView::CCPUTensorView(const ngraph::element::Type& element_type,
+                                             const Shape& shape,
+                                             const string& name)
+    : CCPUTensorView(element_type, shape, nullptr, name)
 {
 }
 
-runtime::cpu::CPUTensorView::~CPUTensorView()
+runtime::cpu::CCPUTensorView::~CCPUTensorView()
 {
     free(buffer);
 }
 
-char* runtime::cpu::CPUTensorView::get_data_ptr()
+char* runtime::cpu::CCPUTensorView::get_data_ptr()
 {
     return aligned_buffer;
 }
 
-const char* runtime::cpu::CPUTensorView::get_data_ptr() const
+const char* runtime::cpu::CCPUTensorView::get_data_ptr() const
 {
     return aligned_buffer;
 }
 
-void runtime::cpu::CPUTensorView::write(const void* source, size_t tensor_offset, size_t n)
+void runtime::cpu::CCPUTensorView::write(const void* source, size_t tensor_offset, size_t n)
 {
     if (tensor_offset + n > buffer_size)
     {
@@ -108,7 +107,7 @@ void runtime::cpu::CPUTensorView::write(const void* source, size_t tensor_offset
     memcpy(&target[tensor_offset], source, n);
 }
 
-void runtime::cpu::CPUTensorView::read(void* target, size_t tensor_offset, size_t n) const
+void runtime::cpu::CCPUTensorView::read(void* target, size_t tensor_offset, size_t n) const
 {
     if (tensor_offset + n > buffer_size)
     {
@@ -132,9 +131,7 @@ void runtime::cpu::CPUTensorView::read(void* target, size_t tensor_offset, size_
             return false;
         }
         auto native_md = mkldnn_utils::create_blocked_mkldnn_md(
-            this->get_shape(),
-            cpu_tvl->get_strides(),
-            this->get_descriptor()->get_tensor_view_type()->get_element_type());
+            this->get_shape(), cpu_tvl->get_strides(), this->get_descriptor()->get_element_type());
         if (mkldnn_utils::compare_mkldnn_mds(cpu_tvl->get_mkldnn_md(), native_md))
         {
             return false;
@@ -147,9 +144,7 @@ void runtime::cpu::CPUTensorView::read(void* target, size_t tensor_offset, size_
         auto tensor_shape = this->get_shape();
         auto input_desc = cpu_tvl->get_mkldnn_md();
         auto output_desc = mkldnn_utils::create_blocked_mkldnn_md(
-            this->get_shape(),
-            cpu_tvl->get_strides(),
-            this->get_descriptor()->get_tensor_view_type()->get_element_type());
+            this->get_shape(), cpu_tvl->get_strides(), this->get_descriptor()->get_element_type());
 
         memory input{{input_desc, mkldnn_utils::global_cpu_engine}, aligned_buffer};
         memory output{{output_desc, mkldnn_utils::global_cpu_engine}, target};
@@ -164,7 +159,7 @@ void runtime::cpu::CPUTensorView::read(void* target, size_t tensor_offset, size_
     }
 }
 
-size_t runtime::cpu::CPUTensorView::get_size() const
+size_t runtime::cpu::CCPUTensorView::get_size() const
 {
     return get_element_count();
 }

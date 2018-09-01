@@ -30,17 +30,17 @@ namespace ngraph
     {
         namespace cpu
         {
-            class CPUTensorView : public ngraph::runtime::TensorView
+            class CCPUTensorView : public ngraph::runtime::TensorView
             {
             public:
-                CPUTensorView(const ngraph::element::Type& element_type,
-                              const Shape& shape,
-                              const std::string& name = "external");
-                CPUTensorView(const ngraph::element::Type& element_type,
-                              const Shape& shape,
-                              void* memory_pointer,
-                              const std::string& name = "external");
-                virtual ~CPUTensorView() override;
+                CCPUTensorView(const ngraph::element::Type& element_type,
+                               const Shape& shape,
+                               const std::string& name = "external");
+                CCPUTensorView(const ngraph::element::Type& element_type,
+                               const Shape& shape,
+                               void* memory_pointer,
+                               const std::string& name = "external");
+                virtual ~CCPUTensorView() override;
 
                 char* get_data_ptr();
                 const char* get_data_ptr() const;
