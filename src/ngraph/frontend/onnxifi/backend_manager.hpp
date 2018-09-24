@@ -25,6 +25,7 @@
 #include "ngraph/runtime/backend.hpp"
 
 #include "backend.hpp"
+#include "exceptions.hpp"
 
 namespace ngraph
 {
@@ -42,22 +43,31 @@ namespace ngraph
 
             static void get_backend_ids(::onnxBackendID* backend_ids, std::size_t* count)
             {
-                instance().get_registered_ids(backend_ids, count);
+                instance().get_ids(backend_ids, count);
             }
 
-            static void unregister(::onnxBackendID backend_id)
+            static void release_backend_id(::onnxBackendID backend_id)
             {
-                instance().unregister_backend(backend_id);
+                instance().release_id(backend_id);
             }
 
-            static const Backend& get(::onnxBackendID backend_id)
-            {
-                return instance().get_backend(backend_id);
-            }
+            static void get_backend_info(::onnxBackendID backend_id,
+                                         ::onnxBackendInfo info_type,
+                                         void* info_value,
+                                         std::size_t* info_value_size);
+
+            static void init_backend(::onnxBackendID backend_id, ::onnxBackend* backend);
+
+            static void init_graph(::onnxBackend backend,
+                                   const void* onnx_model,
+                                   std::size_t onnx_model_size,
+                                   const ::onnxTensorDescriptorV1* weights,
+                                   std::size_t weights_count,
+                                   ::onnxGraph* graph);
 
         private:
             mutable std::mutex m_mutex{};
-            std::map<std::uintptr_t, Backend> m_registered_backends{};
+            std::map<::onnxBackendID, Backend> m_registered_backends{};
 
             BackendManager();
 
@@ -67,28 +77,19 @@ namespace ngraph
                 return backend_manager;
             }
 
-            void unregister_backend(std::uintptr_t id)
+            void release_id(::onnxBackendID id)
             {
-                std::lock_guard<decltype(m_mutex)> lock{m_mutex};
+                std::lock_guard<std::mutex> lock{m_mutex};
                 m_registered_backends.erase(id);
             }
 
-            void unregister_backend(::onnxBackendID id)
-            {
-                return unregister_backend(reinterpret_cast<std::uintptr_t>(id));
-            }
+            void get_ids(::onnxBackendID* backend_ids, std::size_t* count) const;
+            Backend& get_backend(::onnxBackend backend);
 
-            void get_registered_ids(::onnxBackendID* backend_ids, std::size_t* count) const;
-
-            const Backend& get_backend(std::uintptr_t id) const
+            Backend& get_backend_by_id(::onnxBackendID id)
             {
-                std::lock_guard<decltype(m_mutex)> lock{m_mutex};
+                std::lock_guard<std::mutex> lock{m_mutex};
                 return m_registered_backends.at(id);
-            }
-
-            const Backend& get_backend(::onnxBackendID id) const
-            {
-                return get_backend(reinterpret_cast<std::uintptr_t>(id));
             }
         };
 
