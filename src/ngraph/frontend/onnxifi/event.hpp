@@ -19,6 +19,8 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "exceptions.hpp"
+
 namespace ngraph
 {
     namespace onnxifi
@@ -38,6 +40,10 @@ namespace ngraph
             void signal()
             {
                 std::lock_guard<std::mutex> lock{m_mutex};
+                if (m_signaled)
+                {
+                    throw status::invalid_state{};
+                }
                 m_signaled = true;
                 m_condition_variable.notify_all();
             }
@@ -51,7 +57,7 @@ namespace ngraph
             void wait() const
             {
                 std::unique_lock<std::mutex> lock{m_mutex};
-                m_condition_variable.wait(lock, [&]{
+                m_condition_variable.wait(lock, [&] {
                     return m_signaled;
                 });
             }
@@ -60,24 +66,44 @@ namespace ngraph
             bool wait_for(const std::chrono::duration<Rep,Period>& duration) const
             {
                 std::unique_lock<std::mutex> lock{m_mutex};
-                return m_condition_variable.wait_for(lock, duration, [&]{
+                return m_condition_variable.wait_for(lock, duration, [&] {
                     return m_signaled;
-                }) == std::cv_status::no_timeout;
+                });
+            }
+
+            template <typename Rep, typename Period>
+            bool wait_for_and_reset(const std::chrono::duration<Rep,Period>& duration)
+            {
+                std::unique_lock<std::mutex> lock{m_mutex};
+                bool result{m_condition_variable.wait_for(lock, duration, [&] {
+                    return m_signaled;
+                })};
+                return (m_signaled = false, result);
             }
 
             template <typename Clock, typename Duration>
             bool wait_until(const std::chrono::time_point<Clock,Duration>& time_point) const
             {
                 std::unique_lock<std::mutex> lock{m_mutex};
-                return m_condition_variable.wait_until(lock, time_point, [&]{
+                return m_condition_variable.wait_until(lock, time_point, [&] {
                     return m_signaled;
-                }) == std::cv_status::no_timeout;
+                });
             }
 
             bool is_signaled() const
             {
                 std::lock_guard<std::mutex> lock{m_mutex};
                 return m_signaled;
+            }
+
+            void get_state(::onnxEventState* state)
+            {
+                if (state == nullptr)
+                {
+                    throw status::null_pointer{};
+                }
+                *state = is_signaled() ?
+                    ONNXIFI_EVENT_STATE_SIGNALLED : ONNXIFI_EVENT_STATE_NONSIGNALLED;
             }
 
         private:

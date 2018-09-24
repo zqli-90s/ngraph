@@ -31,6 +31,8 @@
 
 #include "exceptions.hpp"
 #include "graph.hpp"
+#include "tensor.hpp"
+#include "span.hpp"
 
 namespace ngraph
 {
@@ -47,7 +49,6 @@ namespace ngraph
             {
                 std::unique_lock<std::mutex> lock{other.m_mutex};
                 m_handle = other.m_handle;
-                m_functions = std::move(other.m_functions);
                 m_type = std::move(other.m_type);
                 m_backend = std::move(other.m_backend);
             }
@@ -60,7 +61,6 @@ namespace ngraph
                     std::unique_lock<std::mutex> other_lock{other.m_mutex, std::defer_lock};
                     std::lock(lock, other_lock);
                     m_handle = other.m_handle;
-                    m_functions = std::move(other.m_functions);
                     m_type = std::move(other.m_type);
                     m_backend = std::move(other.m_backend);
                 }
@@ -74,20 +74,55 @@ namespace ngraph
             {
             }
 
-            bool compile(::onnxGraph graph) const
+            bool compile(const std::shared_ptr<Function>& function) const
             {
                 std::lock_guard<std::mutex> lock{m_mutex};
-                const auto& fn = m_functions.at(graph);
-                return get().compile(fn->get_ng_function());
+                return get().compile(function);
             }
 
-            bool call(::onnxGraph graph) const
+            bool call(const std::shared_ptr<Function>& function,
+                        const std::vector<InputTensor>& inputs,
+                        std::vector<OutputTensor>& outputs) const
             {
                 std::lock_guard<std::mutex> lock{m_mutex};
-                const auto& fn = m_functions.at(graph);
-                return get().call_with_validate(fn->get_ng_function(), fn->get_outputs(), fn->get_outputs());
+                auto ng_outputs = to_ng_outputs(outputs);
+                auto ng_inputs = to_ng_inputs(inputs);
+                bool result{get().call_with_validate(function, ng_outputs, ng_inputs)};
+                from_ng_outputs(ng_outputs, outputs);
+                return result;
             }
-            
+
+            void from_ng_outputs(const std::vector<std::shared_ptr<runtime::TensorView>>& ng_outputs,
+                std::vector<OutputTensor>& output) const
+            {
+                for (std::size_t i{0}; i < ng_outputs.size(); ++i)
+                {
+                    output[i].from_ng(*ng_outputs[i]);
+                }
+            }
+
+            std::vector<std::shared_ptr<runtime::TensorView>>
+            to_ng_outputs(const std::vector<OutputTensor>& outputs) const
+            {
+                std::vector<std::shared_ptr<runtime::TensorView>> result;
+                for (const auto& tensor : outputs)
+                {
+                    result.emplace_back(tensor.to_ng(*m_backend));
+                }
+                return result;
+            }
+
+            std::vector<std::shared_ptr<runtime::TensorView>>
+                to_ng_inputs(const std::vector<InputTensor>& inputs) const
+            {
+                std::vector<std::shared_ptr<runtime::TensorView>> result;
+                for (const auto& tensor : inputs)
+                {
+                    result.emplace_back(tensor.to_ng(*m_backend));
+                }
+                return result;
+            }
+
             // Implementation of onnxGetBackendInfo() interface function.
             // Refer to https://github.com/onnx/onnx/blob/master/onnx/onnxifi.h for details.
             // Each function method is responsible for obtaining value of a single
@@ -110,7 +145,7 @@ namespace ngraph
             void get_memory_size(void* info_value, std::size_t* info_value_size) const;
             void get_max_graph_size(void* info_value, std::size_t* info_value_size) const;
             void get_max_graph_count(void* info_value, std::size_t* info_value_size) const;
- 
+
             ::onnxBackend init_handle()
             {
                 std::lock_guard<std::mutex> lock{m_mutex};
@@ -121,8 +156,6 @@ namespace ngraph
                 }
                 return m_handle;
             }
-
-            ::onnxGraph init_graph(const void* onnx_model, std::size_t onnx_model_size);
 
             ::onnxBackend get_handle() const
             {
@@ -150,7 +183,6 @@ namespace ngraph
             std::string m_type{};
             std::shared_ptr<runtime::Backend> m_backend{nullptr};
             ::onnxBackend m_handle{nullptr};
-            std::map<::onnxGraph, std::unique_ptr<Graph>> m_functions{};
 
             runtime::Backend& get() const
             {

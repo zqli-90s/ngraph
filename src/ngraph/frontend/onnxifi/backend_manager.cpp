@@ -45,6 +45,26 @@ namespace ngraph
             }
         }
 
+        void BackendManager::get_backend_ids(::onnxBackendID* backend_ids, std::size_t* count)
+        {
+            instance().get_ids(backend_ids, count);
+        }
+
+        void BackendManager::release_backend_id(::onnxBackendID backend_id)
+        {
+            instance().release_id(backend_id);
+        }
+
+        void BackendManager::release_backend(::onnxBackend backend)
+        {
+            instance().release(backend);
+        }
+
+        Backend& BackendManager::get_backend(::onnxBackend backend)
+        {
+            return instance().get_by_handle(backend);
+        }
+
         void BackendManager::get_ids(::onnxBackendID* backend_ids, std::size_t* count) const
         {
             if (count == nullptr)
@@ -68,16 +88,60 @@ namespace ngraph
             }
         }
 
-        Backend& BackendManager::get_backend(::onnxBackend backend)
+        Backend& BackendManager::get_by_id(::onnxBackendID id)
         {
-            for (auto& pair : m_registered_backends)
+            std::lock_guard<std::mutex> lock{m_mutex};
+            return m_registered_backends.at(id);
+        }
+
+        Backend& BackendManager::get_by_handle(::onnxBackend handle)
+        {
+            if (handle != nullptr)
             {
-                if (pair.second.get_handle() == backend)
+                std::lock_guard<std::mutex> lock{m_mutex};
+                for (auto& pair : m_registered_backends)
                 {
-                    return pair.second;
+                    if (pair.second.get_handle() == handle)
+                    {
+                        return pair.second;
+                    }
                 }
             }
             throw status::invalid_backend{};
+        }
+
+        void BackendManager::release(::onnxBackend backend)
+        {
+            std::lock_guard<std::mutex> lock{m_mutex};
+
+            if (backend == nullptr)
+            {
+                throw status::invalid_backend{};
+            }
+
+            auto it = std::begin(m_registered_backends);
+            for (; it != std::end(m_registered_backends); ++it)
+            {
+                if (it->second.get_handle() == backend)
+                {
+                    break;
+                }
+            }
+
+            if (it == std::end(m_registered_backends))
+            {
+                throw status::invalid_backend{};
+            }
+            /* TODO: deallocate the backend object, keep backend id */
+        }
+
+        void BackendManager::release_id(::onnxBackendID id)
+        {
+            if (m_registered_backends.find(id) == std::end(m_registered_backends))
+            {
+                throw status::invalid_id{};
+            }
+            // nGraph ONNXIFI backend does not release backend ids
         }
 
         void BackendManager::get_backend_info(::onnxBackendID backend_id,
@@ -85,7 +149,7 @@ namespace ngraph
                                               void* info_value,
                                               std::size_t* info_value_size)
         {
-            const auto& backend = instance().get_backend_by_id(backend_id);
+            const auto& backend = instance().get_by_id(backend_id);
             switch (info_type)
             {
             case ONNXIFI_BACKEND_ONNXIFI_VERSION:
@@ -141,34 +205,7 @@ namespace ngraph
             {
                 throw status::null_pointer{};
             }
-            *backend = instance().get_backend_by_id(backend_id).init_handle();
-        }
-        
-        void BackendManager::init_graph(::onnxBackend  backend,
-                                        const void* onnx_model,
-                                        std::size_t onnx_model_size,
-                                        const ::onnxTensorDescriptorV1* weights,
-                                        std::size_t weights_count,
-                                        ::onnxGraph* graph)
-        {
-            if (graph == nullptr)
-            {
-                throw status::null_pointer{};
-            }
-            *graph = nullptr;
-            if (weights_count != 0)
-            {
-                if (weights == nullptr)
-                {
-                    throw status::null_pointer{};
-                }
-                else
-                {
-                    // only weights embedded in a model are supported for the moment
-                    throw status::internal{};
-                }
-            }
-            *graph = instance().get_backend(backend).init_graph(onnx_model, onnx_model_size);
+            *backend = instance().get_by_id(backend_id).init_handle();
         }
 
     } // namespace onnxifi

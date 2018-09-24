@@ -25,7 +25,7 @@ namespace ngraph
         Event::Event(Event&& other) noexcept
         {
             std::lock_guard<std::mutex> lock{other.m_mutex};
-            m_signaled = m_signaled;
+            m_signaled = other.m_signaled;
         }
 
         Event& Event::operator=(Event&& other) noexcept
