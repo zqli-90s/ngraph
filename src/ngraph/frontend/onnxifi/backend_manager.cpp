@@ -16,6 +16,7 @@
 
 #include <cstdlib> // std::size_t, std::uintptr_t
 
+#include "onnx.hpp"
 #include <onnxifi.h>
 
 #include "ngraph/runtime/backend_manager.hpp"
