@@ -16,8 +16,8 @@
 
 #include <cstdlib> // std::size_t, std::uintptr_t
 
-#include "onnx.hpp"
 #include <onnxifi.h>
+#include "onnx.hpp"
 
 #include "ngraph/runtime/backend_manager.hpp"
 
@@ -55,11 +55,7 @@ namespace ngraph
             instance().release_id(backend_id);
         }
 
-        void BackendManager::release_backend(::onnxBackend backend)
-        {
-            instance().release(backend);
-        }
-
+        void BackendManager::release_backend(::onnxBackend backend) { instance().release(backend); }
         Backend& BackendManager::get_backend(::onnxBackend backend)
         {
             return instance().get_by_handle(backend);

@@ -31,8 +31,8 @@
 
 #include "exceptions.hpp"
 #include "graph.hpp"
-#include "tensor.hpp"
 #include "span.hpp"
+#include "tensor.hpp"
 
 namespace ngraph
 {
@@ -81,8 +81,8 @@ namespace ngraph
             }
 
             bool call(const std::shared_ptr<Function>& function,
-                        const std::vector<InputTensor>& inputs,
-                        std::vector<OutputTensor>& outputs) const
+                      const std::vector<InputTensor>& inputs,
+                      std::vector<OutputTensor>& outputs) const
             {
                 std::lock_guard<std::mutex> lock{m_mutex};
                 auto ng_outputs = to_ng_outputs(outputs);
@@ -92,8 +92,9 @@ namespace ngraph
                 return result;
             }
 
-            void from_ng_outputs(const std::vector<std::shared_ptr<runtime::TensorView>>& ng_outputs,
-                std::vector<OutputTensor>& output) const
+            void
+                from_ng_outputs(const std::vector<std::shared_ptr<runtime::TensorView>>& ng_outputs,
+                                std::vector<OutputTensor>& output) const
             {
                 for (std::size_t i{0}; i < ng_outputs.size(); ++i)
                 {
@@ -102,7 +103,7 @@ namespace ngraph
             }
 
             std::vector<std::shared_ptr<runtime::TensorView>>
-            to_ng_outputs(const std::vector<OutputTensor>& outputs) const
+                to_ng_outputs(const std::vector<OutputTensor>& outputs) const
             {
                 std::vector<std::shared_ptr<runtime::TensorView>> result;
                 for (const auto& tensor : outputs)

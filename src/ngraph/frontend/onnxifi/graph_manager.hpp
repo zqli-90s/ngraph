@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <functional>         // std::function, std::reference_wrapper
 #include <condition_variable> // std::conditional_variable
+#include <functional>         // std::function, std::reference_wrapper
 #include <map>                // std::map
 #include <mutex>              // std::mutex
 #include <thread>             // std::thread
@@ -27,8 +27,8 @@
 #include "backend.hpp"
 #include "event.hpp"
 #include "graph.hpp"
-#include "span.hpp"
 #include "queue.hpp"
+#include "span.hpp"
 
 namespace ngraph
 {
@@ -43,29 +43,26 @@ namespace ngraph
             GraphManager(GraphManager&&) = delete;
             GraphManager& operator=(GraphManager&&) = delete;
 
-            static void init_graph(const Backend& backend, const Span<char>& model,
-                    const Span<::onnxTensorDescriptorV1>& weights, ::onnxGraph* graph)
+            static void init_graph(const Backend& backend,
+                                   const Span<char>& model,
+                                   const Span<::onnxTensorDescriptorV1>& weights,
+                                   ::onnxGraph* graph)
             {
                 instance().allocate(backend, model, weights, graph);
             }
 
-            static void release_graph(::onnxGraph graph)
-            {
-                instance().release(graph);
-            }
-
-            static void compile_graph(::onnxGraph graph)
-            {
-                instance().compile(graph);
-            }
-
-            static void run_graph(::onnxGraph graph, const ::onnxMemoryFenceV1* input_fence, ::onnxMemoryFenceV1* output_fence)
+            static void release_graph(::onnxGraph graph) { instance().release(graph); }
+            static void compile_graph(::onnxGraph graph) { instance().compile(graph); }
+            static void run_graph(::onnxGraph graph,
+                                  const ::onnxMemoryFenceV1* input_fence,
+                                  ::onnxMemoryFenceV1* output_fence)
             {
                 instance().call(graph, input_fence, output_fence);
             }
 
-            static void set_graph_io(::onnxGraph graph, const Span<::onnxTensorDescriptorV1>& inputs,
-                    const Span<::onnxTensorDescriptorV1>& outputs)
+            static void set_graph_io(::onnxGraph graph,
+                                     const Span<::onnxTensorDescriptorV1>& inputs,
+                                     const Span<::onnxTensorDescriptorV1>& outputs)
             {
                 instance().set_io(graph, outputs, inputs);
             }
@@ -76,7 +73,7 @@ namespace ngraph
             Queue<std::reference_wrapper<Graph>> m_task_queue;
             std::atomic_bool m_quit{false};
             Event m_event{};
-            std::thread m_thread{[&]{
+            std::thread m_thread{[&] {
                 while (true)
                 {
                     while (m_task_queue.empty())
@@ -86,7 +83,6 @@ namespace ngraph
                         {
                             break;
                         }
-
                     }
                     if (m_quit)
                     {
@@ -103,11 +99,7 @@ namespace ngraph
 
             GraphManager() = default;
 
-            ~GraphManager()
-            {
-                terminate();
-            }
-
+            ~GraphManager() { terminate(); }
             static GraphManager& instance()
             {
                 static GraphManager graph_manager{};
@@ -129,7 +121,9 @@ namespace ngraph
                 m_graphs.at(handle)->compile();
             }
 
-            void call(::onnxGraph handle, const ::onnxMemoryFenceV1* input_fence, ::onnxMemoryFenceV1* output_fence)
+            void call(::onnxGraph handle,
+                      const ::onnxMemoryFenceV1* input_fence,
+                      ::onnxMemoryFenceV1* output_fence)
             {
                 std::lock_guard<std::mutex> lock{m_mutex};
                 auto& graph = *m_graphs.at(handle);
@@ -138,11 +132,14 @@ namespace ngraph
                 m_event.signal();
             }
 
-            void set_io(::onnxGraph handle, const Span<::onnxTensorDescriptorV1>& outputs,
-                    const Span<::onnxTensorDescriptorV1>& inputs);
+            void set_io(::onnxGraph handle,
+                        const Span<::onnxTensorDescriptorV1>& outputs,
+                        const Span<::onnxTensorDescriptorV1>& inputs);
 
-            void allocate(const Backend& backend, const Span<char>& onnx_model,
-                    const Span<::onnxTensorDescriptorV1>& weights, ::onnxGraph* graph_handle);
+            void allocate(const Backend& backend,
+                          const Span<char>& onnx_model,
+                          const Span<::onnxTensorDescriptorV1>& weights,
+                          ::onnxGraph* graph_handle);
 
             void release(::onnxGraph handle)
             {
@@ -156,10 +153,8 @@ namespace ngraph
                     throw status::invalid_graph{};
                 }
             }
-
         };
 
     } // namespace onnxifi
 
 } // namespace ngraph
-

@@ -33,15 +33,15 @@ namespace ngraph
                 Buffer() = delete;
 
                 explicit Buffer(const Span<char>& buffer)
-                    : m_begin{const_cast<char*>(buffer.begin())},
-                      m_end{const_cast<char*>(buffer.end())}
+                    : m_begin{const_cast<char*>(buffer.begin())}
+                    , m_end{const_cast<char*>(buffer.end())}
                 {
                     setg(m_begin, m_begin, m_end);
                 }
 
                 Buffer(char* buffer, std::size_t size)
-                    : m_begin{buffer},
-                      m_end{buffer + size}
+                    : m_begin{buffer}
+                    , m_end{buffer + size}
                 {
                     if (buffer == nullptr)
                     {
@@ -59,15 +59,16 @@ namespace ngraph
                 {
                 }
 
-                pos_type seekoff(off_type off, std::ios_base::seekdir dir,
+                pos_type seekoff(off_type off,
+                                 std::ios_base::seekdir dir,
                                  std::ios_base::openmode which) override
                 {
                     switch (dir)
                     {
-                        case std::ios_base::cur: gbump(static_cast<int>(off)); break;
-                        case std::ios_base::end: setg(m_begin, m_end + off, m_end); break;
-                        case std::ios_base::beg: setg(m_begin, m_begin + off, m_end); break;
-                        default: break;
+                    case std::ios_base::cur: gbump(static_cast<int>(off)); break;
+                    case std::ios_base::end: setg(m_begin, m_end + off, m_end); break;
+                    case std::ios_base::beg: setg(m_begin, m_begin + off, m_end); break;
+                    default: break;
                     }
                     return gptr() - eback();
                 }
@@ -83,8 +84,10 @@ namespace ngraph
 
         } // namespace <anonymous>
 
-        void GraphManager::allocate(const Backend& backend, const Span<char>& onnx_model,
-            const Span<::onnxTensorDescriptorV1>& weights, ::onnxGraph* graph_handle)
+        void GraphManager::allocate(const Backend& backend,
+                                    const Span<char>& onnx_model,
+                                    const Span<::onnxTensorDescriptorV1>& weights,
+                                    ::onnxGraph* graph_handle)
         {
             if (graph_handle == nullptr)
             {
@@ -103,8 +106,8 @@ namespace ngraph
             std::unique_ptr<Graph> graph{new Graph{backend, sin}};
             graph->set_weights(weights);
             std::lock_guard<std::mutex> lock{m_mutex};
-            auto it = m_graphs.emplace(
-                reinterpret_cast<::onnxGraph>(graph.get()), std::move(graph));
+            auto it =
+                m_graphs.emplace(reinterpret_cast<::onnxGraph>(graph.get()), std::move(graph));
             if (!it.second)
             {
                 throw status::no_system_resources{};
@@ -112,8 +115,9 @@ namespace ngraph
             *graph_handle = (it.first)->first;
         }
 
-        void GraphManager::set_io(::onnxGraph handle, const Span<::onnxTensorDescriptorV1>& outputs,
-                    const Span<::onnxTensorDescriptorV1>& inputs)
+        void GraphManager::set_io(::onnxGraph handle,
+                                  const Span<::onnxTensorDescriptorV1>& outputs,
+                                  const Span<::onnxTensorDescriptorV1>& inputs)
         {
             std::lock_guard<std::mutex> lock{m_mutex};
             auto& graph = m_graphs.at(handle);
@@ -124,4 +128,3 @@ namespace ngraph
     } // namespace onnxifi
 
 } // namespace ngraph
-

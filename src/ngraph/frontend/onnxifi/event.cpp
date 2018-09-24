@@ -32,8 +32,8 @@ namespace ngraph
         {
             if (this != &other)
             {
-                std::unique_lock <std::mutex> lock{m_mutex, std::defer_lock};
-                std::unique_lock <std::mutex> other_lock{other.m_mutex, std::defer_lock};
+                std::unique_lock<std::mutex> lock{m_mutex, std::defer_lock};
+                std::unique_lock<std::mutex> other_lock{other.m_mutex, std::defer_lock};
                 m_signaled = other.m_signaled;
             }
             return *this;
