@@ -73,7 +73,8 @@ namespace ngraph
                 std::unique_lock<std::mutex> lock{m_mutex};
                 bool result{
                     m_condition_variable.wait_for(lock, duration, [&] { return m_signaled; })};
-                return (m_signaled = false, result);
+                m_signaled = false;
+                return result;
             }
 
             template <typename Clock, typename Duration>
