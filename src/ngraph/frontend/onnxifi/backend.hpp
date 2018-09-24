@@ -46,27 +46,6 @@ namespace ngraph
             {
             }
 
-            const std::string& get_type() const { return m_type; }
-            bool compile(const std::shared_ptr<Function>& function) const
-            {
-                return get().compile(function);
-            }
-
-            bool call(const std::shared_ptr<Function>& function,
-                      const std::vector<std::shared_ptr<runtime::TensorView>>& outputs,
-                      const std::vector<std::shared_ptr<runtime::TensorView>>& inputs) const
-            {
-                return get().call(function, outputs, inputs);
-            }
-
-            bool call_with_validate(
-                const std::shared_ptr<Function>& function,
-                const std::vector<std::shared_ptr<runtime::TensorView>>& outputs,
-                const std::vector<std::shared_ptr<runtime::TensorView>>& inputs) const
-            {
-                return get().call_with_validate(function, outputs, inputs);
-            }
-
         private:
             std::string m_type{};
             mutable std::shared_ptr<runtime::Backend> m_backend{nullptr};
