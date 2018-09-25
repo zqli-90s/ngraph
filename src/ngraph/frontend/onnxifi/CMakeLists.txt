@@ -25,7 +25,6 @@ add_library(onnxifi-ngraph SHARED
     event_manager.hpp
     event_manager.cpp
     event.hpp
-    event.cpp
     span.hpp
     tensor.hpp
     tensor.cpp

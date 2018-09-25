@@ -72,13 +72,13 @@ namespace ngraph
             std::map<::onnxGraph, std::unique_ptr<Graph>> m_graphs{};
             Queue<std::reference_wrapper<Graph>> m_task_queue;
             std::atomic_bool m_quit{false};
-            Event m_event{};
+            EventAuto m_event{};
             std::thread m_thread{[&] {
                 while (true)
                 {
                     while (m_task_queue.empty())
                     {
-                        m_event.wait_for_and_reset(std::chrono::milliseconds{100});
+                        m_event.wait_for(std::chrono::milliseconds{100});
                         if (m_quit)
                         {
                             break;
@@ -94,6 +94,7 @@ namespace ngraph
                     {
                         // todo: log failure running computation on graph
                     }
+
                 }
             }};
 
