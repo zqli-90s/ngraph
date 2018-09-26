@@ -25,8 +25,6 @@ namespace ngraph
     {
         bool Graph::run_graph()
         {
-            std::cout << std::hex << "\n\tinput_event : 0x" << reinterpret_cast<uintptr_t>(m_input_fence->event)
-                      << "\n\toutput_event: 0x" << reinterpret_cast<uintptr_t>(m_output_fence->event) << "\n";
             ::onnxStatus status{::onnxWaitEvent(m_input_fence->event)};
             if (status != ONNXIFI_STATUS_SUCCESS)
             {
@@ -89,8 +87,6 @@ namespace ngraph
             }
             m_input_fence = input_fence;
             m_output_fence = output_fence;
-            std::cout << "\n\t#2: input_fence : 0x" << std::hex << reinterpret_cast<uintptr_t>(m_input_fence->event)
-                      << "\n\t    output_fence: 0x" << std::hex << reinterpret_cast<uintptr_t>(m_output_fence->event) << "\n";
         }
 
         bool Graph::compile() { return m_backend.compile(m_function); }

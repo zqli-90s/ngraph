@@ -17,6 +17,8 @@
 #include "graph.hpp"
 #include "node.hpp"
 
+#include "ngraph/util.hpp"
+
 namespace ngraph
 {
     namespace onnx_import

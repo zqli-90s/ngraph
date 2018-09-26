@@ -86,8 +86,7 @@ namespace ngraph
                     throw status::invalid_memory_location{};
                 }
                 const char* buffer{reinterpret_cast<const char*>(weight.buffer)};
-                m_buffer.assign(buffer, buffer + (weight.dimensions == 0 ? m_type.size() :
-                    weight.dimensions * m_type.size()));
+                m_buffer.assign(buffer, buffer + m_size * m_type.size());
             }
 
             onnx_import::Weight get() const

@@ -87,7 +87,7 @@ namespace ngraph
                 std::lock_guard<std::mutex> lock{m_mutex};
                 auto ng_outputs = to_ng_outputs(outputs);
                 auto ng_inputs = to_ng_inputs(inputs);
-                bool result{get().call_with_validate(function, ng_outputs, ng_inputs)};
+                bool result{get().call(function, ng_outputs, ng_inputs)};
                 from_ng_outputs(ng_outputs, outputs);
                 return result;
             }
