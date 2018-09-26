@@ -32,7 +32,7 @@ namespace ngraph
             {
 //                throw status::runtime{status};
             }
-            bool result{m_backend.call(m_function, m_weights, m_inputs, m_outputs)};
+            bool result{m_backend.call(m_function, m_inputs, m_outputs)};
             status = ::onnxSignalEvent(m_output_fence->event);
             if (status != ONNXIFI_STATUS_SUCCESS)
             {
@@ -94,6 +94,31 @@ namespace ngraph
         }
 
         bool Graph::compile() { return m_backend.compile(m_function); }
+
+        void Graph::load(std::istream& sin, const Span<::onnxTensorDescriptorV1>& weight_descriptors)
+        {
+            onnx_import::Weights weights;
+            if (weight_descriptors.data() != nullptr)
+            {
+                if (weight_descriptors.empty())
+                {
+                    throw status::invalid_size{};
+                }
+                for (const auto& weight : weight_descriptors)
+                {
+                    Weight t{weight};
+                    weights.emplace(t.name(), t.get());
+                }
+            }
+            else
+            {
+                if (!weight_descriptors.empty())
+                {
+                    throw status::null_pointer{};
+                }
+            }
+            m_function = onnx_import::import_onnx_function(sin, weights);
+        }
 
     } // namespace onnxifi
 

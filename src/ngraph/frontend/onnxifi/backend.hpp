@@ -81,15 +81,12 @@ namespace ngraph
             }
 
             bool call(const std::shared_ptr<Function>& function,
-                      const std::vector<Weight>& weights,
                       const std::vector<InputTensor>& inputs,
                       std::vector<OutputTensor>& outputs) const
             {
                 std::lock_guard<std::mutex> lock{m_mutex};
                 auto ng_outputs = to_ng_outputs(outputs);
                 auto ng_inputs = to_ng_inputs(inputs);
-                auto ng_weights = to_ng_inputs(weights);
-                ng_inputs.insert(std::end(ng_inputs), std::begin(ng_weights), std::end(ng_weights));
                 bool result{get().call_with_validate(function, ng_outputs, ng_inputs)};
                 from_ng_outputs(ng_outputs, outputs);
                 return result;
@@ -121,17 +118,6 @@ namespace ngraph
             {
                 std::vector<std::shared_ptr<runtime::TensorView>> result;
                 for (const auto& tensor : inputs)
-                {
-                    result.emplace_back(tensor.to_ng(*m_backend));
-                }
-                return result;
-            }
-
-            std::vector<std::shared_ptr<runtime::TensorView>>
-            to_ng_inputs(const std::vector<Weight>& weights) const
-            {
-                std::vector<std::shared_ptr<runtime::TensorView>> result;
-                for (const auto& tensor : weights)
                 {
                     result.emplace_back(tensor.to_ng(*m_backend));
                 }
