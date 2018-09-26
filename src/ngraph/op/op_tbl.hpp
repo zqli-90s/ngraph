@@ -45,7 +45,6 @@
 //
 // It's that easy. You can use this for fun and profit.
 
-<<<<<<< HEAD
 NGRAPH_OP(Abs, ngraph::op)
 NGRAPH_OP(Acos, ngraph::op)
 NGRAPH_OP(Add, ngraph::op)
