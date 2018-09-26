@@ -29,8 +29,10 @@ set (SRC
     descriptor/layout/tensor_layout.cpp
     descriptor/output.cpp
     descriptor/tensor.cpp
+    dyn_shape.cpp
     file_util.cpp
     function.cpp
+    length.cpp
     log.cpp
     node.cpp
     op/abs.cpp
@@ -54,11 +56,13 @@ set (SRC
     op/cosh.cpp
     op/divide.cpp
     op/dot.cpp
+    op/dyn_reshape.cpp
     op/equal.cpp
     op/exp.cpp
     op/floor.cpp
     op/function_call.cpp
     op/get_output_element.cpp
+    op/get_shape.cpp
     op/greater.cpp
     op/greater_eq.cpp
     op/less.cpp
@@ -116,6 +120,7 @@ set (SRC
     pass/constant_folding.cpp
     pass/cse.cpp
     pass/dump_sorted.cpp
+    pass/dyn_reshape_elimination.cpp
     pass/get_output_element_elimination.cpp
     pass/graph_rewrite.cpp
     pass/inliner.cpp
@@ -128,6 +133,7 @@ set (SRC
     pass/nop_elimination.cpp
     pass/pass.cpp
     pass/reshape_elimination.cpp
+    pass/static_value_elimination.cpp
     pass/zero_dim_tensor_elimination.cpp
     pass/validate_graph.cpp
     pass/visualize_tree.cpp
@@ -135,6 +141,7 @@ set (SRC
     pass/serialize.cpp
     pass/zero_dim_tensor_elimination.cpp
     pattern/matcher.cpp
+    rank.cpp
     runtime/aligned_buffer.cpp
     runtime/backend.cpp
     runtime/backend_manager.cpp
@@ -144,6 +151,7 @@ set (SRC
     shape.cpp
     strides.cpp
     type/element_type.cpp
+    undetermined.cpp
     util.cpp
     graph_util.cpp
     placement.cpp

@@ -14,30 +14,19 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include <memory>
-
-#include "ngraph/node.hpp"
-#include "ngraph/op/get_shape.hpp"
-#include "ngraph/shape.hpp"
-#include "ngraph/type/element_type.hpp"
-
-#include "shape.hpp"
+#pragma once
 
 namespace ngraph
 {
-    namespace onnx_import
+    namespace runtime
     {
-        namespace op
+        namespace reference
         {
-            NodeVector shape(const Node& node)
+            template <typename T>
+            void dyn_reshape(const T* arg, T* out, size_t num_elements)
             {
-                auto data = node.get_ng_inputs().at(0);
-
-                return {std::make_shared<ngraph::op::GetShape>(data)};
+                std::memcpy(out, arg, num_elements * sizeof(T));
             }
-
-        } // namespace op
-
-    } // namespace onnx_import
-
-} // namespace ngraph
+        }
+    }
+}

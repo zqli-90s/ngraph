@@ -41,11 +41,13 @@
 #include "ngraph/op/cosh.hpp"
 #include "ngraph/op/divide.hpp"
 #include "ngraph/op/dot.hpp"
+#include "ngraph/op/dyn_reshape.hpp"
 #include "ngraph/op/equal.hpp"
 #include "ngraph/op/exp.hpp"
 #include "ngraph/op/floor.hpp"
 #include "ngraph/op/function_call.hpp"
 #include "ngraph/op/get_output_element.hpp"
+#include "ngraph/op/get_shape.hpp"
 #include "ngraph/op/greater.hpp"
 #include "ngraph/op/greater_eq.hpp"
 #include "ngraph/op/less.hpp"
@@ -641,6 +643,11 @@ static shared_ptr<ngraph::Function>
                 }
                 break;
             }
+            case OP_TYPEID::DynReshape:
+            {
+                node = make_shared<op::DynReshape>(args[0], args[1]);
+                break;
+            }
             case OP_TYPEID::Equal:
             {
                 node = make_shared<op::Equal>(args[0], args[1]);
@@ -666,6 +673,11 @@ static shared_ptr<ngraph::Function>
             case OP_TYPEID::GetOutputElement:
             {
                 node = make_shared<op::GetOutputElement>(args[0], node_js.at("n").get<size_t>());
+                break;
+            }
+            case OP_TYPEID::GetShape:
+            {
+                node = make_shared<op::GetShape>(args[0]);
                 break;
             }
             case OP_TYPEID::Greater:
@@ -1259,6 +1271,8 @@ static json write(const Node& n, bool binary_constant_data)
         node["reduction_axes_count"] = tmp->get_reduction_axes_count();
         break;
     }
+    case OP_TYPEID::DynReshape: { break;
+    }
     case OP_TYPEID::Equal: { break;
     }
     case OP_TYPEID::Exp: { break;
@@ -1269,6 +1283,8 @@ static json write(const Node& n, bool binary_constant_data)
     {
         node["function"] = n.get_functions()[0]->get_name();
         break;
+    }
+    case OP_TYPEID::GetShape: { break;
     }
     case OP_TYPEID::GetOutputElement:
     {

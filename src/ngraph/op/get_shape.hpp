@@ -14,30 +14,27 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include <memory>
+#pragma once
 
-#include "ngraph/node.hpp"
-#include "ngraph/op/get_shape.hpp"
-#include "ngraph/shape.hpp"
-#include "ngraph/type/element_type.hpp"
-
-#include "shape.hpp"
+#include "ngraph/op/op.hpp"
 
 namespace ngraph
 {
-    namespace onnx_import
+    namespace op
     {
-        namespace op
+        /// \brief Returns the shape of its input as a tensor of type uint64.
+        class GetShape : public Op
         {
-            NodeVector shape(const Node& node)
-            {
-                auto data = node.get_ng_inputs().at(0);
+        public:
+            /// \brief Constructs a get-shape operation.
+            ///
+            /// \param arg Node whose output shape will be returned.
+            GetShape(const std::shared_ptr<Node>& arg);
 
-                return {std::make_shared<ngraph::op::GetShape>(data)};
-            }
+            void validate_and_infer_types() override;
 
-        } // namespace op
-
-    } // namespace onnx_import
-
-} // namespace ngraph
+            virtual std::shared_ptr<Node>
+                copy_with_new_args(const NodeVector& new_args) const override;
+        };
+    }
+}

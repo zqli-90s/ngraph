@@ -6566,3 +6566,236 @@ TEST(type_prop, topk_invalid_k)
         FAIL() << "Deduced type check failed for unexpected reason";
     }
 }
+
+TEST(type_prop, get_shape)
+{
+    auto param = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto sh = make_shared<op::GetShape>(param);
+
+    ASSERT_EQ(sh->get_element_type(), element::i64);
+    ASSERT_EQ(sh->get_shape(), (Shape{4}));
+    ASSERT_EQ(sh->get_static_value(), (StaticValue{2, 4, 6, 8}));
+}
+
+TEST(type_prop, get_shape_scalar)
+{
+    auto param = make_shared<op::Parameter>(element::f32, Shape{});
+    auto sh = make_shared<op::GetShape>(param);
+
+    ASSERT_EQ(sh->get_element_type(), element::i64);
+    ASSERT_EQ(sh->get_shape(), Shape{0});
+    ASSERT_EQ(sh->get_static_value(), StaticValue{});
+}
+
+TEST(type_prop, dyn_reshape_of_shape)
+{
+    auto param0 = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param1 = make_shared<op::Parameter>(element::f32, Shape{8, 6, 4, 2});
+    auto sh = make_shared<op::GetShape>(param1);
+    auto dr = make_shared<op::DynReshape>(param0, sh);
+
+    ASSERT_EQ(dr->get_element_type(), element::f32);
+    ASSERT_EQ(dr->get_shape(), (Shape{8, 6, 4, 2}));
+}
+
+TEST(type_prop, dyn_reshape_wrong_shape_type)
+{
+    auto param0 = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param1 = make_shared<op::Parameter>(element::f32, Shape{4});
+    try
+    {
+        auto dr = make_shared<op::DynReshape>(param0, param1);
+        FAIL() << "Did not detect incorrect element type for shape parameter";
+    }
+    catch (const NodeValidationError& error)
+    {
+        EXPECT_HAS_SUBSTRING(error.what(), "Shape argument must have type i64");
+    }
+    catch (...)
+    {
+        FAIL() << "Deduced type check failed for unexpected reason";
+    }
+}
+
+TEST(type_prop, dyn_reshape_invalid_shape)
+{
+    auto param0 = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param1 = make_shared<op::Parameter>(element::u64, Shape{2, 4, 4, 8});
+    try
+    {
+        auto sh = make_shared<op::GetShape>(param1);
+        auto dr = make_shared<op::DynReshape>(param0, sh);
+        FAIL() << "Did not detect invalid output shape";
+    }
+    catch (const NodeValidationError& error)
+    {
+        EXPECT_HAS_SUBSTRING(error.what(),
+                             "Number of elements in output shape does not match number of elements "
+                             "in argument shape");
+    }
+    catch (...)
+    {
+        FAIL() << "Deduced type check failed for unexpected reason";
+    }
+}
+
+TEST(type_prop, DISABLED_dyn_reshape_no_static_value)
+{
+    auto param0 = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param1 = make_shared<op::Parameter>(element::u64, Shape{5});
+    try
+    {
+        auto dr = make_shared<op::DynReshape>(param0, param1);
+        FAIL() << "Did not detect absence of static value for shape parameter";
+    }
+    catch (const NodeValidationError& error)
+    {
+        EXPECT_HAS_SUBSTRING(error.what(), "Shape argument has no static value");
+    }
+    catch (...)
+    {
+        FAIL() << "Deduced type check failed for unexpected reason";
+    }
+}
+
+TEST(type_prop, concat_sv)
+{
+    auto param0 = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param1 = make_shared<op::Parameter>(element::boolean, Shape{8, 6, 4, 2});
+    auto param2 = make_shared<op::Parameter>(element::i64, Shape{5, 5, 3});
+    auto sh0 = make_shared<op::GetShape>(param0);
+    auto sh1 = make_shared<op::GetShape>(param1);
+    auto sh2 = make_shared<op::GetShape>(param2);
+    auto concat = make_shared<op::Concat>(NodeVector{sh0, sh1, sh2}, 0);
+
+    ASSERT_EQ(concat->get_element_type(), element::i64);
+    ASSERT_EQ(concat->get_shape(), (Shape{11}));
+    ASSERT_EQ(concat->get_static_value(), (StaticValue{2, 4, 6, 8, 8, 6, 4, 2, 5, 5, 3}));
+}
+
+TEST(type_prop, convert_sv)
+{
+    auto param = make_shared<op::Parameter>(element::boolean, Shape{8, 6, 4, 2});
+    auto sh = make_shared<op::GetShape>(param);
+    auto convert = make_shared<op::Convert>(sh, element::u16);
+
+    ASSERT_EQ(convert->get_element_type(), element::u16);
+    ASSERT_EQ(convert->get_shape(), (Shape{4}));
+    ASSERT_EQ(convert->get_static_value(), (StaticValue{8, 6, 4, 2}));
+}
+
+TEST(type_prop, divide_sv)
+{
+    auto param0 = make_shared<op::Parameter>(element::boolean, Shape{8, 6, 4, 2});
+    auto param1 = make_shared<op::Parameter>(element::i8, Shape{2, 3, 4, 1});
+    auto sh0 = make_shared<op::GetShape>(param0);
+    auto sh1 = make_shared<op::GetShape>(param1);
+    auto divide = make_shared<op::Divide>(sh0, sh1);
+
+    ASSERT_EQ(divide->get_element_type(), element::i64);
+    ASSERT_EQ(divide->get_shape(), (Shape{4}));
+    ASSERT_EQ(divide->get_static_value(), (StaticValue{4, 2, 1, 2}));
+}
+
+TEST(type_prop, multiply_sv)
+{
+    auto param0 = make_shared<op::Parameter>(element::boolean, Shape{8, 6, 4, 2});
+    auto param1 = make_shared<op::Parameter>(element::i8, Shape{2, 3, 4, 1});
+    auto sh0 = make_shared<op::GetShape>(param0);
+    auto sh1 = make_shared<op::GetShape>(param1);
+    auto multiply = make_shared<op::Multiply>(sh0, sh1);
+
+    ASSERT_EQ(multiply->get_element_type(), element::i64);
+    ASSERT_EQ(multiply->get_shape(), (Shape{4}));
+    ASSERT_EQ(multiply->get_static_value(), (StaticValue{16, 18, 16, 2}));
+}
+
+TEST(type_prop, broadcast_sv_vector_to_vector)
+{
+    // Note: this is a trivial broadcast with no broadcast axes.
+    auto param = make_shared<op::Parameter>(element::boolean, Shape{8, 6, 4, 2});
+    auto sh = make_shared<op::GetShape>(param);
+    auto bc = make_shared<op::Broadcast>(sh, Shape{4}, AxisSet{});
+
+    ASSERT_EQ(bc->get_element_type(), element::i64);
+    ASSERT_EQ(bc->get_shape(), (Shape{4}));
+    ASSERT_EQ(bc->get_static_value(), (StaticValue{8, 6, 4, 2}));
+}
+
+TEST(type_prop, reshape_sv_vector_to_vector)
+{
+    auto param = make_shared<op::Parameter>(element::boolean, Shape{8, 6, 4, 2});
+    auto sh = make_shared<op::GetShape>(param);
+    auto rs = make_shared<op::Reshape>(sh, AxisVector{0}, Shape{4});
+
+    ASSERT_EQ(rs->get_element_type(), element::i64);
+    ASSERT_EQ(rs->get_shape(), (Shape{4}));
+    ASSERT_EQ(rs->get_static_value(), (StaticValue{8, 6, 4, 2}));
+}
+
+TEST(type_prop, reshape_sv_vector_to_scalar)
+{
+    auto param = make_shared<op::Parameter>(element::boolean, Shape{8});
+    auto sh = make_shared<op::GetShape>(param);
+    auto rs = make_shared<op::Reshape>(sh, AxisVector{0}, Shape{});
+
+    ASSERT_EQ(rs->get_element_type(), element::i64);
+    ASSERT_EQ(rs->get_shape(), (Shape{}));
+    ASSERT_EQ(rs->get_static_value(), (StaticValue{8}));
+}
+
+TEST(type_prop, reshape_sv_scalar_to_vector)
+{
+    auto param = make_shared<op::Parameter>(element::boolean, Shape{8});
+    auto sh = make_shared<op::GetShape>(param);
+    auto rs0 = make_shared<op::Reshape>(sh, AxisVector{0}, Shape{});
+    auto rs1 = make_shared<op::Reshape>(rs0, AxisVector{}, Shape{1});
+
+    ASSERT_EQ(rs1->get_element_type(), element::i64);
+    ASSERT_EQ(rs1->get_shape(), (Shape{1}));
+    ASSERT_EQ(rs1->get_static_value(), (StaticValue{8}));
+}
+
+TEST(type_prop, reshape_sv_scalar_to_scalar)
+{
+    auto param = make_shared<op::Parameter>(element::boolean, Shape{8});
+    auto sh = make_shared<op::GetShape>(param);
+    auto rs0 = make_shared<op::Reshape>(sh, AxisVector{0}, Shape{});
+    auto rs1 = make_shared<op::Reshape>(rs0, AxisVector{}, Shape{});
+
+    ASSERT_EQ(rs1->get_element_type(), element::i64);
+    ASSERT_EQ(rs1->get_shape(), (Shape{}));
+    ASSERT_EQ(rs1->get_static_value(), (StaticValue{8}));
+}
+
+TEST(type_prop, dyn_reshape_sv_vector_to_vector)
+{
+    auto param0 = make_shared<op::Parameter>(element::boolean, Shape{4});
+    auto param1 = make_shared<op::Parameter>(element::i64, Shape{8});
+    auto param2 = make_shared<op::Parameter>(element::i64, Shape{2});
+    auto sh1 = make_shared<op::GetShape>(param1);
+    auto sh2 = make_shared<op::GetShape>(param2);
+    auto rs = make_shared<op::DynReshape>(param0, sh1 / sh2);
+
+    // Shape(param0) = [4]
+    // Shape(param1) = [8]
+    // Shape(param2) = [2]
+    // Shape(DynReshape(param0,shape(param1) / shape(param2))) = [4]
+
+    ASSERT_EQ(rs->get_element_type(), element::boolean);
+    ASSERT_EQ(rs->get_shape(), (Shape{4}));
+    ASSERT_FALSE(rs->get_outputs()[0].has_static_value());
+}
+
+TEST(type_prop, slice_sv)
+{
+    auto param =
+        make_shared<op::Parameter>(element::boolean, Shape{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11});
+    auto sh = make_shared<op::GetShape>(param);
+    // Start at 2, end before 9, stride of 3
+    auto sl = make_shared<op::Slice>(sh, Shape{2}, Shape{9}, Strides{3});
+
+    ASSERT_EQ(sl->get_element_type(), element::i64);
+    ASSERT_EQ(sl->get_shape(), (Shape{3}));
+    ASSERT_EQ(sl->get_static_value(), (StaticValue{2, 5, 8}));
+}

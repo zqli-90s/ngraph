@@ -1257,3 +1257,12 @@ TEST(onnx, model_thresholded_relu)
     Outputs outputs{execute(function, inputs, "INTERPRETER")};
     EXPECT_TRUE(test::all_close_f(expected_output.front(), outputs.front()));
 }
+
+TEST(onnx, model_superres)
+{
+    auto function = onnx_import::import_onnx_function(
+        file_util::path_join(SERIALIZED_ZOO, "onnx/superres.onnx"));
+
+    Inputs inputs{{224 * 224, 1.0f}};
+    Outputs outputs{execute(function, inputs, "CPU")};
+}

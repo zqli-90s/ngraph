@@ -14,30 +14,22 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include <memory>
+// XXX: THIS CLASS IS NOT IN USE YET AND THE ENTIRE DESIGN IS SUBJECT TO CHANGE.
 
-#include "ngraph/node.hpp"
-#include "ngraph/op/get_shape.hpp"
-#include "ngraph/shape.hpp"
-#include "ngraph/type/element_type.hpp"
+#pragma once
 
-#include "shape.hpp"
+#include <iostream>
 
 namespace ngraph
 {
-    namespace onnx_import
+    class Undetermined
     {
-        namespace op
-        {
-            NodeVector shape(const Node& node)
-            {
-                auto data = node.get_ng_inputs().at(0);
+    public:
+        Undetermined() {}
+        friend std::ostream& operator<<(std::ostream& str, const Undetermined&);
+    };
 
-                return {std::make_shared<ngraph::op::GetShape>(data)};
-            }
+    std::ostream& operator<<(std::ostream& str, const Undetermined&);
 
-        } // namespace op
-
-    } // namespace onnx_import
-
-} // namespace ngraph
+    const ngraph::Undetermined undet;
+}

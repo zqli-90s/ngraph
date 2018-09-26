@@ -16,34 +16,32 @@
 
 #pragma once
 
-#include "ngraph/op/util/binary_elementwise_arithmetic.hpp"
+#include "ngraph/dyn_shape.hpp"
+#include "ngraph/node_vector.hpp"
+#include "ngraph/op/op.hpp"
 
 namespace ngraph
 {
     namespace op
     {
-        /// \brief Elementwise multiplication operation.
-        class Multiply : public util::BinaryElementwiseArithmetic
+        /// \brief Dynamic tensor reshape operation.
+        class DynReshape : public Op
         {
         public:
-            /// \brief Constructs a multiplication operation.
+            /// \brief Constructs a dynamic reshape operation.
             ///
-            /// \param arg0 Node that produces the first input tensor.
-            /// \param arg1 Node that produces the second input tensor.
-            Multiply(const std::shared_ptr<Node>& arg0, const std::shared_ptr<Node>& arg1);
+            /// \param arg The tensor view to be reshaped.
+            /// \param shape The node producing the tensor describing the desired output shape.
+            DynReshape(const std::shared_ptr<Node>& arg, const std::shared_ptr<Node>& shape);
+
+            void validate_and_infer_types() override;
 
             virtual std::shared_ptr<Node>
                 copy_with_new_args(const NodeVector& new_args) const override;
 
-            void validate_and_infer_types() override;
-
         protected:
             virtual void generate_adjoints(autodiff::Adjoints& adjoints,
                                            const NodeVector& deltas) override;
-            virtual bool is_commutative() override { return true; }
         };
-    };
-
-    std::shared_ptr<ngraph::Node> operator*(const std::shared_ptr<ngraph::Node> arg0,
-                                            const std::shared_ptr<ngraph::Node> arg1);
+    }
 }

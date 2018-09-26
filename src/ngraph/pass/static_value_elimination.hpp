@@ -14,30 +14,25 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include <memory>
+#pragma once
 
-#include "ngraph/node.hpp"
-#include "ngraph/op/get_shape.hpp"
-#include "ngraph/shape.hpp"
-#include "ngraph/type/element_type.hpp"
-
-#include "shape.hpp"
+#include "ngraph/pass/pass.hpp"
 
 namespace ngraph
 {
-    namespace onnx_import
+    namespace pass
     {
-        namespace op
-        {
-            NodeVector shape(const Node& node)
-            {
-                auto data = node.get_ng_inputs().at(0);
+        class StaticValueElimination;
+    }
+}
 
-                return {std::make_shared<ngraph::op::GetShape>(data)};
-            }
+class ngraph::pass::StaticValueElimination : public FunctionPass
+{
+public:
+    StaticValueElimination()
+        : FunctionPass()
+    {
+    }
 
-        } // namespace op
-
-    } // namespace onnx_import
-
-} // namespace ngraph
+    virtual bool run_on_function(std::shared_ptr<ngraph::Function> f);
+};

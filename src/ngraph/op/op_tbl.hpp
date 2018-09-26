@@ -45,6 +45,7 @@
 //
 // It's that easy. You can use this for fun and profit.
 
+<<<<<<< HEAD
 NGRAPH_OP(Abs, ngraph::op)
 NGRAPH_OP(Acos, ngraph::op)
 NGRAPH_OP(Add, ngraph::op)
@@ -70,11 +71,13 @@ NGRAPH_OP(Cos, ngraph::op)
 NGRAPH_OP(Cosh, ngraph::op)
 NGRAPH_OP(Divide, ngraph::op)
 NGRAPH_OP(Dot, ngraph::op)
+NGRAPH_OP(DynReshape, ngraph::op)
 NGRAPH_OP(Equal, ngraph::op)
 NGRAPH_OP(Exp, ngraph::op)
 NGRAPH_OP(Floor, ngraph::op)
 NGRAPH_OP(FunctionCall, ngraph::op)
 NGRAPH_OP(GetOutputElement, ngraph::op)
+NGRAPH_OP(GetShape, ngraph::op)
 NGRAPH_OP(Greater, ngraph::op)
 NGRAPH_OP(GreaterEq, ngraph::op)
 NGRAPH_OP(Less, ngraph::op)

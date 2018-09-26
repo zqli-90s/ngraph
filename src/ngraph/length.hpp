@@ -14,30 +14,41 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include <memory>
+// XXX: THIS CLASS IS NOT IN USE YET AND THE ENTIRE DESIGN IS SUBJECT TO CHANGE.
 
-#include "ngraph/node.hpp"
-#include "ngraph/op/get_shape.hpp"
-#include "ngraph/shape.hpp"
-#include "ngraph/type/element_type.hpp"
+#pragma once
 
-#include "shape.hpp"
+#include <stddef.h>
+
+#include "ngraph/undetermined.hpp"
 
 namespace ngraph
 {
-    namespace onnx_import
+    class Length
     {
-        namespace op
+    public:
+        Length(size_t length)
+            : m_length(length)
+            , m_fixed(true)
         {
-            NodeVector shape(const Node& node)
-            {
-                auto data = node.get_ng_inputs().at(0);
+        }
+        Length(const Undetermined&)
+            : m_length(0)
+            , m_fixed(false)
+        {
+        }
+        Length()
+            : m_length(0)
+            , m_fixed(true)
+        {
+        }
+        bool fixed() const { return m_fixed; }
+        explicit operator size_t() const { return m_length; }
+    private:
+        size_t m_length;
+        bool m_fixed;
+    };
 
-                return {std::make_shared<ngraph::op::GetShape>(data)};
-            }
-
-        } // namespace op
-
-    } // namespace onnx_import
-
-} // namespace ngraph
+    std::ostream& operator<<(std::ostream& str, const Length& length);
+    Length operator+(const Length& l1, const Length& l2);
+}

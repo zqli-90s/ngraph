@@ -9686,3 +9686,74 @@ NGRAPH_TEST(${BACKEND_NAME}, topk_2d_min_one)
     backend->call_with_validate(f1, {result1}, {a});
     EXPECT_EQ((vector<float>{3, 1, 4}), read_vector<float>(result1));
 }
+
+NGRAPH_TEST(${BACKEND_NAME}, get_shape)
+{
+    Shape shape{2, 3, 4, 5};
+    auto A = make_shared<op::Parameter>(element::f32, shape);
+    auto f = make_shared<Function>(make_shared<op::GetShape>(A), op::ParameterVector{A});
+
+    auto backend = runtime::Backend::create("${BACKEND_NAME}");
+
+    auto a = backend->create_tensor(element::f32, shape);
+    vector<float> some_arbitrary_values(shape_size(shape));
+    for (size_t i = 0; i < shape_size(shape); i++)
+    {
+        some_arbitrary_values[i] = float(i) / 2.0f;
+    }
+    copy_data(a, some_arbitrary_values);
+
+    auto result = backend->create_tensor(element::i64, Shape{shape.size()});
+
+    backend->call_with_validate(f, {result}, {a});
+    EXPECT_EQ((vector<int64_t>{2, 3, 4, 5}), read_vector<int64_t>(result));
+}
+
+NGRAPH_TEST(${BACKEND_NAME}, get_shape_scalar)
+{
+    Shape shape{};
+    auto A = make_shared<op::Parameter>(element::f32, shape);
+    auto f = make_shared<Function>(make_shared<op::GetShape>(A), op::ParameterVector{A});
+
+    auto backend = runtime::Backend::create("${BACKEND_NAME}");
+
+    auto a = backend->create_tensor(element::f32, shape);
+    vector<float> some_arbitrary_values(shape_size(shape));
+    for (size_t i = 0; i < shape_size(shape); i++)
+    {
+        some_arbitrary_values[i] = float(i) / 2.0f;
+    }
+    copy_data(a, some_arbitrary_values);
+
+    auto result = backend->create_tensor(element::i64, Shape{shape.size()});
+
+    backend->call_with_validate(f, {result}, {a});
+    EXPECT_EQ((vector<int64_t>{}), read_vector<int64_t>(result));
+}
+
+NGRAPH_TEST(${BACKEND_NAME}, dyn_reshape)
+{
+    Shape shape_a{2, 4, 6, 8};
+    Shape shape_b{2, 6, 8, 4};
+    auto A = make_shared<op::Parameter>(element::f32, shape_a);
+    auto B = make_shared<op::Parameter>(element::f32, shape_b);
+    auto f = make_shared<Function>(make_shared<op::DynReshape>(A, make_shared<op::GetShape>(B)),
+                                   op::ParameterVector{A, B});
+
+    auto backend = runtime::Backend::create("${BACKEND_NAME}");
+
+    auto a = backend->create_tensor(element::f32, shape_a);
+    auto b = backend->create_tensor(element::f32, shape_b);
+    vector<float> some_arbitrary_values(shape_size(shape_a));
+    for (size_t i = 0; i < shape_size(shape_a); i++)
+    {
+        some_arbitrary_values[i] = float(i) / 2.0f;
+    }
+    copy_data(a, some_arbitrary_values);
+    copy_data(b, some_arbitrary_values);
+
+    auto result = backend->create_tensor(element::f32, shape_b);
+
+    backend->call_with_validate(f, {result}, {a, b});
+    EXPECT_EQ(some_arbitrary_values, read_vector<float>(result));
+}

@@ -14,30 +14,26 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include <memory>
+#include "ngraph/rank.hpp"
 
-#include "ngraph/node.hpp"
-#include "ngraph/op/get_shape.hpp"
-#include "ngraph/shape.hpp"
-#include "ngraph/type/element_type.hpp"
-
-#include "shape.hpp"
-
-namespace ngraph
+std::ostream& ngraph::operator<<(std::ostream& str, const Rank& rank)
 {
-    namespace onnx_import
+    if (rank.fixed())
     {
-        namespace op
-        {
-            NodeVector shape(const Node& node)
-            {
-                auto data = node.get_ng_inputs().at(0);
+        return (str << size_t(rank));
+    }
+    else
+    {
+        return (str << "?");
+    }
+}
 
-                return {std::make_shared<ngraph::op::GetShape>(data)};
-            }
+bool ngraph::operator==(const Rank& r1, const Rank& r2)
+{
+    return (r1.fixed() && r2.fixed() && size_t(r1) == size_t(r2));
+}
 
-        } // namespace op
-
-    } // namespace onnx_import
-
-} // namespace ngraph
+bool ngraph::operator!=(const Rank& r1, const Rank& r2)
+{
+    return (r1.fixed() && r2.fixed() && size_t(r1) != size_t(r2));
+}

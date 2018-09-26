@@ -30,7 +30,9 @@
 #include "ngraph/op/constant.hpp"
 #include "ngraph/op/convolution.hpp"
 #include "ngraph/op/dot.hpp"
+#include "ngraph/op/dyn_reshape.hpp"
 #include "ngraph/op/get_output_element.hpp"
+#include "ngraph/op/get_shape.hpp"
 #include "ngraph/op/lrn.hpp"
 #include "ngraph/op/max.hpp"
 #include "ngraph/op/max_pool.hpp"
@@ -45,7 +47,6 @@
 #include "ngraph/op/result.hpp"
 #include "ngraph/op/reverse.hpp"
 #include "ngraph/op/reverse_sequence.hpp"
-#include "ngraph/op/select_and_scatter.hpp"
 #include "ngraph/op/select_and_scatter.hpp"
 #include "ngraph/op/slice.hpp"
 #include "ngraph/op/softmax.hpp"
@@ -75,9 +76,11 @@
 #include "ngraph/runtime/reference/cosh.hpp"
 #include "ngraph/runtime/reference/divide.hpp"
 #include "ngraph/runtime/reference/dot.hpp"
+#include "ngraph/runtime/reference/dyn_reshape.hpp"
 #include "ngraph/runtime/reference/equal.hpp"
 #include "ngraph/runtime/reference/exp.hpp"
 #include "ngraph/runtime/reference/floor.hpp"
+#include "ngraph/runtime/reference/get_shape.hpp"
 #include "ngraph/runtime/reference/greater.hpp"
 #include "ngraph/runtime/reference/greater_eq.hpp"
 #include "ngraph/runtime/reference/less.hpp"
@@ -603,6 +606,12 @@ private:
                            dot->get_reduction_axes_count());
             break;
         }
+        case OP_TYPEID::DynReshape:
+        {
+            reference::dyn_reshape(
+                args[0]->get_data_ptr<T>(), out[0]->get_data_ptr<T>(), out[0]->get_element_count());
+            break;
+        }
         case OP_TYPEID::Equal:
         {
             reference::equal<T>(args[0]->get_data_ptr<T>(),
@@ -640,6 +649,11 @@ private:
             }
 
             call(function, outputs, inputs);
+            break;
+        }
+        case OP_TYPEID::GetShape:
+        {
+            reference::get_shape(out[0]->get_data_ptr<uint64_t>(), args[0]->get_shape());
             break;
         }
         case OP_TYPEID::Greater:

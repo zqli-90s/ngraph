@@ -14,30 +14,27 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include <memory>
-
-#include "ngraph/node.hpp"
 #include "ngraph/op/get_shape.hpp"
-#include "ngraph/shape.hpp"
-#include "ngraph/type/element_type.hpp"
 
-#include "shape.hpp"
+using namespace std;
+using namespace ngraph;
 
-namespace ngraph
+op::GetShape::GetShape(const shared_ptr<Node>& arg)
+    : Op("GetShape", check_single_output_args({arg}))
 {
-    namespace onnx_import
-    {
-        namespace op
-        {
-            NodeVector shape(const Node& node)
-            {
-                auto data = node.get_ng_inputs().at(0);
+    constructor_validate_and_infer_types();
+}
 
-                return {std::make_shared<ngraph::op::GetShape>(data)};
-            }
+void op::GetShape::validate_and_infer_types()
+{
+    auto& arg_shape = get_input_shape(0);
 
-        } // namespace op
+    set_output_type(0, element::i64, Shape{arg_shape.size()});
+    set_output_static_value(0, arg_shape);
+}
 
-    } // namespace onnx_import
-
-} // namespace ngraph
+shared_ptr<Node> op::GetShape::copy_with_new_args(const NodeVector& new_args) const
+{
+    check_new_args_count(this, new_args);
+    return make_shared<op::GetShape>(new_args.at(0));
+}

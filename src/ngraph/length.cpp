@@ -14,30 +14,21 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include <memory>
+#include "ngraph/length.hpp"
 
-#include "ngraph/node.hpp"
-#include "ngraph/op/get_shape.hpp"
-#include "ngraph/shape.hpp"
-#include "ngraph/type/element_type.hpp"
-
-#include "shape.hpp"
-
-namespace ngraph
+std::ostream& ngraph::operator<<(std::ostream& str, const Length& length)
 {
-    namespace onnx_import
+    if (length.fixed())
     {
-        namespace op
-        {
-            NodeVector shape(const Node& node)
-            {
-                auto data = node.get_ng_inputs().at(0);
+        return (str << size_t(length));
+    }
+    else
+    {
+        return (str << "?");
+    }
+}
 
-                return {std::make_shared<ngraph::op::GetShape>(data)};
-            }
-
-        } // namespace op
-
-    } // namespace onnx_import
-
-} // namespace ngraph
+ngraph::Length ngraph::operator+(const Length& l1, const Length& l2)
+{
+    return (l1.fixed() && l2.fixed() ? size_t(l1) + size_t(l2) : Length(undet));
+}

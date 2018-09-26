@@ -14,30 +14,9 @@
 // limitations under the License.
 //*****************************************************************************
 
-#include <memory>
+#include "ngraph/undetermined.hpp"
 
-#include "ngraph/node.hpp"
-#include "ngraph/op/get_shape.hpp"
-#include "ngraph/shape.hpp"
-#include "ngraph/type/element_type.hpp"
-
-#include "shape.hpp"
-
-namespace ngraph
+std::ostream& ngraph::operator<<(std::ostream& str, const Undetermined&)
 {
-    namespace onnx_import
-    {
-        namespace op
-        {
-            NodeVector shape(const Node& node)
-            {
-                auto data = node.get_ng_inputs().at(0);
-
-                return {std::make_shared<ngraph::op::GetShape>(data)};
-            }
-
-        } // namespace op
-
-    } // namespace onnx_import
-
-} // namespace ngraph
+    return (str << "?");
+}
