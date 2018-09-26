@@ -81,7 +81,7 @@ namespace ngraph
             }
 
             bool call(const std::shared_ptr<Function>& function,
-                      const std::vector<InputTensor>& weights,
+                      const std::vector<Weight>& weights,
                       const std::vector<InputTensor>& inputs,
                       std::vector<OutputTensor>& outputs) const
             {
@@ -121,6 +121,17 @@ namespace ngraph
             {
                 std::vector<std::shared_ptr<runtime::TensorView>> result;
                 for (const auto& tensor : inputs)
+                {
+                    result.emplace_back(tensor.to_ng(*m_backend));
+                }
+                return result;
+            }
+
+            std::vector<std::shared_ptr<runtime::TensorView>>
+            to_ng_inputs(const std::vector<Weight>& weights) const
+            {
+                std::vector<std::shared_ptr<runtime::TensorView>> result;
+                for (const auto& tensor : weights)
                 {
                     result.emplace_back(tensor.to_ng(*m_backend));
                 }

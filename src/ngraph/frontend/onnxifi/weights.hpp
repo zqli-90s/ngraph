@@ -81,20 +81,20 @@ namespace ngraph
                     throw status::invalid_memory_location{};
                 }
                 const char* buffer{reinterpret_cast<const char*>(weight.buffer)};
-                m_buffer.assign(buffer, buffer + (weight.dimensions == 0 : m_type.size() :
+                m_buffer.assign(buffer, buffer + (weight.dimensions == 0 ? m_type.size() :
                     weight.dimensions * m_type.size()));
             }
 
             std::shared_ptr<runtime::TensorView> to_ng(runtime::Backend& backend) const
             {
                 std::shared_ptr<runtime::TensorView> tensor{
-                    backend.create_tensor(m_type, m_shape);
+                    backend.create_tensor(m_type, m_shape)
                 };
                 tensor->write(data(), 0, m_type.size() * m_size);
                 return tensor;
             }
 
-            const void* data() const { return reinterpret_cast<const void*>(m_tensor.buffer); }
+            const void* data() const { return reinterpret_cast<const void*>(m_buffer.data()); }
             std::size_t size() const { return m_size; }
             const Shape& shape() const { return m_shape; }
             const std::string& name() const { return m_name; }
@@ -108,7 +108,7 @@ namespace ngraph
 
             const element::Type& get_type(::onnxEnum type)
             {
-                switch (weight.dataType)
+                switch (type)
                 {
                     case ONNXIFI_DATATYPE_FLOAT16:
                     case ONNXIFI_DATATYPE_FLOAT32:
