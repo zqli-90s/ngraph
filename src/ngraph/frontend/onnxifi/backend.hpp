@@ -81,47 +81,16 @@ namespace ngraph
             }
 
             bool call(const std::shared_ptr<Function>& function,
-                      const std::vector<InputTensor>& inputs,
-                      std::vector<OutputTensor>& outputs) const
+                      const std::vector<std::shared_ptr<runtime::TensorView>>& inputs,
+                      std::vector<std::shared_ptr<runtime::TensorView>>& outputs) const
             {
                 std::lock_guard<std::mutex> lock{m_mutex};
-                auto ng_outputs = to_ng_outputs(outputs);
-                auto ng_inputs = to_ng_inputs(inputs);
-                bool result{get().call(function, ng_outputs, ng_inputs)};
-                from_ng_outputs(ng_outputs, outputs);
-                return result;
+                return get().call(function, outputs, inputs);
             }
 
-            void
-                from_ng_outputs(const std::vector<std::shared_ptr<runtime::TensorView>>& ng_outputs,
-                                std::vector<OutputTensor>& output) const
+            runtime::Backend& get_backend() const
             {
-                for (std::size_t i{0}; i < ng_outputs.size(); ++i)
-                {
-                    output[i].from_ng(*ng_outputs[i]);
-                }
-            }
-
-            std::vector<std::shared_ptr<runtime::TensorView>>
-                to_ng_outputs(const std::vector<OutputTensor>& outputs) const
-            {
-                std::vector<std::shared_ptr<runtime::TensorView>> result;
-                for (const auto& tensor : outputs)
-                {
-                    result.emplace_back(tensor.to_ng(*m_backend));
-                }
-                return result;
-            }
-
-            std::vector<std::shared_ptr<runtime::TensorView>>
-                to_ng_inputs(const std::vector<InputTensor>& inputs) const
-            {
-                std::vector<std::shared_ptr<runtime::TensorView>> result;
-                for (const auto& tensor : inputs)
-                {
-                    result.emplace_back(tensor.to_ng(*m_backend));
-                }
-                return result;
+                return *m_backend;
             }
 
             // Implementation of onnxGetBackendInfo() interface function.

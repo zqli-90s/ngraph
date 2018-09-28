@@ -68,10 +68,20 @@ namespace ngraph
 
             bool run_graph();
 
+            void from_ng_outputs(const std::vector<std::shared_ptr<runtime::TensorView>>& ng_outputs,
+                                 std::vector<OutputTensor>& output) const
+            {
+                for (std::size_t i{0}; i < ng_outputs.size(); ++i)
+                {
+                    output[i].from_ng(*ng_outputs[i]);
+                }
+            }
+
         private:
             std::shared_ptr<Function> m_function{nullptr};
-            std::vector<InputTensor> m_inputs{};
+            std::vector<std::shared_ptr<runtime::TensorView>> m_ng_inputs{};
             std::vector<OutputTensor> m_outputs{};
+            std::vector<std::shared_ptr<runtime::TensorView>> m_ng_outputs{};
             const Backend& m_backend;
             const ::onnxMemoryFenceV1* m_input_fence{nullptr};
             ::onnxMemoryFenceV1* m_output_fence{nullptr};
@@ -87,37 +97,6 @@ namespace ngraph
         inline bool Graph::operator!=(const Graph& other) const noexcept
         {
             return !(*this == other);
-        }
-
-        inline void Graph::set_inputs(const Span<::onnxTensorDescriptorV1>& inputs)
-        {
-            if ((inputs.data() != nullptr) && inputs.empty())
-            {
-                throw status::invalid_size{};
-            }
-            if (inputs.is_valid())
-            {
-                for (const auto& descriptor : inputs)
-                {
-                    m_inputs.emplace_back(descriptor);
-                }
-            }
-        }
-
-        inline void Graph::set_outputs(const Span<::onnxTensorDescriptorV1>& outputs)
-        {
-            if (outputs.data() == nullptr)
-            {
-                throw status::null_pointer{};
-            }
-            if (outputs.empty())
-            {
-                throw status::invalid_size{};
-            }
-            for (const auto& descriptor : outputs)
-            {
-                m_outputs.emplace_back(descriptor);
-            }
         }
 
     } // namespace onnxifi
