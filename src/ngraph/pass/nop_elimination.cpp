@@ -30,6 +30,9 @@
 #include "ngraph/util.hpp"
 #include "nop_elimination.hpp"
 
+#include "ngraph/op/dequantize.hpp"
+#include "ngraph/op/quantize.hpp"
+
 #define TI(x) std::type_index(typeid(x))
 
 #define HANDLER_DECL(x) static bool x(const std::shared_ptr<ngraph::Node>& node)
@@ -101,6 +104,16 @@ HANDLER_DECL(eliminate_broadcast)
     return false;
 }
 
+HANDLER_DECL(eliminate_qd_pair)
+{
+    if (std::dynamic_pointer_cast<ngraph::op::Quantize>(node->get_argument(0)) != 0)
+    {
+        ngraph::replace_node(node, node->get_argument(0)->get_argument(0));
+        return true;
+    }
+    return false;
+}
+
 HANDLER_DECL(eliminate_stop_gradient)
 {
     ngraph::replace_node(node, node->get_argument(0));
@@ -115,7 +128,8 @@ static const std::unordered_map<std::type_index,
                {TI(ngraph::op::Slice), &eliminate_slice},
                {TI(ngraph::op::StopGradient), &eliminate_stop_gradient},
                {TI(ngraph::op::BroadcastLike), &replace_broadcast_like},
-               {TI(ngraph::op::Broadcast), &eliminate_broadcast}};
+               {TI(ngraph::op::Broadcast), &eliminate_broadcast},
+               {TI(ngraph::op::Dequantize), &eliminate_qd_pair}};
 
 bool ngraph::pass::NopElimination::run_on_function(std::shared_ptr<ngraph::Function> function)
 {
