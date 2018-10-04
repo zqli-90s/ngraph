@@ -1000,12 +1000,12 @@ void runtime::cpu::CPU_ExternalFunction::register_common_passes(ngraph::pass::Ma
     pass_manager.register_pass<ngraph::pass::NopElimination>();
     // TODO (pruthvi): Enable all the disabeled RNN fusion graph pass after fixing
     // failing mxnet unit tests.
-    // pass_manager.register_pass<runtime::cpu::pass::LSTMFusion>();
+    pass_manager.register_pass<runtime::cpu::pass::LSTMFusion>();
     // pass_manager.register_pass<runtime::cpu::pass::RNNFusion>();
     pass_manager.register_pass<ngraph::pass::AlgebraicSimplification>();
-    // pass_manager.register_pass<runtime::cpu::pass::MultiLayerRNNFusion>();
-    // pass_manager.register_pass<runtime::cpu::pass::ConcatInputs>();
-    pass_manager.register_pass<runtime::cpu::pass::CPURnnMatFusion>();
+    //pass_manager.register_pass<runtime::cpu::pass::MultiLayerRNNFusion>();
+    pass_manager.register_pass<runtime::cpu::pass::ConcatInputs>();
+    //pass_manager.register_pass<runtime::cpu::pass::CPURnnMatFusion>();
     pass_manager.register_pass<runtime::cpu::pass::CPUBatchFusion>();
     pass_manager.register_pass<ngraph::pass::CommonSubexpressionElimination>();
     pass_manager.register_pass<ngraph::pass::CoreFusion>();
@@ -1434,20 +1434,16 @@ void runtime::cpu::CPU_ExternalFunction::build()
             // Build the flow graph
             if (ctx->first_iteration)
             {
-                std::unordered_map<
-                    std::string,
-                    tbb::flow::continue_node<tbb::flow::continue_msg, tbb::flow::lightweight>*>
+                std::unordered_map<std::string, tbb::flow::continue_node<tbb::flow::continue_msg>*>
                     nodename_tbbnode_map;
-                tbb::flow::continue_node<tbb::flow::continue_msg,
-                                         tbb::flow::lightweight>* flowgraph_node_start =
-                    new tbb::flow::continue_node<tbb::flow::continue_msg, tbb::flow::lightweight>(
+                tbb::flow::continue_node<tbb::flow::continue_msg>* flowgraph_node_start =
+                    new tbb::flow::continue_node<tbb::flow::continue_msg>(
                         *(ctx->G), [&](const tbb::flow::continue_msg& msg) {});
                 auto it = enable_nodename_list.begin();
                 for (const auto& p : enables)
                 {
-                    tbb::flow::continue_node<tbb::flow::continue_msg, tbb::flow::lightweight>*
-                        flowgraph_node = new tbb::flow::continue_node<tbb::flow::continue_msg,
-                                                                      tbb::flow::lightweight>(
+                    tbb::flow::continue_node<tbb::flow::continue_msg>* flowgraph_node =
+                        new tbb::flow::continue_node<tbb::flow::continue_msg>(
                             *(ctx->G), [&](const tbb::flow::continue_msg& msg) {
                                 if (p(ctx) || ctx->first_iteration)
                                 {
@@ -1505,9 +1501,7 @@ void runtime::cpu::CPU_ExternalFunction::build()
                 }
             }
             // Execute the flow graph
-            (static_cast<
-                 tbb::flow::continue_node<tbb::flow::continue_msg, tbb::flow::lightweight>*>(
-                 &(*(ctx->G->begin()))))
+            (static_cast<tbb::flow::continue_node<tbb::flow::continue_msg>*>(&(*(ctx->G->begin()))))
                 ->try_put(tbb::flow::continue_msg());
             try
             {
