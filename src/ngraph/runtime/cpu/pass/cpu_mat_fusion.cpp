@@ -252,8 +252,8 @@ bool runtime::cpu::pass::CPURnnMatFusion::run_on_function(std::shared_ptr<Functi
                     new_add_bias, Coordinate{start_index, 0}, Coordinate{end_index, shape_axis_1});
                 start_index += batch_size;
                 end_index += batch_size;
-                NGRAPH_DEBUG << "Replacing op " << matched_root_node->get_name() << " with "
-                             << slice_node->get_name() << std::endl;
+                std::cout << "Replacing op " << matched_root_node->get_name() << " with "
+                          << slice_node->get_name() << std::endl;
                 function->replace_node(matched_root_node, slice_node);
             }
             modify_graph = true;
@@ -304,7 +304,7 @@ bool runtime::cpu::pass::CPURnnMatFusion::run_on_function(std::shared_ptr<Functi
                 const Strides strides{data_shape[1], 1};
                 auto slice_node =
                     std::make_shared<op::Slice>(add_node, lower_bounds, add_shape, strides);
-
+                //std::cout << "In call_back" << std::endl;
                 // replace old nodes
                 function->replace_node(op, slice_node);
             }

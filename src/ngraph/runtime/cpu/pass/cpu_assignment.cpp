@@ -539,7 +539,7 @@ namespace ngraph
                     {
                         auto op_annotations =
                             std::make_shared<ngraph::runtime::cpu::CPUOpAnnotations>();
-                        op_annotations->set_mkldnn_op(true);
+                        op_annotations->set_mkldnn_op(false);
                         sigmoid->set_op_annotations(op_annotations);
                     }
                 }

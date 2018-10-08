@@ -1931,7 +1931,6 @@ TEST(cpu_fusion, group_convolution)
 }
 
 //TODO(Pruthvi) enable this test after MKLDNN RNN bug is fixed
-#if 0
 TEST(cpu_fusion, rnn_fprop_1_lstm_cell)
 {
     auto src_layer = make_shared<op::Parameter>(element::f32, Shape{10, 100});
@@ -1979,8 +1978,7 @@ TEST(cpu_fusion, rnn_fprop_1_lstm_cell)
     shared_ptr<runtime::Tensor> biases_t =
         backend->create_tensor(element::f32, biases->get_shape());
     shared_ptr<runtime::Tensor> result_ht = backend->create_tensor(element::f32, {10, 100});
-    shared_ptr<runtime::Tensor> result_ct =
-        backend->create_tensor(element::f32, Shape{20, 100});
+    shared_ptr<runtime::Tensor> result_ct = backend->create_tensor(element::f32, Shape{20, 100});
 
     copy_data(src_layer_t, vector<float>(1000, 1));
     copy_data(src_iter_t, vector<float>(2000, 1));
@@ -2009,7 +2007,6 @@ TEST(cpu_fusion, rnn_fprop_1_lstm_cell)
     EXPECT_TRUE(test::all_close(expected_ht, read_vector<float>(result_ht)));
     EXPECT_TRUE(test::all_close(expected_ct, read_vector<float>(result_ct)));
 }
-#endif
 
 TEST(cpu_fusion, fuse_lstm_cells)
 {
@@ -2083,7 +2080,7 @@ TEST(cpu_fusion, rnn_fusion_inter_vs_cpu_1lstm_cell)
     const std::string file_name("mxnet/1_lstm_cell_forward.json");
     auto cpu_f = make_function(file_name);
     auto int_f = make_function(file_name);
-    test::Uniform<float> rng(0.0f, 1.0f);
+    test::Uniform<float> rng(-10.0f, 10.0f);
     vector<vector<float>> args;
 
     for (shared_ptr<op::Parameter> param : int_f->get_parameters())
@@ -2105,7 +2102,7 @@ TEST(cpu_fusion, rnn_fusion_inter_vs_cpu_1rnn_layer_3lstm_cell)
     const std::string file_name("mxnet/1rnn_layer_3lstm_cell.json");
     auto cpu_f = make_function(file_name);
     auto int_f = make_function(file_name);
-    test::Uniform<float> rng(0.0f, 1.0f);
+    test::Uniform<float> rng(-10.0f, 10.0f);
     vector<vector<float>> args;
 
     for (shared_ptr<op::Parameter> param : int_f->get_parameters())
@@ -2127,7 +2124,7 @@ TEST(cpu_fusion, rnn_fusion_inter_vs_cpu_2rnn_layer_3lstm_cell)
     const std::string file_name("mxnet/2rnn_layer_3lstm_cell.json");
     auto cpu_f = make_function(file_name);
     auto int_f = make_function(file_name);
-    test::Uniform<float> rng(0.0f, 1.0f);
+    test::Uniform<float> rng(-10.0f, 10.0f);
     vector<vector<float>> args;
 
     for (shared_ptr<op::Parameter> param : int_f->get_parameters())
@@ -2959,6 +2956,49 @@ TEST(cpu_fusion, rnn_input_fusion_inter_vs_cpu)
     shared_ptr<Function> int_func = create_rnn_input_linear_transformation_function(10);
 
     test::Uniform<float> rng(-10.0f, 10.0f);
+    vector<vector<float>> args;
+    for (shared_ptr<op::Parameter> param : int_func->get_parameters())
+    {
+        vector<float> tensor_val(shape_size(param->get_shape()));
+        rng.initialize(tensor_val);
+        args.push_back(tensor_val);
+    }
+
+    auto int_results = execute(int_func, args, "INTERPRETER");
+    auto cpu_results = execute(cpu_func, args, "CPU");
+    for (size_t i = 0; i < cpu_results.size(); i++)
+    {
+        EXPECT_TRUE(test::all_close(cpu_results.at(i), int_results.at(i), 1.0e-4f, 1.0e-4f));
+    }
+}
+
+TEST(cpu_fusion, sigmoid_n1c1h2w2)
+{
+    auto make_sigmoid = []() -> shared_ptr<Function> {
+        // construct variance
+        auto input = make_shared<op::Parameter>(element::f32, Shape{10, 100});
+        auto neg_input = std::make_shared<op::Negative>(input);
+        auto exp_neg_input = std::make_shared<op::Exp>(neg_input);
+
+        // broadcast input
+        auto constant = op::Constant::create(element::f32, Shape{}, {1});
+        auto broadcast_constant =
+            std::make_shared<op::Broadcast>(constant, Shape{10, 100}, AxisSet{0, 1});
+
+        auto add_exp = std::make_shared<op::Add>(exp_neg_input, broadcast_constant);
+        auto divide_1_over_exp = std::make_shared<op::Divide>(broadcast_constant, add_exp);
+        return make_shared<Function>(divide_1_over_exp, op::ParameterVector{input});
+    };
+
+    auto make_func = []() -> shared_ptr<Function> {
+        auto input = make_shared<op::Parameter>(element::f32, Shape{10, 100});
+        auto sigmoid_node = make_shared<op::Sigmoid>(input);
+        return make_shared<Function>(sigmoid_node, op::ParameterVector{input});
+    };
+
+    shared_ptr<Function> cpu_func = make_func();
+    shared_ptr<Function> int_func = make_sigmoid();
+    test::Uniform<float> rng(-1.0f, 1.0f);
     vector<vector<float>> args;
     for (shared_ptr<op::Parameter> param : int_func->get_parameters())
     {
