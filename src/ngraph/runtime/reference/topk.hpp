@@ -74,12 +74,13 @@ namespace ngraph
                         i++;
                     }
                     // Sort the temp vector
+                    auto comp_func = compute_max ?
+                        [](const tuple<T, U>& a, const tuple<T, U>& b) { return get<0>(a) > get<0>(b); } :
+                        [](const tuple<T, U>& a, const tuple<T, U>& b) { return get<0>(a) < get<0>(b); };
                     sort(
                         workspace.begin(),
                         workspace.end(),
-                        compute_max
-                        ? [](const tuple<T, U>& a, const tuple<T, U>& b) -> bool { return a > b; }
-                        : [](const tuple<T, U>& a, const tuple<T, U>& b) -> bool { return a < b; });
+                        comp_func);
                     // Write temp vector to output
                     for (size_t j = 0; j < k; j++)
                     {
