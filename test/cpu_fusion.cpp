@@ -351,18 +351,33 @@ TEST(cpu_fusion, cpu_fusion_pass_dot_n_2)
 {
     Shape shape_w{4,1,3,2};
     Shape shape_x{2, 3};
-    auto W = make_shared<op::Parameter>(element::f32, shape_w);
-    auto x = make_shared<op::Parameter>(element::f32, shape_x);
 
-    auto reshape_w = std::make_shared<op::Reshape>(W, AxisVector{1, 0}, Shape{2, 4});
-    auto reshape_x = std::make_shared<op::Reshape>(x, AxisVector{1, 0}, Shape{4, 1});
-    auto graph = make_shared<op::Dot>(reshape_w, reshape_x);
+    vector<vector<float>> args{
+        {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f, 9.f, 10.f, 11.f, 12.f,
+         13.f, 14.f, 15.f, 16.f, 17.f, 18.f, 19.f, 20.f, 21.f, 22.f, 23.f, 24.f},
+        {6.f, 5.f, 4.f, 3.f, 2.f, 1.f}};
+    vector<vector<float>> int_results;
+    {
+        auto W = make_shared<op::Parameter>(element::f32, shape_w);
+        auto x = make_shared<op::Parameter>(element::f32, shape_x);
+        auto graph = make_shared<op::Dot>(W, x);
+        auto func = make_shared<Function>(graph, op::ParameterVector{W, x});
+        int_results = execute(func, args, "INTERPRETER");
+    }
+    vector<vector<float>> cpu_results;
+    {
+        auto W = make_shared<op::Parameter>(element::f32, shape_w);
+        auto x = make_shared<op::Parameter>(element::f32, shape_x);
+        auto graph = make_shared<op::Dot>(W, x);
 
-    pass::Manager pass_manager;
-    pass_manager.register_pass<runtime::cpu::pass::CPUFusion>(
-        runtime::cpu::pass::CPUFusion::REGULAR_FUSIONS);
-    auto func = make_shared<Function>(graph, op::ParameterVector{W, x});
-    pass_manager.run_passes(func);
+        pass::Manager pass_manager;
+        pass_manager.register_pass<runtime::cpu::pass::CPUFusion>(
+            runtime::cpu::pass::CPUFusion::REGULAR_FUSIONS);
+        auto func = make_shared<Function>(graph, op::ParameterVector{W, x});
+        pass_manager.run_passes(func);
+        cpu_results = execute(func, args, "CPU");
+    }
+    EXPECT_TRUE(test::all_close(cpu_results.at(0), int_results.at(0)));
 }
 
 TEST(cpu_fusion, gemm_mlp)

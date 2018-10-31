@@ -252,11 +252,11 @@ void ngraph::runtime::cpu::pass::CPUFusion::construct_dot_n_2()
         Shape W_shape = W_node->get_shape();
         Shape x_shape = x_node->get_shape();
         if (W_shape.size() >= 4 && x_shape.size() == 2) {
-            size_t W_axis_0 = std::accumulate(W_shape.begin(), --W_shape.end(), 0UL);  
+            size_t W_axis_0 = std::accumulate(W_shape.begin(), --W_shape.end(), 1UL, std::multiplies<size_t>());  
             auto W_order = ngraph::get_default_order(W_shape);
             Shape W_out_shape{W_axis_0, W_shape.back()};
-            auto W_reshape = std::make_shared<op::Reshape>(W, W_order, W_out_shape);
-            auto dot_2 = std::make_shared<op::Dot>(W_reshape, x);
+            auto W_reshape = std::make_shared<op::Reshape>(W_node, W_order, W_out_shape);
+            auto dot_2 = std::make_shared<op::Dot>(W_reshape, x_node);
             auto dot_2_order = ngraph::get_default_order(dot_2->get_shape());
             Shape dot_2_out_shape{W_shape};
             dot_2_out_shape.back() = dot_2->get_shape().back();
