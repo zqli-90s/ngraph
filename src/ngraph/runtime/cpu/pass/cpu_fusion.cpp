@@ -186,7 +186,6 @@ void ngraph::runtime::cpu::pass::CPUFusion::construct_matmul()
             NGRAPH_DEBUG << "mpattern = " << mpattern->get_name() << " type is not float!";
             return false;
         }
-
         if (dot->get_shape().size() != 2)
         {
             NGRAPH_DEBUG << "dot = " << dot->get_name() << " shape is not equal to 2!";
@@ -225,6 +224,49 @@ void ngraph::runtime::cpu::pass::CPUFusion::construct_matmul()
         return true;
     };
 
+    auto m = std::make_shared<ngraph::pattern::Matcher>(pdot, callback);
+    this->add_matcher(m);
+}
+
+void ngraph::runtime::cpu::pass::CPUFusion::construct_dot_n_2()
+{
+    Shape shape_w{2, 4};
+    Shape shape_x{4, 1};
+    Shape shape_dot{2, 1};
+
+    auto W = std::make_shared<pattern::op::Label>(element::f32, shape_w);
+    auto x = std::make_shared<pattern::op::Label>(element::f32, shape_x);
+
+    auto pdot = std::make_shared<op::Dot>(W, x);
+    
+    ngraph::pattern::graph_rewrite_callback callback = [W, x](pattern::Matcher& m) {
+        NGRAPH_DEBUG << "In callback for construct_dot_n_2_pattern against node = "
+                     << m.get_match_root()->get_name();
+        auto pattern_map = m.get_pattern_map();
+
+        auto mpattern = m.get_match_root();
+        auto dot = m.get_match_root();
+
+        auto W_node = pattern_map[W];
+        auto x_node = pattern_map[x];
+        Shape W_shape = W_node->get_shape();
+        Shape x_shape = x_node->get_shape();
+        if (W_shape.size() >= 4 && x_shape.size() == 2) {
+            size_t W_axis_0 = std::accumulate(W_shape.begin(), --W_shape.end(), 0UL);  
+            auto W_order = ngraph::get_default_order(W_shape);
+            Shape W_out_shape{W_axis_0, W_shape.back()};
+            auto W_reshape = std::make_shared<op::Reshape>(W, W_order, W_out_shape);
+            auto dot_2 = std::make_shared<op::Dot>(W_reshape, x);
+            auto dot_2_order = ngraph::get_default_order(dot_2->get_shape());
+            Shape dot_2_out_shape{W_shape};
+            dot_2_out_shape.back() = dot_2->get_shape().back();
+            auto dot_2_reshape = std::make_shared<op::Reshape>(dot_2, dot_2_order, dot_2_out_shape);
+            ngraph::replace_node(mpattern, dot_2_reshape);
+            return true;
+        }
+        return false;
+    };
+          
     auto m = std::make_shared<ngraph::pattern::Matcher>(pdot, callback);
     this->add_matcher(m);
 }

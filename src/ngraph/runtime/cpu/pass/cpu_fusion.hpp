@@ -57,6 +57,7 @@ public:
 
         if (fusions & REGULAR_FUSIONS)
         {
+            construct_dot_n_2();
             construct_matmul();
             construct_matmulbias();
             construct_fprop_bn();
@@ -100,4 +101,5 @@ private:
     void construct_bounded_relu();
     void construct_conv_bias_folded_batch_norm();
     void construct_conv_bias_affine_folding();
+    void construct_dot_n_2();
 };

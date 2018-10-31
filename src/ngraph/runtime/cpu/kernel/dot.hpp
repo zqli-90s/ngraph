@@ -22,6 +22,7 @@
 #include "ngraph/runtime/cpu/kernel/eigen_thread_pool.hpp"
 #include "ngraph/runtime/reference/dot.hpp"
 #include "ngraph/shape.hpp"
+#include "ngraph/util.hpp"
 
 namespace ngraph
 {
@@ -155,6 +156,10 @@ namespace ngraph
                          const Shape& out_shape,
                          size_t reduction_axes_count)
                 {
+                  
+                    stopwatch timer;
+                    std::cout << "reference::dot start " << vector_to_string(arg0_shape) << " " << vector_to_string(arg1_shape) << std::endl;
+                    timer.start();
                     reference::dot(static_cast<const ElementType*>(arg0),
                                    static_cast<const ElementType*>(arg1),
                                    static_cast<ElementType*>(out),
@@ -162,6 +167,8 @@ namespace ngraph
                                    arg1_shape,
                                    out_shape,
                                    reduction_axes_count);
+                    timer.stop();
+                    std::cout << "reference::dot end " << timer.get_milliseconds() << "ms" << std::endl;
                 }
             }
         }

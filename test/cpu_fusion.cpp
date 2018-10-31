@@ -347,6 +347,24 @@ TEST(cpu_fusion, cpu_fusion_pass_matmul_no_bias)
     ASSERT_EQ(mmb, 1);
 }
 
+TEST(cpu_fusion, cpu_fusion_pass_dot_n_2)
+{
+    Shape shape_w{4,1,3,2};
+    Shape shape_x{2, 3};
+    auto W = make_shared<op::Parameter>(element::f32, shape_w);
+    auto x = make_shared<op::Parameter>(element::f32, shape_x);
+
+    auto reshape_w = std::make_shared<op::Reshape>(W, AxisVector{1, 0}, Shape{2, 4});
+    auto reshape_x = std::make_shared<op::Reshape>(x, AxisVector{1, 0}, Shape{4, 1});
+    auto graph = make_shared<op::Dot>(reshape_w, reshape_x);
+
+    pass::Manager pass_manager;
+    pass_manager.register_pass<runtime::cpu::pass::CPUFusion>(
+        runtime::cpu::pass::CPUFusion::REGULAR_FUSIONS);
+    auto func = make_shared<Function>(graph, op::ParameterVector{W, x});
+    pass_manager.run_passes(func);
+}
+
 TEST(cpu_fusion, gemm_mlp)
 {
     const string json_path = file_util::path_join(SERIALIZED_ZOO, "mxnet/mnist_mlp_forward.json");
