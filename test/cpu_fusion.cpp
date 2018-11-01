@@ -371,8 +371,10 @@ TEST(cpu_fusion, cpu_fusion_pass_dot_n_2)
         auto graph = make_shared<op::Dot>(W, x);
 
         pass::Manager pass_manager;
+        pass_manager.register_pass<pass::VisualizeTree>("dot_n_2_before.pdf");
         pass_manager.register_pass<runtime::cpu::pass::CPUFusion>(
             runtime::cpu::pass::CPUFusion::REGULAR_FUSIONS);
+        pass_manager.register_pass<pass::VisualizeTree>("dot_n_2_after.pdf");
         auto func = make_shared<Function>(graph, op::ParameterVector{W, x});
         pass_manager.run_passes(func);
         cpu_results = execute(func, args, "CPU");
