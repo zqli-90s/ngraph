@@ -27,6 +27,7 @@
 #include "ngraph/op/concat.hpp"
 #include "ngraph/op/constant.hpp"
 #include "ngraph/op/divide.hpp"
+#include "ngraph/op/dot.hpp"
 #include "ngraph/op/exp.hpp"
 #include "ngraph/op/get_output_element.hpp"
 #include "ngraph/op/log.hpp"
@@ -242,6 +243,45 @@ static bool simplify_concat(std::shared_ptr<Node> n)
 
     ngraph::replace_node(n, replacement);
     return true;
+}
+
+//`simplify_dot` optimizes `dot(n, 2)` into `dot(2, 2)`
+static bool simplify_dot(std::shared_ptr<Node> n)
+{
+    Shape shape_w{2, 4};
+    Shape shape_x{4, 1};
+    Shape shape_dot{2, 1};
+
+    auto W = std::make_shared<pattern::op::Label>(element::f32, shape_w);
+    auto x = std::make_shared<pattern::op::Label>(element::f32, shape_x);
+
+    auto matcher = create_binary_matcher<op::Dot>(W, x);
+
+    if (matcher->match(n))
+    {
+        auto pattern_map = matcher->get_pattern_map();
+        auto W_node = pattern_map[W];
+        auto x_node = pattern_map[x];
+        Shape W_shape = W_node->get_shape();
+        Shape x_shape = x_node->get_shape();
+        if (W_shape.size() >= 4 && x_shape.size() == 2) {
+            size_t W_axis_0 = std::accumulate(W_shape.begin(), --W_shape.end(), 1UL, std::multiplies<size_t>());
+            auto W_order = ngraph::get_default_order(W_shape);
+            Shape W_out_shape{W_axis_0, W_shape.back()};
+            auto W_reshape = std::make_shared<op::Reshape>(W_node, W_order, W_out_shape);
+            auto dot_2 = std::make_shared<op::Dot>(W_reshape, x_node);
+            auto dot_2_order = ngraph::get_default_order(dot_2->get_shape());
+            Shape dot_2_out_shape{W_shape};
+            dot_2_out_shape.back() = dot_2->get_shape().back();
+            auto dot_2_reshape = std::make_shared<op::Reshape>(dot_2, dot_2_order, dot_2_out_shape);
+            ngraph::replace_node(n, dot_2_reshape);
+            NGRAPH_DEBUG << "Node " << n->get_name() << " matched dot(n, 2) \n"
+                         << " arg: W = " << W_node->get_name() << ", x = " << x_node->get_name() << "\n";
+            return true;
+        }
+        NGRAPH_DEBUG << "Node " << n->get_name() << " did not matched dot(n, 2)\n";
+    }
+    return false;
 }
 
 //`simplify_multiply` optimizes the following 4 *base* cases
@@ -472,6 +512,7 @@ static std::unordered_map<std::type_index, std::function<bool(std::shared_ptr<No
         {{TI(op::Add), simplify_add},
          {TI(op::Multiply), simplify_multiply},
          {TI(op::Concat), simplify_concat},
+         {TI(op::Dot), simplify_dot},
          {TI(op::Sum),
           std::function<bool(std::shared_ptr<Node>)>{
               simplify_reduction<op::Sum, get_sum_constant>}},

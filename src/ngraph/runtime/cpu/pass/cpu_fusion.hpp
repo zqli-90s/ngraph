@@ -57,7 +57,7 @@ public:
 
         if (fusions & REGULAR_FUSIONS)
         {
-            construct_dot_n_2();
+//            construct_dot_n_2();
             construct_matmul();
             construct_matmulbias();
             construct_fprop_bn();
