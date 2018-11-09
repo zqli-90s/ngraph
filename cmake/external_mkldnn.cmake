@@ -31,13 +31,17 @@ if(MKLDNN_INCLUDE_DIR AND MKLDNN_LIB_DIR)
         )
     add_library(libmkldnn INTERFACE)
     target_include_directories(libmkldnn SYSTEM INTERFACE ${MKLDNN_INCLUDE_DIR})
+    if(NOT MKLML_LIB_DIR)
+        set(MKLML_LIB_DIR ${MKLDNN_LIB_DIR})
+    endif()
     target_link_libraries(libmkldnn INTERFACE
         ${MKLDNN_LIB_DIR}/libmkldnn.so
-        ${MKLDNN_LIB_DIR}/libmklml_intel.so
-        ${MKLDNN_LIB_DIR}/libiomp5.so
+        ${MKLML_LIB_DIR}/libmklml_intel.so
+        ${MKLML_LIB_DIR}/libiomp5.so
         )
 
     install(DIRECTORY ${MKLDNN_LIB_DIR}/ DESTINATION ${NGRAPH_INSTALL_LIB})
+    install(DIRECTORY ${MKLML_LIB_DIR}/ DESTINATION ${NGRAPH_INSTALL_LIB})
     return()
 endif()
 
