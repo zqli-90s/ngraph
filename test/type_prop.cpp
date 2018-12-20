@@ -13931,3 +13931,55 @@ TEST(type_prop, all_partial_rank_static_dynamic_axes_oob)
         FAIL() << "Deduced type check failed for unexpected reason";
     }
 }
+
+TEST(benchmark, type_prop_conv2d)
+{
+    const int num_iterations = 30000;
+
+    auto data_batch = make_shared<op::Parameter>(element::f32, PartialShape{64, 3, 224, 224});
+    auto filters = make_shared<op::Parameter>(element::f32, PartialShape{32, 3, 3, 3});
+    auto strides = Strides{1, 1};
+    auto dilation = Strides{1, 1};
+    auto padding_below = CoordinateDiff{0, 0};
+    auto padding_above = CoordinateDiff{0, 0};
+    auto data_dilation = Strides{1, 1};
+
+    Strides strides_arr[num_iterations];
+    Strides dilation_arr[num_iterations];
+    CoordinateDiff padding_below_arr[num_iterations];
+    CoordinateDiff padding_above_arr[num_iterations];
+    Strides data_dilation_arr[num_iterations];
+
+    for (int i = 0; i < num_iterations; i++)
+    {
+        strides_arr[i] = strides;
+        dilation_arr[i] = dilation;
+        padding_below_arr[i] = padding_below;
+        padding_above_arr[i] = padding_above;
+        data_dilation_arr[i] = data_dilation;
+    }
+
+    std::shared_ptr<Node> node_ptrs[num_iterations];
+
+    stopwatch sw;
+    sw.start();
+
+    for (int i = 0; i < num_iterations; i++)
+    {
+        node_ptrs[i] = std::make_shared<op::Convolution>(data_batch,
+                                                         filters,
+                                                         strides_arr[i],
+                                                         dilation_arr[i],
+                                                         padding_below_arr[i],
+                                                         padding_above_arr[i],
+                                                         data_dilation_arr[i]);
+    }
+
+    sw.stop();
+
+    auto total_msec = sw.get_milliseconds();
+
+    std::cout << num_iterations << " iterations in " << total_msec << "ms ("
+              << (static_cast<double>(total_msec) / static_cast<double>(num_iterations))
+              << "ms per iteration)" << std::endl;
+}

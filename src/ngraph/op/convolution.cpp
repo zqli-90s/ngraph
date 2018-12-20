@@ -297,9 +297,13 @@ void op::ConvolutionBackpropData::validate_and_infer_types()
                                   m_window_movement_strides_forward,
                                   m_window_dilation_strides_forward);
 
-    NODE_VALIDATION_ASSERT(this, forward_result_shape.compatible(delta_shape))
-        << "Inferred forward output shape (" << forward_result_shape << ") does not match shape of "
-        << "delta (" << delta_shape << ").";
+    GOOFY_IF(!(forward_result_shape.compatible(delta_shape)))
+    {
+        NODE_VALIDATION_ASSERT(this, forward_result_shape.compatible(delta_shape))
+            << "Inferred forward output shape (" << forward_result_shape
+            << ") does not match shape of "
+            << "delta (" << delta_shape << ").";
+    }
 
     set_output_type(0, forward_result_et, m_data_batch_shape);
 
@@ -494,9 +498,13 @@ void op::ConvolutionBackpropFilters::validate_and_infer_types()
                                   m_window_movement_strides_forward,
                                   m_window_dilation_strides_forward);
 
-    NODE_VALIDATION_ASSERT(this, forward_result_shape.compatible(delta_shape))
-        << "Inferred forward output shape (" << forward_result_shape << ") does not match shape of "
-        << "delta (" << delta_shape << ").";
+    GOOFY_IF(!(forward_result_shape.compatible(delta_shape)))
+    {
+        NODE_VALIDATION_ASSERT(this, forward_result_shape.compatible(delta_shape))
+            << "Inferred forward output shape (" << forward_result_shape
+            << ") does not match shape of "
+            << "delta (" << delta_shape << ").";
+    }
 
     set_output_type(0, forward_result_et, m_filters_shape);
 

@@ -39,18 +39,27 @@ PartialShape ngraph::infer_windowed_reduction_output_shape(const Node* node,
 {
     PartialShape data_shape_merged{PartialShape::dynamic()};
 
-    NODE_VALIDATION_ASSERT(node,
-                           data_shape_merged.merge_rank(data_shape.rank()) &&
-                               data_shape_merged.merge_rank(data_dilation.size()) &&
-                               data_shape_merged.merge_rank(data_padding_below.size()) &&
-                               data_shape_merged.merge_rank(data_padding_above.size()) &&
-                               data_shape_merged.merge_rank(window_shape.rank()) &&
-                               data_shape_merged.merge_rank(window_strides.size()) &&
-                               data_shape_merged.merge_rank(window_dilation.size()))
-        << "Ranks for data shape (" << data_shape << "), data dilation (" << data_dilation
-        << "), padding below (" << data_padding_below << "), padding above (" << data_padding_above
-        << "), window shape (" << window_shape << "), window strides (" << window_strides
-        << "), and window dilation (" << window_dilation << ") do not match.";
+    GOOFY_IF(!(data_shape_merged.merge_rank(data_shape.rank()) &&
+               data_shape_merged.merge_rank(data_dilation.size()) &&
+               data_shape_merged.merge_rank(data_padding_below.size()) &&
+               data_shape_merged.merge_rank(data_padding_above.size()) &&
+               data_shape_merged.merge_rank(window_shape.rank()) &&
+               data_shape_merged.merge_rank(window_strides.size()) &&
+               data_shape_merged.merge_rank(window_dilation.size())))
+    {
+        NODE_VALIDATION_ASSERT(node,
+                               data_shape_merged.merge_rank(data_shape.rank()) &&
+                                   data_shape_merged.merge_rank(data_dilation.size()) &&
+                                   data_shape_merged.merge_rank(data_padding_below.size()) &&
+                                   data_shape_merged.merge_rank(data_padding_above.size()) &&
+                                   data_shape_merged.merge_rank(window_shape.rank()) &&
+                                   data_shape_merged.merge_rank(window_strides.size()) &&
+                                   data_shape_merged.merge_rank(window_dilation.size()))
+            << "Ranks for data shape (" << data_shape << "), data dilation (" << data_dilation
+            << "), padding below (" << data_padding_below << "), padding above ("
+            << data_padding_above << "), window shape (" << window_shape << "), window strides ("
+            << window_strides << "), and window dilation (" << window_dilation << ") do not match.";
+    }
 
     PartialShape output_shape = PartialShape::dynamic(data_shape_merged.rank());
 
@@ -58,15 +67,24 @@ PartialShape ngraph::infer_windowed_reduction_output_shape(const Node* node,
     {
         for (size_t i = 0; i < static_cast<size_t>(output_shape.rank()); i++)
         {
-            NODE_VALIDATION_ASSERT(node, data_dilation[i] > 0)
-                << "Data dilation (" << data_dilation << ") has zero dimension at axis " << i
-                << ".";
-            NODE_VALIDATION_ASSERT(node, window_strides[i] > 0)
-                << "Window strides (" << window_strides << ") has zero dimension at axis " << i
-                << ".";
-            NODE_VALIDATION_ASSERT(node, window_dilation[i] > 0)
-                << "Window dilation (" << window_dilation << ") has zero dimension at axis " << i
-                << ".";
+            GOOFY_IF(!(data_dilation[i] > 0))
+            {
+                NODE_VALIDATION_ASSERT(node, data_dilation[i] > 0)
+                    << "Data dilation (" << data_dilation << ") has zero dimension at axis " << i
+                    << ".";
+            }
+            GOOFY_IF(!(window_strides[i] > 0))
+            {
+                NODE_VALIDATION_ASSERT(node, window_strides[i] > 0)
+                    << "Window strides (" << window_strides << ") has zero dimension at axis " << i
+                    << ".";
+            }
+            GOOFY_IF(!(window_dilation[i] > 0))
+            {
+                NODE_VALIDATION_ASSERT(node, window_dilation[i] > 0)
+                    << "Window dilation (" << window_dilation << ") has zero dimension at axis "
+                    << i << ".";
+            }
 
             bool data_dim_static = data_shape.rank().is_static() && data_shape[i].is_static();
             bool window_dim_static = window_shape.rank().is_static() && window_shape[i].is_static();
@@ -77,9 +95,12 @@ PartialShape ngraph::infer_windowed_reduction_output_shape(const Node* node,
                 data_padded_dilated_dim = (static_cast<ptrdiff_t>(data_dilation[i]) *
                                            (static_cast<ptrdiff_t>(data_shape[i]) - 1)) +
                                           1 + data_padding_below[i] + data_padding_above[i];
-                NODE_VALIDATION_ASSERT(node, data_padded_dilated_dim > 0)
-                    << "Data shape after padding and dilation has dimension less than 1 (dim: "
-                    << data_padded_dilated_dim << ") at axis " << i << ".";
+                GOOFY_IF(!(data_padded_dilated_dim > 0))
+                {
+                    NODE_VALIDATION_ASSERT(node, data_padded_dilated_dim > 0)
+                        << "Data shape after padding and dilation has dimension less than 1 (dim: "
+                        << data_padded_dilated_dim << ") at axis " << i << ".";
+                }
             }
 
             ptrdiff_t window_dilated_dim = -1;
@@ -89,28 +110,40 @@ PartialShape ngraph::infer_windowed_reduction_output_shape(const Node* node,
                                          (static_cast<ptrdiff_t>(window_shape[i]) - 1) +
                                      1;
 
-                NODE_VALIDATION_ASSERT(node, window_dilated_dim > 0)
-                    << "Window after dilation has dimension less than 1 (dim: "
-                    << window_dilated_dim << ") at axis " << i << ".";
+                GOOFY_IF(!(window_dilated_dim > 0))
+                {
+                    NODE_VALIDATION_ASSERT(node, window_dilated_dim > 0)
+                        << "Window after dilation has dimension less than 1 (dim: "
+                        << window_dilated_dim << ") at axis " << i << ".";
+                }
 
-                NODE_VALIDATION_ASSERT(node,
-                                       is_window_all_in_padding_allowed ||
-                                           (window_dilated_dim > data_padding_below[i] &&
-                                            window_dilated_dim > data_padding_above[i]))
-                    << "Window after dilation is sometimes entirely in the padding area for axis "
-                    << i << " (dilated window dimension: " << window_dilated_dim
-                    << ", padding below dimension: " << data_padding_below[i]
-                    << ", padding above dimension: " << data_padding_above[i]
-                    << ") and this is not "
-                    << "allowed.";
+                GOOFY_IF(!(is_window_all_in_padding_allowed ||
+                           (window_dilated_dim > data_padding_below[i] &&
+                            window_dilated_dim > data_padding_above[i])))
+                {
+                    NODE_VALIDATION_ASSERT(node,
+                                           is_window_all_in_padding_allowed ||
+                                               (window_dilated_dim > data_padding_below[i] &&
+                                                window_dilated_dim > data_padding_above[i]))
+                        << "Window after dilation is sometimes entirely in the padding area for "
+                           "axis "
+                        << i << " (dilated window dimension: " << window_dilated_dim
+                        << ", padding below dimension: " << data_padding_below[i]
+                        << ", padding above dimension: " << data_padding_above[i]
+                        << ") and this is not "
+                        << "allowed.";
+                }
             }
 
             if (data_dim_static && window_dim_static)
             {
-                NODE_VALIDATION_ASSERT(node, window_dilated_dim <= data_padded_dilated_dim)
-                    << "Window after dilation has dimension (dim: " << window_dilated_dim
-                    << ") larger than the data shape after padding (dim: "
-                    << data_padded_dilated_dim << ") at axis " << i << ".";
+                GOOFY_IF(!(window_dilated_dim <= data_padded_dilated_dim))
+                {
+                    NODE_VALIDATION_ASSERT(node, window_dilated_dim <= data_padded_dilated_dim)
+                        << "Window after dilation has dimension (dim: " << window_dilated_dim
+                        << ") larger than the data shape after padding (dim: "
+                        << data_padded_dilated_dim << ") at axis " << i << ".";
+                }
 
                 output_shape[i] = ceil_div(static_cast<size_t>(data_padded_dilated_dim) -
                                                static_cast<size_t>(window_dilated_dim) + 1,
@@ -139,39 +172,60 @@ std::tuple<element::Type, PartialShape>
 {
     element::Type et_result;
 
-    NODE_VALIDATION_ASSERT(node, element::Type::merge(et_result, et_batch, et_filters))
-        << "Element types for data batch and filters do not match (data batch element type: "
-        << et_batch << ", filters element type: " << et_filters << ").";
+    GOOFY_IF(!(element::Type::merge(et_result, et_batch, et_filters)))
+    {
+        NODE_VALIDATION_ASSERT(node, element::Type::merge(et_result, et_batch, et_filters))
+            << "Element types for data batch and filters do not match (data batch element type: "
+            << et_batch << ", filters element type: " << et_filters << ").";
+    }
 
     Rank data_batch_filters_rank{Rank::dynamic()};
 
-    NODE_VALIDATION_ASSERT(
-        node, Rank::merge(data_batch_filters_rank, data_batch_shape.rank(), filters_shape.rank()))
-        << "Data batch and filters rank do not match (data batch shape: " << data_batch_shape
-        << ", filters shape: " << filters_shape << ").";
+    GOOFY_IF(!(Rank::merge(data_batch_filters_rank, data_batch_shape.rank(), filters_shape.rank())))
+    {
+        NODE_VALIDATION_ASSERT(
+            node,
+            Rank::merge(data_batch_filters_rank, data_batch_shape.rank(), filters_shape.rank()))
+            << "Data batch and filters rank do not match (data batch shape: " << data_batch_shape
+            << ", filters shape: " << filters_shape << ").";
+    }
 
-    NODE_VALIDATION_ASSERT(node,
-                           data_batch_filters_rank.is_dynamic() ||
-                               static_cast<size_t>(data_batch_filters_rank) >= 3)
-        << "Data batch and filters must have rank of at least 3 (one batch axis, "
-        << "one input-channel axis, and at least one spatial dimension) "
-        << "(data batch shape: " << data_batch_shape << ", filters shape: " << filters_shape
-        << ").";
+    GOOFY_IF(!(data_batch_filters_rank.is_dynamic() ||
+               static_cast<size_t>(data_batch_filters_rank) >= 3))
+    {
+        NODE_VALIDATION_ASSERT(node,
+                               data_batch_filters_rank.is_dynamic() ||
+                                   static_cast<size_t>(data_batch_filters_rank) >= 3)
+            << "Data batch and filters must have rank of at least 3 (one batch axis, "
+            << "one input-channel axis, and at least one spatial dimension) "
+            << "(data batch shape: " << data_batch_shape << ", filters shape: " << filters_shape
+            << ").";
+    }
 
     Rank spatial_rank{Rank::dynamic()};
-    NODE_VALIDATION_ASSERT(node,
-                           Rank::merge(spatial_rank, spatial_rank, data_batch_filters_rank - 2) &&
-                               Rank::merge(spatial_rank, spatial_rank, data_dilation.size()) &&
-                               Rank::merge(spatial_rank, spatial_rank, data_padding_below.size()) &&
-                               Rank::merge(spatial_rank, spatial_rank, data_padding_above.size()) &&
-                               Rank::merge(spatial_rank, spatial_rank, filter_strides.size()) &&
-                               Rank::merge(spatial_rank, spatial_rank, filter_dilation.size()))
-        << "Ranks for data item shape/filters shape (data batch has shape " << data_batch_shape
-        << ", so data item rank is " << (data_batch_shape.rank() - 2) << " and filters have shape "
-        << filters_shape << ", so filters spatial rank is " << (filters_shape.rank() - 2)
-        << "), data dilation (" << data_dilation << "), padding below (" << data_padding_below
-        << "), padding above (" << data_padding_above << "), filter strides (" << filter_strides
-        << "), and filter dilation (" << filter_dilation << ") do not match.";
+    GOOFY_IF(!(Rank::merge(spatial_rank, spatial_rank, data_batch_filters_rank - 2) &&
+               Rank::merge(spatial_rank, spatial_rank, data_dilation.size()) &&
+               Rank::merge(spatial_rank, spatial_rank, data_padding_below.size()) &&
+               Rank::merge(spatial_rank, spatial_rank, data_padding_above.size()) &&
+               Rank::merge(spatial_rank, spatial_rank, filter_strides.size()) &&
+               Rank::merge(spatial_rank, spatial_rank, filter_dilation.size())))
+    {
+        NODE_VALIDATION_ASSERT(
+            node,
+            Rank::merge(spatial_rank, spatial_rank, data_batch_filters_rank - 2) &&
+                Rank::merge(spatial_rank, spatial_rank, data_dilation.size()) &&
+                Rank::merge(spatial_rank, spatial_rank, data_padding_below.size()) &&
+                Rank::merge(spatial_rank, spatial_rank, data_padding_above.size()) &&
+                Rank::merge(spatial_rank, spatial_rank, filter_strides.size()) &&
+                Rank::merge(spatial_rank, spatial_rank, filter_dilation.size()))
+            << "Ranks for data item shape/filters shape (data batch has shape " << data_batch_shape
+            << ", so data item rank is " << (data_batch_shape.rank() - 2)
+            << " and filters have shape " << filters_shape << ", so filters spatial rank is "
+            << (filters_shape.rank() - 2) << "), data dilation (" << data_dilation
+            << "), padding below (" << data_padding_below << "), padding above ("
+            << data_padding_above << "), filter strides (" << filter_strides
+            << "), and filter dilation (" << filter_dilation << ") do not match.";
+    }
 
     Dimension batch_size =
         (data_batch_shape.rank().is_static() ? data_batch_shape[0] : Dimension::dynamic());
@@ -202,25 +256,41 @@ std::tuple<element::Type, PartialShape>
         }
     }
 
-    NODE_VALIDATION_ASSERT(node, batch_size.is_dynamic() || static_cast<size_t>(batch_size) > 0)
-        << "Batch size is zero.";
+    GOOFY_IF(!(batch_size.is_dynamic() || static_cast<size_t>(batch_size) > 0))
+    {
+        NODE_VALIDATION_ASSERT(node, batch_size.is_dynamic() || static_cast<size_t>(batch_size) > 0)
+            << "Batch size is zero.";
+    }
 
     Dimension merged_channel_count;
 
-    NODE_VALIDATION_ASSERT(
-        node,
-        Dimension::merge(merged_channel_count, data_channel_count, filter_input_channel_count))
-        << "Data batch channel count (" << data_channel_count << ") does not match filter input "
-        << "channel count (" << filter_input_channel_count << ").";
+    GOOFY_IF(
+        !(Dimension::merge(merged_channel_count, data_channel_count, filter_input_channel_count)))
+    {
+        NODE_VALIDATION_ASSERT(
+            node,
+            Dimension::merge(merged_channel_count, data_channel_count, filter_input_channel_count))
+            << "Data batch channel count (" << data_channel_count
+            << ") does not match filter input "
+            << "channel count (" << filter_input_channel_count << ").";
+    }
 
-    NODE_VALIDATION_ASSERT(
-        node, merged_channel_count.is_dynamic() || static_cast<size_t>(merged_channel_count) > 0)
-        << "Data batch channel count and/or filter input channel count is zero.";
+    GOOFY_IF(!(merged_channel_count.is_dynamic() || static_cast<size_t>(merged_channel_count) > 0))
+    {
+        NODE_VALIDATION_ASSERT(node,
+                               merged_channel_count.is_dynamic() ||
+                                   static_cast<size_t>(merged_channel_count) > 0)
+            << "Data batch channel count and/or filter input channel count is zero.";
+    }
 
-    NODE_VALIDATION_ASSERT(node,
-                           filter_output_channel_count.is_dynamic() ||
-                               static_cast<size_t>(filter_output_channel_count) > 0)
-        << "Filter output channel count is zero.";
+    GOOFY_IF(!(filter_output_channel_count.is_dynamic() ||
+               static_cast<size_t>(filter_output_channel_count) > 0))
+    {
+        NODE_VALIDATION_ASSERT(node,
+                               filter_output_channel_count.is_dynamic() ||
+                                   static_cast<size_t>(filter_output_channel_count) > 0)
+            << "Filter output channel count is zero.";
+    }
 
     PartialShape data_output_shape = infer_windowed_reduction_output_shape(node,
                                                                            data_spatial_shape,

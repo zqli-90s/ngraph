@@ -21,6 +21,9 @@
 #include "ngraph/coordinate_diff.hpp"
 #include "ngraph/op/op.hpp"
 
+#define GOOFY_IF(x) if (x)
+//#define GOOFY_IF(x)
+
 namespace ngraph
 {
     PartialShape infer_windowed_reduction_output_shape(const Node* node,
