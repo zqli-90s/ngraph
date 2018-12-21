@@ -13934,7 +13934,7 @@ TEST(type_prop, all_partial_rank_static_dynamic_axes_oob)
 
 TEST(benchmark, type_prop_conv2d)
 {
-    const int num_iterations = 30000;
+    const int num_iterations = 1000000;
 
     auto data_batch = make_shared<op::Parameter>(element::f32, PartialShape{64, 3, 224, 224});
     auto filters = make_shared<op::Parameter>(element::f32, PartialShape{32, 3, 3, 3});
@@ -13944,35 +13944,39 @@ TEST(benchmark, type_prop_conv2d)
     auto padding_above = CoordinateDiff{0, 0};
     auto data_dilation = Strides{1, 1};
 
-    Strides strides_arr[num_iterations];
-    Strides dilation_arr[num_iterations];
-    CoordinateDiff padding_below_arr[num_iterations];
-    CoordinateDiff padding_above_arr[num_iterations];
-    Strides data_dilation_arr[num_iterations];
+    stopwatch sw;
+    sw.start();
 
     for (int i = 0; i < num_iterations; i++)
     {
-        strides_arr[i] = strides;
-        dilation_arr[i] = dilation;
-        padding_below_arr[i] = padding_below;
-        padding_above_arr[i] = padding_above;
-        data_dilation_arr[i] = data_dilation;
+        auto conv = std::make_shared<op::Convolution>(
+            data_batch, filters, strides, dilation, padding_below, padding_above, data_dilation);
     }
 
-    std::shared_ptr<Node> node_ptrs[num_iterations];
+    sw.stop();
+
+    auto total_msec = sw.get_milliseconds();
+
+    std::cout << num_iterations << " iterations in " << total_msec << "ms ("
+              << (static_cast<double>(total_msec) / static_cast<double>(num_iterations))
+              << "ms per iteration)" << std::endl;
+}
+
+TEST(benchmark, type_prop_slice)
+{
+    const int num_iterations = 1000000;
+
+    auto data = make_shared<op::Parameter>(element::f32, PartialShape{80, 80, 80, 80});
+    auto lower_bounds = Coordinate{1, 2, 3, 4};
+    auto upper_bounds = Coordinate{8, 7, 8, 7};
+    auto strides = Strides{1, 1, 1, 1};
 
     stopwatch sw;
     sw.start();
 
     for (int i = 0; i < num_iterations; i++)
     {
-        node_ptrs[i] = std::make_shared<op::Convolution>(data_batch,
-                                                         filters,
-                                                         strides_arr[i],
-                                                         dilation_arr[i],
-                                                         padding_below_arr[i],
-                                                         padding_above_arr[i],
-                                                         data_dilation_arr[i]);
+        auto slice = std::make_shared<op::Slice>(data, lower_bounds, upper_bounds, strides);
     }
 
     sw.stop();

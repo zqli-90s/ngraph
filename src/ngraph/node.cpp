@@ -26,6 +26,7 @@
 #include "ngraph/op/parameter.hpp"
 #include "ngraph/op/result.hpp"
 #include "ngraph/placement.hpp"
+#include "ngraph/validation_util.hpp"
 
 using namespace std;
 using namespace ngraph;
@@ -71,7 +72,10 @@ void Node::delayed_validate_and_infer_types()
 
 void Node::set_output_size(size_t n)
 {
-    NGRAPH_ASSERT(n >= m_outputs.size()) << "shrinking " << m_outputs.size() << " to " << n;
+    GOOFY_IF(!(n >= m_outputs.size()))
+    {
+        NGRAPH_ASSERT(n >= m_outputs.size()) << "shrinking " << m_outputs.size() << " to " << n;
+    }
     for (size_t i = m_outputs.size(); i < n; ++i)
     {
         auto tensor_descriptor = make_shared<descriptor::Tensor>(
@@ -424,8 +428,11 @@ void ngraph::check_new_args_count(const Node* node, const NodeVector& new_args)
 const std::shared_ptr<Node>& ngraph::check_single_output_arg(const std::shared_ptr<Node>& node,
                                                              size_t i)
 {
-    NGRAPH_ASSERT(node->get_output_size() == 1) << "Argument " << i << node
-                                                << " must produce exactly one value.";
+    GOOFY_IF(node->get_output_size() != 1)
+    {
+        NGRAPH_ASSERT(node->get_output_size() == 1) << "Argument " << i << node
+                                                    << " must produce exactly one value.";
+    }
     return node;
 }
 
