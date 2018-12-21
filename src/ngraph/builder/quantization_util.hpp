@@ -174,7 +174,7 @@ namespace ngraph
                                            std::numeric_limits<uint8_t>::max() *
                                                std::numeric_limits<int8_t>::max());
 
-                // Pass the inverse (1/scale) as the Quantize inverses the scale 
+                // Inverting the scale calculation here as the Quantize op passes scale as 1/scale.
                 return (max_abs_input_range * max_abs_filter_range) / range;
             }
 
