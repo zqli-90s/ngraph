@@ -324,6 +324,9 @@ namespace ngraph
                                                                        max_freezed_output_conv_1,
                                                                        min_freezed_output_conv_2,
                                                                        max_freezed_output_conv_2);
+            AxisSet quantization_axes;
+            op::Quantize::RoundMode round_mode =
+                    op::Quantize::RoundMode::ROUND_NEAREST_TOWARD_EVEN;
 
             if (bias->get_element_type() != element::i32)
             {
@@ -331,13 +334,13 @@ namespace ngraph
                 AxisSet quantization_axes;
                 auto bias_scale =
                     quantization_util::get_bias_scale(min_input, max_input, min_filter, max_filter);
-                op::Quantize::RoundMode round_mode =
-                    op::Quantize::RoundMode::ROUND_NEAREST_TOWARD_EVEN;
 
                 bias = make_shared<op::Quantize>(
                     bias, bias_scale, zero, element::i32, quantization_axes, round_mode);
             }
-            return make_shared<op::QuantizedConvolutionBiasSignedAdd>(input,
+            auto zero = make_constant(element::u8, min_input->get_shape(), 0);
+            auto scale = make_constant(element::f32, min_input->get_shape(), 1);
+            auto qconv = make_shared<op::QuantizedConvolutionBiasSignedAdd>(input,
                                                                       filters,
                                                                       bias,
                                                                       sum_input,
@@ -349,6 +352,7 @@ namespace ngraph
                                                                       requantization_scale,
                                                                       sum_scale,
                                                                       with_relu);
+            return make_shared<op::Quantize>(qconv, scale, zero, element::u8, quantization_axes, round_mode);
         }
     }
 }

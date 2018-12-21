@@ -51,6 +51,7 @@ void op::Quantize::validate_and_infer_types()
 
     element::Type unquantized_type;
 
+    #if 0
     NODE_VALIDATION_ASSERT(this,
                            element::Type::merge(unquantized_type,
                                                 get_input_element_type(INPUT),
@@ -60,7 +61,8 @@ void op::Quantize::validate_and_infer_types()
 
     NODE_VALIDATION_ASSERT(this, unquantized_type.is_dynamic() || unquantized_type.is_real())
         << "Scale/input element type (" << unquantized_type << ") must be a floating point number";
-
+    #endif
+     
     element::Type quantized_type;
 
     NODE_VALIDATION_ASSERT(

@@ -174,7 +174,8 @@ namespace ngraph
                                            std::numeric_limits<uint8_t>::max() *
                                                std::numeric_limits<int8_t>::max());
 
-                return range / (max_abs_input_range * max_abs_filter_range);
+                // Pass the inverse (1/scale) as the Quantize inverses the scale 
+                return (max_abs_input_range * max_abs_filter_range) / range;
             }
 
             std::shared_ptr<Node> get_sum_scale(std::shared_ptr<Node> min_freezed_output_conv_1,

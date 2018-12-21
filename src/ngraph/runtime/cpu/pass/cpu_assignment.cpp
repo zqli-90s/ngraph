@@ -767,7 +767,7 @@ namespace ngraph
                         return;
                     }
                     // TODO: MKLDNN only handles float / not double
-                    if (node->get_input_element_type(0) != element::f32)
+                    if (node->get_input_element_type(0) != element::f32 && node->get_input_element_type(0) != element::i8)
                     {
                         return;
                     }
