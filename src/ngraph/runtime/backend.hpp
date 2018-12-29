@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "ngraph/deprecated.hpp"
 #include "ngraph/function.hpp"
 #include "ngraph/runtime/performance_counter.hpp"
 #include "ngraph/shape.hpp"
@@ -30,7 +31,7 @@ namespace ngraph
         class ExternalFunction;
         class Tensor;
         class Backend;
-        using Handle = std::shared_ptr<Function>;
+        using Handle = void*;
     }
 }
 
@@ -80,51 +81,83 @@ public:
 
     /// \brief Compiles a Function.
     /// \param func The function to compile
+    /// \param enable_performance_collection Flag to add per-op performance profiling.
     /// \returns compiled function or nullptr on failure
-    virtual Handle compile(std::shared_ptr<Function> func) = 0;
+    virtual Handle compile(const Function& func, bool enable_performance_collection = false) = 0;
 
-    /// \brief Executes a single iteration of a Function. If func is not compiled the call will
-    ///     compile it.
-    /// \param func The function to execute
+    /// \brief Executes a single iteration of a Function.
+    /// \param handle The Handle returned from compile or load
+    /// \param outputs vector of runtime::Tensor used as outputs
+    /// \param inputs vector of runtime::Tensor used as inputs
     /// \returns true if iteration is successful, false otherwise
-    virtual bool call(std::shared_ptr<Function> func,
-                      const std::vector<std::shared_ptr<runtime::Tensor>>& outputs,
-                      const std::vector<std::shared_ptr<runtime::Tensor>>& inputs) = 0;
+    virtual bool execute(Handle handle,
+                         const std::vector<runtime::Tensor*>& outputs,
+                         const std::vector<runtime::Tensor*>& inputs) = 0;
 
-    /// \brief Executes a single iteration of a Function. If func is not compiled the call will
-    ///     compile it. Optionally validates the inputs and outputs against the function graph.
-    /// \param func The function to execute
+    bool validate(Handle,
+                  const std::vector<runtime::Tensor*>& outputs,
+                  const std::vector<runtime::Tensor*>& inputs);
+
+    /// \deprecated use the stand-alone validate call
+    /// \brief Validates the inputs and outputs against the function graph.
     /// \returns true if iteration is successful, false otherwise
-    bool call_with_validate(std::shared_ptr<Function> func,
-                            const std::vector<std::shared_ptr<runtime::Tensor>>& outputs,
-                            const std::vector<std::shared_ptr<runtime::Tensor>>& inputs)
-    {
-        validate(func, outputs, inputs);
-        return call(func, outputs, inputs);
-    }
+    DEPRECATED bool call_with_validate(std::shared_ptr<Function> func,
+                                       const std::vector<std::shared_ptr<runtime::Tensor>>& outputs,
+                                       const std::vector<std::shared_ptr<runtime::Tensor>>& inputs);
 
+    /// \deprecated Use the Handle based version of this call
     /// \brief Compiled functions may be cached. This function removes a compiled function
     ///     from the cache.
     /// \param func The function to execute
-    virtual void remove_compiled_function(std::shared_ptr<Function> func);
+    DEPRECATED virtual void remove_compiled_function(std::shared_ptr<Function> func);
 
+    /// \brief Compiled functions may be cached. This function removes a compiled function
+    ///     from the cache.
+    /// \param handle The Handle returned from compile or load
+    virtual void remove_compiled_function(Handle handle);
+
+    /// \deprecated Pass enable flag to compile method.
     /// \brief Enable the collection of per-op performance information on a specified Function.
     ///     Data collection is via the `get_performance_data` method.
     /// \param func The function to collect perfomance data on.
     /// \param enable Set to true to enable or false to disable data collection
-    virtual void enable_performance_data(std::shared_ptr<Function> func, bool enable) {}
+    DEPRECATED virtual void enable_performance_data(std::shared_ptr<Function> func, bool enable);
+
+    /// \deprecated Use the Handle based version of this call
     /// \brief Collect performance information gathered on a Function.
     /// \param func The function to get collected data.
     /// \returns Vector of PerformanceCounter information.
-    virtual std::vector<PerformanceCounter>
+    DEPRECATED virtual std::vector<PerformanceCounter>
         get_performance_data(std::shared_ptr<Function> func) const;
+
+    /// \brief Collect performance information gathered on a Function.
+    /// \param handle The Handle returned from compile or load
+    /// \returns Vector of PerformanceCounter information.
+    virtual std::vector<PerformanceCounter> get_performance_data(Handle handle) const;
 
     /// \brief Test if a backend is capable of supporting an op
     /// \param node is the op to test.
     /// \returns true if the op is supported, false otherwise.
     virtual bool is_supported(const Node& node) const;
 
-    void validate(std::shared_ptr<const Function> func,
-                  const std::vector<std::shared_ptr<runtime::Tensor>>& outputs,
-                  const std::vector<std::shared_ptr<runtime::Tensor>>& inputs);
+    /// \brief Save the function's state.
+    /// \param handle The Handle returned from compile or load
+    /// \param out Output stream.
+    /// \returns true if save is successful.
+    virtual bool save(Handle handle, std::ostream& out) const;
+
+    /// \brief Load a function's saved state.
+    /// \param in Input stream.
+    /// \returns non-nullptr Handle if successful, nullptr otherwise.
+    virtual Handle load(std::istream& in);
+
+    /// \brief Query the input Parameters for a given Handle
+    /// \param handle The Handle returned from compile or load
+    /// \returns an ngraph::op::ParameterVector of all input parameters
+    virtual const ngraph::ParameterVector& get_parameters(Handle handle) const = 0;
+
+    /// \brief Query the output Results for a given Handle
+    /// \param handle The Handle returned from compile or load
+    /// \returns an ngraph::ResultVector of all input parameters
+    virtual const ngraph::ResultVector& get_results(Handle handle) const = 0;
 };
