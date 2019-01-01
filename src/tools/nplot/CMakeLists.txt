@@ -14,10 +14,15 @@
 # limitations under the License.
 # ******************************************************************************
 
-add_subdirectory(nbench)
-add_subdirectory(nplot)
-add_subdirectory(ngraph-to-plaidml)
-add_subdirectory(reserialize)
-if (NGRAPH_ONNX_IMPORT_ENABLE)
-    add_subdirectory(serialize_onnx)
+set (SRC
+    nplot.cpp
+)
+
+add_executable(nplot ${SRC})
+
+if (APPLE)
+    set_property(TARGET nplot APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-rpath,@loader_path/../lib")
 endif()
+target_link_libraries(nplot ngraph)
+
+install(TARGETS nplot RUNTIME DESTINATION ${NGRAPH_INSTALL_BIN})
