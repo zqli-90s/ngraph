@@ -265,4 +265,9 @@ namespace ngraph
     /// {2,3,4}
     /// \endcode
     std::ostream& operator<<(std::ostream& str, const PartialShape& shape);
+
+    /// \brief Computes the number of elements in a tensor with shape `s`.
+    /// \param s A partial shape.
+    /// \return The number of elements in shape `s`; may be `Dimension::dynamic()`.
+    Dimension partial_shape_size(const PartialShape& s);
 }

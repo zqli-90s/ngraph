@@ -13931,3 +13931,157 @@ TEST(type_prop, all_partial_rank_static_dynamic_axes_oob)
         FAIL() << "Deduced type check failed for unexpected reason";
     }
 }
+
+TEST(type_prop, dyn_reshape)
+{
+    auto param_data = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param_newshape = make_shared<op::Parameter>(element::u64, Shape{3});
+
+    auto dr = make_shared<op::DynReshape>(param_data, param_newshape);
+
+    EXPECT_EQ(dr->get_output_element_type(0), element::f32);
+    EXPECT_TRUE(dr->get_output_partial_shape(0).same_scheme(PartialShape::dynamic()));
+}
+
+TEST(type_prop, dyn_reshape_shape_rank_static_dynamic)
+{
+    auto param_data = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param_newshape =
+        make_shared<op::Parameter>(element::u64, PartialShape{Dimension::dynamic()});
+
+    auto dr = make_shared<op::DynReshape>(param_data, param_newshape);
+
+    EXPECT_EQ(dr->get_output_element_type(0), element::f32);
+    EXPECT_TRUE(dr->get_output_partial_shape(0).same_scheme(PartialShape::dynamic()));
+}
+
+TEST(type_prop, dyn_reshape_shape_rank_dynamic)
+{
+    auto param_data = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param_newshape = make_shared<op::Parameter>(element::u64, PartialShape::dynamic());
+
+    auto dr = make_shared<op::DynReshape>(param_data, param_newshape);
+
+    EXPECT_EQ(dr->get_output_element_type(0), element::f32);
+    EXPECT_TRUE(dr->get_output_partial_shape(0).same_scheme(PartialShape::dynamic()));
+}
+
+TEST(type_prop, dyn_reshape_data_rank_static_dynamic)
+{
+    auto param_data =
+        make_shared<op::Parameter>(element::f32, PartialShape{2, Dimension::dynamic(), 6, 8});
+    auto param_newshape = make_shared<op::Parameter>(element::u64, Shape{3});
+
+    auto dr = make_shared<op::DynReshape>(param_data, param_newshape);
+
+    EXPECT_EQ(dr->get_output_element_type(0), element::f32);
+    EXPECT_TRUE(dr->get_output_partial_shape(0).same_scheme(PartialShape::dynamic()));
+}
+
+TEST(type_prop, dyn_reshape_shape_rank_static_dynamic_wrong_rank)
+{
+    auto param_data = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param_newshape =
+        make_shared<op::Parameter>(element::u64, PartialShape{Dimension::dynamic(), 3});
+
+    try
+    {
+        auto dr = make_shared<op::DynReshape>(param_data, param_newshape);
+
+        // Should have thrown, so fail if it didn't
+        FAIL() << "Did not detect invalid rank for shape input";
+    }
+    catch (const NodeValidationError& error)
+    {
+        EXPECT_HAS_SUBSTRING(error.what(),
+                             std::string("Argument for output shape must be a vector"));
+    }
+    catch (...)
+    {
+        FAIL() << "Deduced type check failed for unexpected reason";
+    }
+}
+
+TEST(type_prop, dyn_reshape_data_rank_static_dynamic_shape_rank_static_dynamic_wrong_rank)
+{
+    auto param_data =
+        make_shared<op::Parameter>(element::f32, PartialShape{2, 4, Dimension::dynamic(), 8});
+    auto param_newshape =
+        make_shared<op::Parameter>(element::u64, PartialShape{Dimension::dynamic(), 3});
+
+    try
+    {
+        auto dr = make_shared<op::DynReshape>(param_data, param_newshape);
+
+        // Should have thrown, so fail if it didn't
+        FAIL() << "Did not detect invalid rank for shape input";
+    }
+    catch (const NodeValidationError& error)
+    {
+        EXPECT_HAS_SUBSTRING(error.what(),
+                             std::string("Argument for output shape must be a vector"));
+    }
+    catch (...)
+    {
+        FAIL() << "Deduced type check failed for unexpected reason";
+    }
+}
+
+TEST(type_prop, dyn_reshape_data_rank_dynamic_shape_rank_static_dynamic_wrong_rank)
+{
+    auto param_data = make_shared<op::Parameter>(element::f32, PartialShape::dynamic());
+    auto param_newshape =
+        make_shared<op::Parameter>(element::u64, PartialShape{Dimension::dynamic(), 3});
+
+    try
+    {
+        auto dr = make_shared<op::DynReshape>(param_data, param_newshape);
+
+        // Should have thrown, so fail if it didn't
+        FAIL() << "Did not detect invalid rank for shape input";
+    }
+    catch (const NodeValidationError& error)
+    {
+        EXPECT_HAS_SUBSTRING(error.what(),
+                             std::string("Argument for output shape must be a vector"));
+    }
+    catch (...)
+    {
+        FAIL() << "Deduced type check failed for unexpected reason";
+    }
+}
+
+TEST(type_prop, dyn_reshape_shape_wrong_et)
+{
+    auto param_data = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param_newshape = make_shared<op::Parameter>(element::u32, Shape{3});
+
+    try
+    {
+        auto dr = make_shared<op::DynReshape>(param_data, param_newshape);
+
+        // Should have thrown, so fail if it didn't
+        FAIL() << "Did not detect invalid element type for shape input";
+    }
+    catch (const NodeValidationError& error)
+    {
+        EXPECT_HAS_SUBSTRING(
+            error.what(),
+            std::string("Argument for output shape must have element type element::u64"));
+    }
+    catch (...)
+    {
+        FAIL() << "Deduced type check failed for unexpected reason";
+    }
+}
+
+TEST(type_prop, dyn_reshape_shape_et_dynamic)
+{
+    auto param_data = make_shared<op::Parameter>(element::f32, Shape{2, 4, 6, 8});
+    auto param_newshape = make_shared<op::Parameter>(element::dynamic, Shape{3});
+
+    auto dr = make_shared<op::DynReshape>(param_data, param_newshape);
+
+    EXPECT_EQ(dr->get_output_element_type(0), element::f32);
+    EXPECT_TRUE(dr->get_output_partial_shape(0).same_scheme(PartialShape::dynamic()));
+}

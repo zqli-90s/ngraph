@@ -63,6 +63,7 @@ set (SRC
     op/embedding_lookup.cpp
     op/equal.cpp
     op/exp.cpp
+    op/experimental/dyn_reshape.cpp
     op/experimental/generate_mask.cpp
     op/experimental/quantized_avg_pool.cpp
     op/experimental/quantized_conv_bias.cpp

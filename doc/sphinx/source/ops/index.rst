@@ -35,6 +35,7 @@ Not currently a comprehensive list.
    * :doc:`divide`
    * :doc:`dot`
    * :doc:`drop_out`
+   * :doc:`dyn_reshape`
    * :doc:`equal`
    * :doc:`exp`
    * :doc:`floor`

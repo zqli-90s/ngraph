@@ -244,3 +244,22 @@ bool PartialShape::merge_into(PartialShape& dst, const PartialShape& src)
         return success;
     }
 }
+
+Dimension partial_shape_size(const PartialShape& s)
+{
+    if (s.rank().is_static())
+    {
+        Dimension result = 1;
+
+        for (size_t i = 0; i < size_t(s.rank()); i++)
+        {
+            result *= s[i];
+        }
+
+        return result;
+    }
+    else
+    {
+        return Dimension::dynamic();
+    }
+}

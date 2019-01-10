@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "ngraph/op/constant.hpp"
 #include "ngraph/partial_shape.hpp"
 
 namespace ngraph
