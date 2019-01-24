@@ -323,6 +323,11 @@ OPTIONS
 
     vector<PerfShape> aggregate_perf_data;
     int rc = 0;
+    size_t total_constant_bytes = 0;
+    unordered_map<string, size_t> op_list;
+    map<string, size_t> op_names;
+    set<string> type_list;
+    size_t total_nodes = 0;
     for (const string& model : models)
     {
         cout << "\n";
@@ -346,17 +351,14 @@ OPTIONS
             {
                 shared_ptr<Function> f = deserialize(model);
 
-                cout << "\n---- Source Graph Statistics ----\n";
-                cout << "Total nodes: " << f->get_ops().size() << endl;
-                size_t total_constant_bytes = 0;
-                unordered_map<string, size_t> op_list;
-                set<string> type_list;
+                total_nodes += f->get_ops().size();
                 for (shared_ptr<Node> node : f->get_ordered_ops())
                 {
                     string name = node->get_name();
                     string op_name = name.substr(0, name.find('_'));
+                    op_names[op_name]++;
                     string shape_name = "{" + join(node->get_outputs()[0].get_shape()) + "}";
-                    op_list[op_name + shape_name]++;
+                    string type = node->get op_list[op_name + shape_name]++;
                     auto et = get_op_element_type(*node);
                     string type_string = et.c_type_string();
                     type_list.insert(type_string);
@@ -375,19 +377,6 @@ OPTIONS
                                 (const_size * shape_size(node->get_outputs()[0].get_shape()));
                         }
                     }
-                }
-                cout << "--\n";
-                cout << "Total Constant size: " << total_constant_bytes << " bytes\n";
-                cout << "--\n";
-                cout << "Types used:\n";
-                for (const string& type : type_list)
-                {
-                    cout << "    " << type << "\n";
-                }
-                cout << "--\n";
-                for (const pair<string, size_t>& op_info : op_list)
-                {
-                    cout << op_info.first << ": " << op_info.second << " ops" << endl;
                 }
             }
 
@@ -412,6 +401,31 @@ OPTIONS
         {
             cout << "Exception caught on '" << model << "'\n" << e.what() << endl;
             rc += 1;
+        }
+    }
+
+    if (statistics)
+    {
+        cout << "\n---- Source Graph Statistics ----\n";
+        cout << "Total nodes: " << total_nodes << endl;
+        cout << "--\n";
+        cout << "Total Constant size: " << total_constant_bytes << " bytes\n";
+        cout << "--\n";
+        cout << "Types used:\n";
+        for (const string& type : type_list)
+        {
+            cout << "    " << type << "\n";
+        }
+        cout << "--\n";
+        cout << "Ops used:\n";
+        for (auto name : op_names)
+        {
+            cout << "    " << name.first << ": " << name.second << "\n";
+        }
+        cout << "--\n";
+        for (const pair<string, size_t>& op_info : op_list)
+        {
+            cout << op_info.first << ": " << op_info.second << " ops" << endl;
         }
     }
 
