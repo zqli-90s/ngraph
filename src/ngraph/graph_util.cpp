@@ -149,7 +149,7 @@ void ngraph::replace_node(std::shared_ptr<Node> target, std::shared_ptr<Node> re
     }
 
     // Fix input/output descriptors
-    assert(target->get_outputs().size() == replacement->get_outputs().size());
+    NGRAPH_ASSERT(target->get_outputs().size() == replacement->get_outputs().size());
 
     // For each of target's output O with replacement output O_rep:
     //     For each O's connected downstream input I:

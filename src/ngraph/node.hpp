@@ -151,10 +151,17 @@ namespace ngraph
         const std::set<std::shared_ptr<Node>>& get_control_dependencies() const;
 
         void add_control_dependency(std::shared_ptr<Node> node);
+        void add_control_dependent(Node* node);
 
         void remove_control_dependency(std::shared_ptr<Node> node)
         {
+            node->remove_control_dependent(this);
             m_control_dependencies.erase(node);
+        }
+
+        void remove_control_dependent(Node* node)
+        {
+            m_control_dependents.erase(node);
         }
 
         /// Returns the number of outputs on the for the node.
@@ -244,6 +251,7 @@ namespace ngraph
 
     protected:
         std::set<std::shared_ptr<Node>> m_control_dependencies;
+        std::set<Node*> m_control_dependents;
         void set_output_size(size_t n);
 
         std::string m_node_type;

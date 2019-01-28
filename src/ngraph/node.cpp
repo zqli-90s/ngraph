@@ -176,6 +176,11 @@ Node::~Node()
     {
         input.get_output().remove_input(&input);
     }
+
+    for (auto& dependency : m_control_dependencies)
+    {
+        dependency->remove_control_dependent(this);
+    }
 }
 
 NodeVector Node::get_arguments() const
@@ -197,6 +202,7 @@ const std::set<std::shared_ptr<Node>>& Node::get_control_dependencies() const
 
 void Node::add_control_dependency(std::shared_ptr<Node> node)
 {
+    node->m_control_dependents.insert(this);
     m_control_dependencies.insert(node);
 }
 
@@ -397,17 +403,18 @@ NodeVector Node::get_users(bool check_is_used) const
     {
         for (auto input : get_output_inputs(i))
         {
-            if (check_is_used)
-            {
-                if (is_used(input->get_node().get()))
-                {
-                    result.push_back(input->get_node());
-                }
-            }
-            else
+            if (!check_is_used || is_used(input->get_node().get()))
             {
                 result.push_back(input->get_node());
             }
+        }
+    }
+
+    for (auto& dependent_node : m_control_dependents)
+    {
+        if (!check_is_used || is_used(dependent_node))
+        {
+            result.push_back(dependent_node->shared_from_this());
         }
     }
 
