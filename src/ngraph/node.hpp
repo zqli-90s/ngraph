@@ -150,6 +150,10 @@ namespace ngraph
         /// Get control dependencies registered on the node
         const std::set<std::shared_ptr<Node>>& get_control_dependencies() const;
 
+        /// Get nodes that are control-dependent on the node, i.e. have the node as a control
+        /// dependency.
+        const std::set<Node*>& get_control_dependents() const;
+
         void add_control_dependency(std::shared_ptr<Node> node);
         void add_control_dependent(Node* node);
 
@@ -159,11 +163,7 @@ namespace ngraph
             m_control_dependencies.erase(node);
         }
 
-        void remove_control_dependent(Node* node)
-        {
-            m_control_dependents.erase(node);
-        }
-
+        void remove_control_dependent(Node* node) { m_control_dependents.erase(node); }
         /// Returns the number of outputs on the for the node.
         size_t get_output_size() const;
 

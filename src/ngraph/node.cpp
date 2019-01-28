@@ -200,6 +200,11 @@ const std::set<std::shared_ptr<Node>>& Node::get_control_dependencies() const
     return m_control_dependencies;
 }
 
+const std::set<Node*>& Node::get_control_dependents() const
+{
+    return m_control_dependents;
+}
+
 void Node::add_control_dependency(std::shared_ptr<Node> node)
 {
     node->m_control_dependents.insert(this);

@@ -164,6 +164,12 @@ void ngraph::replace_node(std::shared_ptr<Node> target, std::shared_ptr<Node> re
             input->replace_output(replacement->get_outputs().at(i));
         }
     }
+
+    for (auto& dependent : target->get_control_dependents())
+    {
+        dependent->remove_control_dependency(target);
+        dependent->add_control_dependency(replacement);
+    }
 }
 
 // Check if all paths from X to a result go through Y
