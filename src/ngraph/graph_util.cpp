@@ -166,7 +166,7 @@ void ngraph::replace_node(std::shared_ptr<Node> target, std::shared_ptr<Node> re
     }
 
     // Copy so we don't invalidate iterator.
-    auto dependents = target->get_control_dependencies();
+    auto dependents = target->get_control_dependents();
 
     for (auto& dependent : dependents)
     {
