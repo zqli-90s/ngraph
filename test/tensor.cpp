@@ -125,3 +125,56 @@ TEST(tensor, output_flag)
         EXPECT_TRUE(f0->get_output_op(i)->is_output());
     }
 }
+
+TEST(tensor, transfer_rate)
+{
+    stopwatch timer;
+    Shape shape{256, 3, 224, 224};
+    // Shape shape{2, 3};
+    auto A = make_shared<op::Parameter>(element::f32, shape);
+    // auto B = make_shared<op::Not>(A);
+    auto f = make_shared<Function>(A, ParameterVector{A});
+
+    vector<string> files = {
+        "/mnt/c/Users/rhkimbal/Desktop/r50/tf_function_ngraph_cluster_481.json",
+        "/mnt/c/Users/rhkimbal/Desktop/r50/tf_function_ngraph_cluster_482.json",
+        "/mnt/c/Users/rhkimbal/Desktop/r50/tf_function_ngraph_cluster_487.json",
+        "/mnt/c/Users/rhkimbal/Desktop/r50/tf_function_ngraph_cluster_496.json",
+        "/mnt/c/Users/rhkimbal/Desktop/r50/tf_function_ngraph_cluster_502.json"};
+
+    for (string file : files)
+    {
+        NGRAPH_INFO << file;
+        auto f = deserialize(file);
+        NGRAPH_INFO << f->get_parameters().size();
+        NGRAPH_INFO << f->get_results().size();
+    }
+
+    ofstream out("simple_transfer.json");
+    string s = serialize(f, 4);
+    out << s;
+
+    auto backend = runtime::Backend::create("NNP");
+
+    // Create some tensors for input/output
+    shared_ptr<runtime::Tensor> a = backend->create_tensor(element::f32, shape);
+    vector<float> a_data(shape_size(shape));
+    timer.start();
+    a->write(a_data.data(), 0, a_data.size() * sizeof(float));
+    timer.stop();
+    cout.imbue(locale(""));
+
+    cout << "copy to device " << timer.get_microseconds() << "us\n";
+
+    vector<float> r_data(shape_size(shape));
+    timer.start();
+    memcpy(r_data.data(), a_data.data(), shape_size(shape));
+    timer.stop();
+    cout << "memcpy " << timer.get_microseconds() << "us\n";
+
+    // shared_ptr<runtime::Tensor> result = backend->create_tensor(element::f32, shape);
+
+    // auto handle = backend->compile(f);
+    // backend->call(handle, {result}, {a});
+    // result->read(r_data.data(), 0, r_data.size() * sizeof(float));
+}
