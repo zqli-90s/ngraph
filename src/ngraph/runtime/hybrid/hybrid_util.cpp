@@ -203,8 +203,10 @@ pair<vector<shared_ptr<Function>>, unordered_map<shared_ptr<op::Parameter>, shar
     unordered_map<shared_ptr<Node>, unordered_set<shared_ptr<Node>>*> map_node_to_cluster;
     for (auto& cluster : clusters)
     {
+        NGRAPH_INFO << "new cluster";
         for (auto node : cluster)
         {
+            NGRAPH_INFO << *node;
             map_node_to_cluster[node] = &cluster;
         }
     }
