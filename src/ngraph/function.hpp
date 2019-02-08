@@ -93,9 +93,6 @@ namespace ngraph
         size_t get_placement() const;
         void set_placement(size_t placement);
 
-        size_t get_placement() const;
-        void set_placement(size_t placement);
-
     protected:
         ResultVector m_results;
         ParameterVector m_parameters;
