@@ -42,4 +42,8 @@ public:
 
 private:
     std::shared_ptr<Node> copy_with_new_args(const NodeVector& new_args) const override;
+
+    const std::vector<std::pair<element::Type, Shape>> m_output_info;
+    std::shared_ptr<Function> m_function;
+    const std::string& m_backend;
 };

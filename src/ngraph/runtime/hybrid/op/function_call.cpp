@@ -25,6 +25,9 @@ runtime::hybrid::op::FunctionCall::FunctionCall(
     shared_ptr<Function> function,
     const string& backend)
     : Op("HybridFunction", arguments)
+    , m_output_info{output_info}
+    , m_function{function}
+    , m_backend{backend}
 {
     set_output_size(output_info.size());
     for (size_t i = 0; i < output_info.size(); i++)
@@ -36,5 +39,6 @@ runtime::hybrid::op::FunctionCall::FunctionCall(
 shared_ptr<Node>
     runtime::hybrid::op::FunctionCall::copy_with_new_args(const NodeVector& new_args) const
 {
-    return nullptr;
+    NGRAPH_INFO;
+    return make_shared<FunctionCall>(new_args, m_output_info, m_function, m_backend);
 }

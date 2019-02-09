@@ -68,10 +68,13 @@ runtime::Handle runtime::hybrid::HybridBackend::compile(shared_ptr<Function> fun
 {
     if (m_function_map.find(func) == m_function_map.end())
     {
+        NGRAPH_INFO;
         // Clone function
         FunctionInstance instance;
+        NGRAPH_INFO;
         instance.m_function = clone_function(*func);
 
+        NGRAPH_INFO;
         // Run placement pass
         ngraph::pass::Manager pass_manager;
         pass_manager.register_pass<runtime::hybrid::pass::DefaultPlacement>(m_backend_list);
@@ -84,12 +87,14 @@ runtime::Handle runtime::hybrid::HybridBackend::compile(shared_ptr<Function> fun
             pass_manager.register_pass<ngraph::pass::VisualizeTree>("graph.png", node_modifiers);
         }
         pass_manager.run_passes(instance.m_function);
+        NGRAPH_INFO;
 
         // Split function to sub_functions
         tie(instance.m_sub_functions, instance.m_map_parameter_to_result) =
             runtime::hybrid::split_function_by_placement(instance.m_function);
         m_function_map.insert({func, instance});
 
+        NGRAPH_INFO;
         // Compile subfunctions in corresponding backends
         size_t subfunction_number = 0;
         for (shared_ptr<Function>& sub_function : instance.m_sub_functions)

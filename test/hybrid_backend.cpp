@@ -71,17 +71,50 @@ TEST(HYBRID, Edge)
 TEST(HYBRID, FunctionCall)
 {
     Shape shape{};
+    shared_ptr<Function> inner_function;
+    {
+        auto A = make_shared<op::Parameter>(element::f32, shape);
+        auto B = make_shared<op::Parameter>(element::f32, shape);
+        auto C = make_shared<op::Parameter>(element::f32, shape);
+        auto R1 = (A + B) * C;
+        auto R2 = (A + C) * C;
+        NodeVector R{R1, R2};
+        inner_function = make_shared<Function>(R, ParameterVector{A, B, C});
+    }
     auto A = make_shared<op::Parameter>(element::f32, shape);
     auto B = make_shared<op::Parameter>(element::f32, shape);
     auto C = make_shared<op::Parameter>(element::f32, shape);
     NodeVector fcall_args{A, B, C};
     vector<pair<element::Type, Shape>> fcall_outs{{element::f32, shape}, {element::f32, shape}};
-    auto H = make_shared<runtime::hybrid::op::FunctionCall>(fcall_args, fcall_outs);
+    auto H = make_shared<runtime::hybrid::op::FunctionCall>(
+        fcall_args, fcall_outs, inner_function, "INTERPRETER");
     auto G0 = make_shared<ngraph::op::GetOutputElement>(H, 0);
     auto G1 = make_shared<ngraph::op::GetOutputElement>(H, 1);
     NodeVector out{G0, G1};
     auto J = G0 + G1;
-    auto f = make_shared<Function>(J, ParameterVector{A, B, C});
+    auto f = make_shared<Function>(out, ParameterVector{A, B, C});
+
+    NGRAPH_INFO;
+    vector<shared_ptr<runtime::Backend>> backend_list = {
+        make_shared<runtime::interpreter::INTBackend>()};
+    NGRAPH_INFO;
+    auto backend = make_shared<runtime::hybrid::HybridBackend>(backend_list);
+    NGRAPH_INFO;
+    shared_ptr<runtime::Tensor> a = backend->create_tensor(element::f32, shape);
+    shared_ptr<runtime::Tensor> b = backend->create_tensor(element::f32, shape);
+    shared_ptr<runtime::Tensor> c = backend->create_tensor(element::f32, shape);
+    shared_ptr<runtime::Tensor> r0 = backend->create_tensor(element::f32, shape);
+    shared_ptr<runtime::Tensor> r1 = backend->create_tensor(element::f32, shape);
+
+    copy_data(a, vector<float>{2});
+    copy_data(b, vector<float>{3});
+    copy_data(c, vector<float>{4});
+
+    NGRAPH_INFO;
+    auto exec = backend->compile(f);
+    NGRAPH_INFO;
+    backend->call(exec, {r0, r1}, {a, b, c});
+    NGRAPH_INFO;
 
     ngraph::pass::Manager pass_manager;
     pass_manager.register_pass<ngraph::pass::VisualizeTree>("test.png");
