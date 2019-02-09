@@ -267,3 +267,57 @@ pair<vector<shared_ptr<Function>>, unordered_map<shared_ptr<op::Parameter>, shar
 
     return make_pair(sub_functions, map_parameter_to_result);
 }
+
+runtime::hybrid::Edge::Edge(shared_ptr<Node> source,
+                            size_t source_output_index,
+                            shared_ptr<Node> target,
+                            size_t target_input_index)
+    : m_source{source}
+    , m_source_output_index{source_output_index}
+    , m_target{target}
+    , m_target_input_index{target_input_index}
+{
+}
+
+vector<runtime::hybrid::Edge> runtime::hybrid::Edge::from(std::shared_ptr<Node> source,
+                                                          std::shared_ptr<Node> target)
+{
+    vector<Edge> rc;
+    size_t output_index = 0;
+    for (const descriptor::Output& output : source->get_outputs())
+    {
+        size_t input_index;
+        const std::set<descriptor::Input*>& outputs_inputs = output.get_inputs();
+        for (descriptor::Input& input : target->get_inputs())
+        {
+            if (outputs_inputs.find(&input) != outputs_inputs.end())
+            {
+                NGRAPH_INFO << "found edge";
+                rc.emplace_back(source, output_index, target, input_index);
+            }
+            input_index++;
+        }
+        output_index++;
+    }
+    return rc;
+}
+
+std::shared_ptr<Node> runtime::hybrid::Edge::get_source() const
+{
+    return m_source;
+}
+
+size_t runtime::hybrid::Edge::get_source_output_index() const
+{
+    return m_source_output_index;
+}
+
+std::shared_ptr<Node> runtime::hybrid::Edge::get_target() const
+{
+    return m_target;
+}
+
+size_t runtime::hybrid::Edge::get_target_input_index() const
+{
+    return m_target_input_index;
+}

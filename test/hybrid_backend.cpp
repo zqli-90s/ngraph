@@ -23,6 +23,7 @@
 #include "ngraph/runtime/backend.hpp"
 #include "ngraph/runtime/backend_manager.hpp"
 #include "ngraph/runtime/hybrid/hybrid_backend.hpp"
+#include "ngraph/runtime/hybrid/hybrid_util.hpp"
 #include "ngraph/runtime/interpreter/int_backend.hpp"
 #include "util/all_close.hpp"
 #include "util/all_close_f.hpp"
@@ -42,6 +43,18 @@ static runtime::Backend* hybrid_creator(const char* config)
         make_shared<runtime::interpreter::INTBackend>(unsupported_1)};
 
     return new runtime::hybrid::HybridBackend(backend_list);
+}
+
+TEST(HYBRID, Edge)
+{
+    Shape shape{};
+    auto A = make_shared<op::Parameter>(element::f32, shape);
+    auto B = make_shared<op::Parameter>(element::f32, shape);
+    auto C = A + B;
+
+    auto edges = runtime::hybrid::Edge::from(A, C);
+    ASSERT_EQ(edges.size(), 1);
+    EXPECT_EQ(edges[0].get_source(), A);
 }
 
 TEST(HYBRID, abc)

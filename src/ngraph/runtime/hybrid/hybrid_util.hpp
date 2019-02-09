@@ -35,6 +35,30 @@ namespace ngraph
                 std::vector<std::shared_ptr<Function>>,
                 std::unordered_map<std::shared_ptr<op::Parameter>, std::shared_ptr<op::Result>>>
                 split_function_by_placement(const std::shared_ptr<Function>& f);
+
+            class Edge;
         }
     }
 }
+
+class ngraph::runtime::hybrid::Edge
+{
+public:
+    Edge(std::shared_ptr<Node> source,
+         size_t source_output_index,
+         std::shared_ptr<Node> target,
+         size_t target_input_index);
+
+    static std::vector<Edge> from(std::shared_ptr<Node> source, std::shared_ptr<Node> target);
+
+    std::shared_ptr<Node> get_source() const;
+    size_t get_source_output_index() const;
+    std::shared_ptr<Node> get_target() const;
+    size_t get_target_input_index() const;
+
+private:
+    std::shared_ptr<Node> m_source;
+    size_t m_source_output_index;
+    std::shared_ptr<Node> m_target;
+    size_t m_target_input_index;
+};
