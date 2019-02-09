@@ -25,6 +25,18 @@ runtime::hybrid::op::FunctionCall::FunctionCall(const NodeVector& results,
 {
 }
 
+runtime::hybrid::op::FunctionCall::FunctionCall(const NodeVector& arguments,
+                                                const vector<pair<element::Type, Shape>>& outputs)
+
+    : Op("HybridFunction", arguments)
+{
+    set_output_size(outputs.size());
+    for (size_t i = 0; i < outputs.size(); i++)
+    {
+        set_output_type(i, outputs[i].first, outputs[i].second);
+    }
+}
+
 shared_ptr<Node>
     runtime::hybrid::op::FunctionCall::copy_with_new_args(const NodeVector& new_args) const
 {

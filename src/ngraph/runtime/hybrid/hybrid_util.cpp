@@ -292,7 +292,6 @@ vector<runtime::hybrid::Edge> runtime::hybrid::Edge::from(std::shared_ptr<Node> 
         {
             if (outputs_inputs.find(&input) != outputs_inputs.end())
             {
-                NGRAPH_INFO << "found edge";
                 rc.emplace_back(source, output_index, target, input_index);
             }
             input_index++;

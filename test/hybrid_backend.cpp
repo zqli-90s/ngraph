@@ -20,10 +20,14 @@
 
 #include "ngraph/log.hpp"
 #include "ngraph/ngraph.hpp"
+#include "ngraph/op/get_output_element.hpp"
+#include "ngraph/pass/manager.hpp"
+#include "ngraph/pass/visualize_tree.hpp"
 #include "ngraph/runtime/backend.hpp"
 #include "ngraph/runtime/backend_manager.hpp"
 #include "ngraph/runtime/hybrid/hybrid_backend.hpp"
 #include "ngraph/runtime/hybrid/hybrid_util.hpp"
+#include "ngraph/runtime/hybrid/op/function_call.hpp"
 #include "ngraph/runtime/interpreter/int_backend.hpp"
 #include "util/all_close.hpp"
 #include "util/all_close_f.hpp"
@@ -55,6 +59,31 @@ TEST(HYBRID, Edge)
     auto edges = runtime::hybrid::Edge::from(A, C);
     ASSERT_EQ(edges.size(), 1);
     EXPECT_EQ(edges[0].get_source(), A);
+
+    edges = runtime::hybrid::Edge::from(B, C);
+    ASSERT_EQ(edges.size(), 1);
+    EXPECT_EQ(edges[0].get_source(), B);
+
+    edges = runtime::hybrid::Edge::from(A, B);
+    ASSERT_EQ(edges.size(), 0);
+}
+
+TEST(HYBRID, FunctionCall)
+{
+    Shape shape{};
+    auto A = make_shared<op::Parameter>(element::f32, shape);
+    auto B = make_shared<op::Parameter>(element::f32, shape);
+    auto C = make_shared<op::Parameter>(element::f32, shape);
+    NodeVector fcall_args{A, B, C};
+    vector<pair<element::Type, Shape>> fcall_outs{{element::f32, shape}, {element::f32, shape}};
+    auto H = make_shared<runtime::hybrid::op::FunctionCall>(fcall_args, fcall_outs);
+    NodeVector out{make_shared<ngraph::op::GetOutputElement>(H, 0),
+                   make_shared<ngraph::op::GetOutputElement>(H, 1)};
+    auto f = make_shared<Function>(out, ParameterVector{A, B, C});
+
+    // ngraph::pass::Manager pass_manager;
+    // pass_manager.register_pass<ngraph::pass::VisualizeTree>("test.png");
+    // pass_manager.run_passes(f);
 }
 
 TEST(HYBRID, abc)
