@@ -35,8 +35,10 @@ namespace ngraph
 class ngraph::runtime::hybrid::op::FunctionCall : public ngraph::op::Op
 {
 public:
-    FunctionCall(const NodeVector& results, const NodeVector& arguments);
-    FunctionCall(const NodeVector& arguments, const std::vector<std::pair<element::Type, Shape>>&);
+    FunctionCall(const NodeVector& arguments,
+                 const std::vector<std::pair<element::Type, Shape>>& output_info,
+                 std::shared_ptr<Function> function = nullptr,
+                 const std::string& backend = "");
 
 private:
     std::shared_ptr<Node> copy_with_new_args(const NodeVector& new_args) const override;

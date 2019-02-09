@@ -19,21 +19,17 @@
 using namespace std;
 using namespace ngraph;
 
-runtime::hybrid::op::FunctionCall::FunctionCall(const NodeVector& results,
-                                                const NodeVector& arguments)
+runtime::hybrid::op::FunctionCall::FunctionCall(
+    const NodeVector& arguments,
+    const vector<pair<element::Type, Shape>>& output_info,
+    shared_ptr<Function> function,
+    const string& backend)
     : Op("HybridFunction", arguments)
 {
-}
-
-runtime::hybrid::op::FunctionCall::FunctionCall(const NodeVector& arguments,
-                                                const vector<pair<element::Type, Shape>>& outputs)
-
-    : Op("HybridFunction", arguments)
-{
-    set_output_size(outputs.size());
-    for (size_t i = 0; i < outputs.size(); i++)
+    set_output_size(output_info.size());
+    for (size_t i = 0; i < output_info.size(); i++)
     {
-        set_output_type(i, outputs[i].first, outputs[i].second);
+        set_output_type(i, output_info[i].first, output_info[i].second);
     }
 }
 

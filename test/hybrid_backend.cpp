@@ -77,13 +77,15 @@ TEST(HYBRID, FunctionCall)
     NodeVector fcall_args{A, B, C};
     vector<pair<element::Type, Shape>> fcall_outs{{element::f32, shape}, {element::f32, shape}};
     auto H = make_shared<runtime::hybrid::op::FunctionCall>(fcall_args, fcall_outs);
-    NodeVector out{make_shared<ngraph::op::GetOutputElement>(H, 0),
-                   make_shared<ngraph::op::GetOutputElement>(H, 1)};
-    auto f = make_shared<Function>(out, ParameterVector{A, B, C});
+    auto G0 = make_shared<ngraph::op::GetOutputElement>(H, 0);
+    auto G1 = make_shared<ngraph::op::GetOutputElement>(H, 1);
+    NodeVector out{G0, G1};
+    auto J = G0 + G1;
+    auto f = make_shared<Function>(J, ParameterVector{A, B, C});
 
-    // ngraph::pass::Manager pass_manager;
-    // pass_manager.register_pass<ngraph::pass::VisualizeTree>("test.png");
-    // pass_manager.run_passes(f);
+    ngraph::pass::Manager pass_manager;
+    pass_manager.register_pass<ngraph::pass::VisualizeTree>("test.png");
+    pass_manager.run_passes(f);
 }
 
 TEST(HYBRID, abc)
