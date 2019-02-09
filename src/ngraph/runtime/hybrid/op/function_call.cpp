@@ -24,3 +24,9 @@ runtime::hybrid::op::FunctionCall::FunctionCall(const NodeVector& results,
     : Op("HybridFunction", arguments)
 {
 }
+
+shared_ptr<Node>
+    runtime::hybrid::op::FunctionCall::copy_with_new_args(const NodeVector& new_args) const
+{
+    return nullptr;
+}
