@@ -79,5 +79,6 @@ TEST(HYBRID, abc)
 
     auto handle = backend->compile(f);
     backend->call_with_validate(handle, {result1, result2}, {a, b, c, d});
-    EXPECT_EQ(read_vector<float>(result1), (vector<float>{150, 576, 1176, 1536}));
+    EXPECT_EQ(read_vector<float>(result1), (vector<float>{29, 46, 53, 44}));
+    EXPECT_EQ(read_vector<float>(result2), (vector<float>{150, 576, 1176, 1536}));
 }
