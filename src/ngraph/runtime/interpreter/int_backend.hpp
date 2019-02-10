@@ -58,6 +58,7 @@
 #include "ngraph/runtime/aligned_buffer.hpp"
 #include "ngraph/runtime/backend.hpp"
 #include "ngraph/runtime/host_tensor.hpp"
+#include "ngraph/runtime/hybrid/op/function_call.hpp"
 #include "ngraph/runtime/interpreter/node_wrapper.hpp"
 #include "ngraph/runtime/reference/abs.hpp"
 #include "ngraph/runtime/reference/acos.hpp"
@@ -778,9 +779,18 @@ private:
                                      element_count);
             break;
         }
-        case OP_TYPEID::HybridFunction:
+        case OP_TYPEID::FunctionCall:
         {
             NGRAPH_INFO;
+            auto fcall = static_cast<const runtime::hybrid::op::FunctionCall*>(&node);
+            for (size_t i = 0; i < fcall->get_arguments().size(); i++)
+            {
+                NGRAPH_INFO << "input " << i;
+            }
+            for (size_t i = 0; i < fcall->get_outputs().size(); i++)
+            {
+                NGRAPH_INFO << "output " << i;
+            }
             break;
         }
         case OP_TYPEID::Less:

@@ -1,1 +1,1 @@
-NGRAPH_OP(HybridFunction, ngraph::runtime::hybrid::op)
+NGRAPH_OP(FunctionCall, ngraph::runtime::hybrid::op)

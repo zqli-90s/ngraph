@@ -24,7 +24,7 @@ runtime::hybrid::op::FunctionCall::FunctionCall(
     const vector<pair<element::Type, Shape>>& output_info,
     shared_ptr<Function> function,
     const string& backend)
-    : Op("HybridFunction", arguments)
+    : Op("FunctionCall", arguments)
     , m_output_info{output_info}
     , m_function{function}
     , m_backend{backend}
@@ -40,4 +40,11 @@ shared_ptr<Node>
     runtime::hybrid::op::FunctionCall::copy_with_new_args(const NodeVector& new_args) const
 {
     return make_shared<FunctionCall>(new_args, m_output_info, m_function, m_backend);
+}
+
+void runtime::hybrid::op::FunctionCall::execute(const vector<shared_ptr<HostTensor>>& outputs,
+                                                const vector<shared_ptr<HostTensor>>& inputs)
+{
+    NGRAPH_INFO << "output size " << outputs.size();
+    NGRAPH_INFO << "inputs size " << inputs.size();
 }

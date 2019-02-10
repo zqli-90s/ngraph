@@ -22,6 +22,7 @@ namespace ngraph
 {
     namespace runtime
     {
+        class HostTensor;
         namespace hybrid
         {
             namespace op
@@ -39,6 +40,9 @@ public:
                  const std::vector<std::pair<element::Type, Shape>>& output_info,
                  std::shared_ptr<Function> function = nullptr,
                  const std::string& backend = "");
+
+    void execute(const std::vector<std::shared_ptr<HostTensor>>& outputs,
+                 const std::vector<std::shared_ptr<HostTensor>>& inputs);
 
 private:
     std::shared_ptr<Node> copy_with_new_args(const NodeVector& new_args) const override;
