@@ -231,20 +231,10 @@ bool runtime::interpreter::INTBackend::call(shared_ptr<Function> function,
 
 void runtime::interpreter::INTBackend::generate_calls(const element::Type& type,
                                                       const NodeWrapper& op,
-                                                      const vector<shared_ptr<HostTensor>>& outputs,
-                                                      const vector<shared_ptr<HostTensor>>& inputs,
+                                                      const vector<shared_ptr<HostTensor>>& out,
+                                                      const vector<shared_ptr<HostTensor>>& in,
                                                       FunctionInstance& instance)
 {
-    vector<void*> out;
-    vector<const void*> in;
-    for (auto t : outputs)
-    {
-        out.push_back(t->get_data_ptr());
-    }
-    for (auto t : inputs)
-    {
-        in.push_back(t->get_data_ptr());
-    }
     stringstream ss;
     switch (type.get_type_enum())
     {
