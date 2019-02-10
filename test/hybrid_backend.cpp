@@ -94,12 +94,9 @@ TEST(HYBRID, FunctionCall)
     auto J = G0 + G1;
     auto f = make_shared<Function>(out, ParameterVector{A, B, C});
 
-    NGRAPH_INFO;
     vector<shared_ptr<runtime::Backend>> backend_list = {
         make_shared<runtime::interpreter::INTBackend>()};
-    NGRAPH_INFO;
     auto backend = make_shared<runtime::hybrid::HybridBackend>(backend_list);
-    NGRAPH_INFO;
     shared_ptr<runtime::Tensor> a = backend->create_tensor(element::f32, shape);
     shared_ptr<runtime::Tensor> b = backend->create_tensor(element::f32, shape);
     shared_ptr<runtime::Tensor> c = backend->create_tensor(element::f32, shape);
@@ -110,7 +107,6 @@ TEST(HYBRID, FunctionCall)
     copy_data(b, vector<float>{3});
     copy_data(c, vector<float>{4});
 
-    NGRAPH_INFO;
     auto exec = backend->compile(f);
     NGRAPH_INFO;
     backend->call(exec, {r0, r1}, {a, b, c});

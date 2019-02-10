@@ -39,6 +39,5 @@ runtime::hybrid::op::FunctionCall::FunctionCall(
 shared_ptr<Node>
     runtime::hybrid::op::FunctionCall::copy_with_new_args(const NodeVector& new_args) const
 {
-    NGRAPH_INFO;
     return make_shared<FunctionCall>(new_args, m_output_info, m_function, m_backend);
 }

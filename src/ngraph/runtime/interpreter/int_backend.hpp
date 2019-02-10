@@ -778,6 +778,11 @@ private:
                                      element_count);
             break;
         }
+        case OP_TYPEID::HybridFunction:
+        {
+            NGRAPH_INFO;
+            break;
+        }
         case OP_TYPEID::Less:
         {
             size_t element_count = shape_size(node.get_output_shape(0));
