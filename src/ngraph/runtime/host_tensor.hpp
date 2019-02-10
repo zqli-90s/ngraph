@@ -68,12 +68,6 @@ public:
         return reinterpret_cast<T*>(get_data_ptr());
     }
 
-    template <typename T>
-    operator T()
-    {
-        return reinterpret_cast<T>(get_data_ptr());
-    }
-
     /// \brief Write bytes directly into the tensor
     /// \param p Pointer to source of data
     /// \param tensor_offset Offset into tensor storage to begin writing. Must be element-aligned.
