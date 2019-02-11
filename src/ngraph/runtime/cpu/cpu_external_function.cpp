@@ -1102,6 +1102,7 @@ void runtime::cpu::CPU_ExternalFunction::register_common_passes(ngraph::pass::Ma
     REGISTER_KNOBBED_PASS(ReshapeElimination, false, ngraph::pass);
     REGISTER_KNOBBED_PASS(CoreFusion, true, ngraph::pass);
     REGISTER_KNOBBED_PASS(CPUFusion, true, runtime::cpu::pass);
+    REGISTER_KNOBBED_PASS(CPUQuantFusion, true, runtime::cpu::pass);
     REGISTER_KNOBBED_PASS(CPUHorizontalFusion, true, runtime::cpu::pass);
     REGISTER_KNOBBED_PASS(CPUCollapseDims, true, runtime::cpu::pass);
 #if defined(NGRAPH_HALIDE)
@@ -1974,12 +1975,12 @@ void runtime::cpu::CPU_ExternalFunction::build()
                     for (size_t i = 0; i < functors.size(); i++)
                     {
                         ss << op_names.at(i) << " will be executed with the following inputs:\n";
-                        for (auto is : this->m_op_attrs.at(i).Inputs)
+                        for (auto& is : this->m_op_attrs.at(i).Inputs)
                         {
                             ss << "\t" << is << " = " << this->get_tensor_data(is) << std::endl;
                         }
                         ss << "and outputs :\n";
-                        for (auto os : this->m_op_attrs.at(i).Outputs)
+                        for (auto& os : this->m_op_attrs.at(i).Outputs)
                         {
                             ss << "\t" << os << " = " << this->get_tensor_data(os) << std::endl;
                         }
