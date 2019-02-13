@@ -49,7 +49,7 @@ endif()
 
 # This section sets up MKL as an external project to be used later by MKLDNN
 
-set(MKLURLROOT "https://github.com/intel/mkl-dnn/releases/download/v0.17.2/")
+set(MKLURLROOT "https://github.com/intel/mkl-dnn/releases/download/v0.17.4/")
 set(MKLVERSION "2019.0.1.20180928")
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(MKLPACKAGE "mklml_lnx_${MKLVERSION}.tgz")
@@ -106,12 +106,7 @@ if (WIN32)
         GIT_TAG ${MKLDNN_GIT_TAG}
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND
-        # Patch gets mad if it applied for a second time so:
-        #    --forward tells patch to ignore if it has already been applied
-        #    --reject-file tells patch to not right a reject file
-        #    || exit 0 changes the exit code for the PATCH_COMMAND to zero so it is not an error
-        # I don't like it, but it works
-        PATCH_COMMAND patch -p1 --forward --reject-file=- -i ${CMAKE_SOURCE_DIR}/cmake/${MKLDNN_PATCH_FILE} || exit 0
+        PATCH_COMMAND git apply ${CMAKE_SOURCE_DIR}/cmake/${MKLDNN_PATCH_FILE}
         # Uncomment below with any in-flight MKL-DNN patches
         # PATCH_COMMAND patch -p1 < ${CMAKE_SOURCE_DIR}/third-party/patches/mkldnn-cmake-openmp.patch
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
@@ -141,12 +136,7 @@ else()
         GIT_TAG ${MKLDNN_GIT_TAG}
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND
-        # Patch gets mad if it applied for a second time so:
-        #    --forward tells patch to ignore if it has already been applied
-        #    --reject-file tells patch to not right a reject file
-        #    || exit 0 changes the exit code for the PATCH_COMMAND to zero so it is not an error
-        # I don't like it, but it works
-        PATCH_COMMAND patch -p1 --forward --reject-file=- -i ${CMAKE_SOURCE_DIR}/cmake/${MKLDNN_PATCH_FILE} || exit 0
+        PATCH_COMMAND git apply ${CMAKE_SOURCE_DIR}/cmake/${MKLDNN_PATCH_FILE}
         # Uncomment below with any in-flight MKL-DNN patches
         # PATCH_COMMAND patch -p1 < ${CMAKE_SOURCE_DIR}/third-party/patches/mkldnn-cmake-openmp.patch
         CMAKE_GENERATOR ${CMAKE_GENERATOR}

@@ -1,8 +1,18 @@
+From e84a51cebaf0d6cd82b926d81af74bcad53e2ae0 Mon Sep 17 00:00:00 2001
+From: Sang Ik Lee <sang.ik.lee@intel.com>
+Date: Wed, 13 Feb 2019 14:24:37 -0800
+Subject: [PATCH] Patch for nGraph.
+
+---
+ cmake/OpenMP.cmake |  2 +-
+ src/CMakeLists.txt | 10 ++++++++--
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
 diff --git a/cmake/OpenMP.cmake b/cmake/OpenMP.cmake
-index f9c3620e..ccfefe4f 100644
+index 2e9aa736..7d370c92 100644
 --- a/cmake/OpenMP.cmake
 +++ b/cmake/OpenMP.cmake
-@@ -30,14 +30,18 @@ if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+@@ -30,7 +30,7 @@ if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
      # But we still want to build the library.
      set(_omp_severity "WARNING")
  else()
@@ -11,19 +21,6 @@ index f9c3620e..ccfefe4f 100644
  endif()
  
  
- macro(forbid_link_compiler_omp_rt)
-     if (NOT WIN32)
--        set_if(OpenMP_C_FOUND CMAKE_C_CREATE_SHARED_LIBRARY_FORBIDDEN_FLAGS ${OpenMP_C_FLAGS})
--        set_if(OpenMP_CXX_FOUND CMAKE_CXX_CREATE_SHARED_LIBRARY_FORBIDDEN_FLAGS ${OpenMP_CXX_FLAGS})
-+        if (OpenMP_C_FOUND)
-+            set(CMAKE_C_CREATE_SHARED_LIBRARY_FORBIDDEN_FLAGS ${OpenMP_C_FLAGS})
-+        endif()
-+        if (OpenMP_CXX_FOUND)
-+            set(CMAKE_CXX_CREATE_SHARED_LIBRARY_FORBIDDEN_FLAGS ${OpenMP_CXX_FLAGS})
-+        endif()
-         if (NOT APPLE)
-             set (CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed")
-         endif()
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
 index 83ed499a..05721370 100644
 --- a/src/CMakeLists.txt
@@ -47,3 +44,6 @@ index 83ed499a..05721370 100644
  
  if(MINGW)
      # We need to install *.dll into bin/ and *.a into lib/. 
+-- 
+2.20.1
+
