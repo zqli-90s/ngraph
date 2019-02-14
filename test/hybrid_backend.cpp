@@ -49,7 +49,7 @@ static runtime::Backend* hybrid_creator(const char* config)
     return new runtime::hybrid::HybridBackend(backend_list);
 }
 
-TEST(HYBRID, Edge)
+TEST(HYBRID, edge)
 {
     Shape shape{};
     auto A = make_shared<op::Parameter>(element::f32, shape);
@@ -68,7 +68,31 @@ TEST(HYBRID, Edge)
     ASSERT_EQ(edges.size(), 0);
 }
 
-TEST(HYBRID, FunctionCall)
+TEST(HYBRID, edge_connect)
+{
+    Shape shape{};
+    auto A = make_shared<op::Parameter>(element::f32, shape);
+    auto B = make_shared<op::Parameter>(element::f32, shape);
+    auto Ap = make_shared<op::Parameter>(element::f32, shape);
+    auto Bp = make_shared<op::Parameter>(element::f32, shape);
+    auto C = A + B;
+    A->set_name("A");
+    B->set_name("B");
+    Ap->set_name("Ap");
+    Bp->set_name("Bp");
+    auto f = make_shared<Function>(C, ParameterVector{A, B});
+
+    plot_graph(f, "edge_connect1.png");
+
+    auto edge1 = runtime::hybrid::Edge::from(A, C);
+    ASSERT_EQ(edge1.size(), 1);
+    edge1[0].new_source(Ap, 0);
+    edge1[0].connect();
+
+    plot_graph(f, "edge_connect2.png");
+}
+
+TEST(HYBRID, function_call)
 {
     Shape shape{};
     shared_ptr<Function> inner_function;

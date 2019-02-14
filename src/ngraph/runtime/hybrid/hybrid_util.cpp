@@ -333,6 +333,9 @@ void runtime::hybrid::Edge::new_target(shared_ptr<Node> target, size_t target_in
 
 void runtime::hybrid::Edge::connect() const
 {
+    descriptor::Output& output = m_source->get_outputs()[m_source_output_index];
+    descriptor::Input& input = m_target->get_inputs()[m_target_input_index];
+    output.add_input(&input);
 }
 
 void runtime::hybrid::Edge::disconnect() const
