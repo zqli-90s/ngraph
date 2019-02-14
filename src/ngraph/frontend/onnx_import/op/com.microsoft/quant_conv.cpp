@@ -105,11 +105,8 @@ namespace onnxruntime
                                 padding_above,
                                 data_dilations,
                                 op_scale.data_scale,
-                                op_zero_point.data_zero_point,
                                 op_scale.filter_scale,
-                                op_zero_point.filter_zero_point,
-                                op_scale.output_scale,
-                                op_zero_point.output_zero_point));
+                                op_scale.output_scale));
                     }
                     std::size_t concatenation_axis = 1;
                     return std::make_shared<ngraph::op::Concat>(convolution_nodes,
@@ -126,11 +123,8 @@ namespace onnxruntime
                         padding_above,
                         data_dilations,
                         op_scale.data_scale,
-                        op_zero_point.data_zero_point,
                         op_scale.filter_scale,
-                        op_zero_point.filter_zero_point,
-                        op_scale.output_scale,
-                        op_zero_point.output_zero_point);
+                        op_scale.output_scale);
                 }
             }
 
@@ -164,11 +158,8 @@ namespace onnxruntime
                         padding_above,
                         data_dilations,
                         op_scale.data_scale,
-                        op_zero_point.data_zero_point,
                         op_scale.filter_scale,
-                        op_zero_point.filter_zero_point,
-                        op_scale.output_scale,
-                        op_zero_point.output_zero_point);
+                        op_scale.output_scale);
                 }
             }
 
