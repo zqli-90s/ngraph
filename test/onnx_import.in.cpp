@@ -29,6 +29,7 @@
 #include "util/all_close.hpp"
 #include "util/all_close_f.hpp"
 #include "util/ndarray.hpp"
+#include "util/test_control.hpp"
 #include "util/test_tools.hpp"
 
 using namespace ngraph;
@@ -50,6 +51,26 @@ TEST(onnx_${BACKEND_NAME}, model_output_names_check)
         EXPECT_EQ(node->get_friendly_name(), "output_" + std::to_string(i + 1));
     }
 }
+
+namespace
+{
+    template <typename T>
+    std::vector<T> read_binary_file(const std::string& path)
+    {
+        std::vector<T> file_content;
+        std::ifstream inputs_fs{file_util::path_join(TEST_FILES, path),
+                                std::ios::in | std::ios::binary};
+        EXPECT_TRUE(inputs_fs);
+
+        inputs_fs.seekg(0, std::ios::end);
+        auto size = inputs_fs.tellg();
+        inputs_fs.seekg(0, std::ios::beg);
+        file_content.resize(size / sizeof(T));
+        inputs_fs.read(reinterpret_cast<char*>(file_content.data()), size);
+        return file_content;
+    }
+
+} // anonymous namespace
 
 TEST(onnx_${BACKEND_NAME}, model_add_abc)
 {
@@ -1969,3 +1990,99 @@ TEST(onnx_${BACKEND_NAME}, model_sign)
 
     EXPECT_TRUE(test::all_close_f(expected_outputs.front(), outputs.front()));
 }
+
+namespace
+{
+    class lin_quant_model_param_test : public testing::TestWithParam<std::uint32_t>
+    {
+    protected:
+        lin_quant_model_param_test()
+            : input_filename("")
+            , output_filename("")
+        {
+            test_set_id = GetParam();
+        }
+
+        void SetUp() override
+        {
+            input_filename = "onnx/resnet50_int8_input" + std::to_string(test_set_id) + ".bin";
+            output_filename = "onnx/resnet50_int8_output" + std::to_string(test_set_id) + ".bin";
+        }
+
+        std::uint32_t test_set_id;
+        std::string input_filename;
+        std::string output_filename;
+    };
+
+} // anonymous namespace
+
+NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test, model_resnet50)
+{
+    auto function = onnx_import::import_onnx_model(
+        file_util::path_join(SERIALIZED_ZOO, "onnx/v7.onnx"));
+
+    Inputs inputs{read_binary_file<float>(input_filename)};
+    Outputs expected_output{read_binary_file<float>(output_filename)};
+    Outputs outputs{execute(function, inputs, "${BACKEND_NAME}")};
+
+    // TODO: For debug only - Remove this code before merging to master
+    const auto& expected = expected_output.front();
+    const auto& got = outputs.front();
+
+    int class_shift = got.size() - expected.size();
+
+    std::cout << "expected size = " << expected.size() << std::endl;
+    std::cout << "got size = " << got.size() << std::endl << std::endl;
+
+    auto exp_idx =
+        std::distance(expected.begin(), std::max_element(expected.begin(), expected.end()));
+    auto got_idx = std::distance(got.begin(), std::max_element(got.begin(), got.end()));
+
+    std::cout << "expected_index    = " << exp_idx << std::endl;
+    std::cout << "got_index    = " << got_idx << std::endl;
+    std::cout << "expected_value = " << expected[exp_idx] << std::endl;
+    std::cout << "got_value[" << exp_idx - class_shift << "] = " << got[exp_idx - class_shift]
+              << std::endl;
+    std::cout << "got_value[" << exp_idx << "] = " << got[exp_idx] << std::endl;
+    std::cout << "got_value[" << exp_idx + class_shift << "] = " << got[exp_idx + class_shift]
+              << " *<--" << std::endl;
+    std::cout << "got_value[" << got_idx << "] = " << got[got_idx] << std::endl << std::endl;
+    // END CODE BLOCK
+
+    EXPECT_EQ(exp_idx, got_idx - class_shift);
+}
+
+// TODO - Remove perf test before merging to master
+NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test, model_resnet50_perf)
+{
+    auto function = onnx_import::import_onnx_model(
+        file_util::path_join(SERIALIZED_ZOO, "onnx/v7.onnx"));
+
+    Inputs inputs{read_binary_file<float>(input_filename)};
+    Outputs expected_output{read_binary_file<float>(output_filename)};
+
+    size_t num_iterations = 10;
+    stopwatch timer;
+    timer.start();
+    Outputs outputs{execute(function, inputs, "${BACKEND_NAME}", num_iterations)};
+    timer.stop();
+    std::cout << "Performance num_iterations: " << num_iterations << ", ms/iteration: " << static_cast<double>(timer.get_milliseconds()) / num_iterations << std::endl;
+
+    const auto& expected = expected_output.front();
+    const auto& got = outputs.front();
+
+    int class_shift = got.size() - expected.size();
+
+    auto exp_idx =
+        std::distance(expected.begin(), std::max_element(expected.begin(), expected.end()));
+    auto got_idx = std::distance(got.begin(), std::max_element(got.begin(), got.end()));
+
+    std::cout << "expected_index    = " << exp_idx << std::endl;
+    std::cout << "got_index    = " << got_idx << std::endl;
+
+    EXPECT_EQ(exp_idx, got_idx - class_shift);
+}
+NGRAPH_INSTANTIATE_TEST_CASE_P(${BACKEND_NAME},
+                               onnx,
+                               lin_quant_model_param_test,
+                               testing::Range(std::uint32_t{0}, std::uint32_t{10}));

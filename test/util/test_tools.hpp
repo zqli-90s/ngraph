@@ -131,7 +131,7 @@ template <typename T>
 std::vector<std::shared_ptr<ngraph::runtime::Tensor>>
     prepare_and_run(const std::shared_ptr<ngraph::Function>& function,
                     std::vector<std::vector<T>> args,
-                    const std::string& backend_id)
+                    const std::string& backend_id, size_t num_iterations = 1)
 {
     auto backend = ngraph::runtime::Backend::create(backend_id);
 
@@ -160,14 +160,17 @@ std::vector<std::shared_ptr<ngraph::runtime::Tensor>>
     }
 
     auto handle = backend->compile(function);
-    backend->call_with_validate(handle, result_tensors, arg_tensors);
+    for (size_t i = 0; i < num_iterations; i++)
+    {
+        backend->call_with_validate(handle, result_tensors, arg_tensors);
+    }
     return result_tensors;
 }
 
 template <typename T, typename T1 = T>
 std::vector<std::vector<T1>> execute(const std::shared_ptr<ngraph::Function>& function,
                                      std::vector<std::vector<T>> args,
-                                     const std::string& backend_id)
+                                     const std::string& backend_id, size_t num_iterations = 1)
 {
     std::vector<std::shared_ptr<ngraph::runtime::Tensor>> result_tensors =
         prepare_and_run(function, args, backend_id);
