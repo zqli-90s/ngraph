@@ -56,6 +56,12 @@ public:
     std::shared_ptr<Node> get_target() const;
     size_t get_target_input_index() const;
 
+    void new_source(std::shared_ptr<Node> source, size_t source_output_index);
+    void new_target(std::shared_ptr<Node> target, size_t target_input_index);
+
+    void connect() const;
+    void disconnect() const;
+
 private:
     std::shared_ptr<Node> m_source;
     size_t m_source_output_index;
