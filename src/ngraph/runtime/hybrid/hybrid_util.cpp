@@ -284,7 +284,7 @@ vector<runtime::hybrid::Edge> runtime::hybrid::Edge::from(std::shared_ptr<Node> 
     size_t output_index = 0;
     for (const descriptor::Output& output : source->get_outputs())
     {
-        size_t input_index;
+        size_t input_index = 0;
         const std::set<descriptor::Input*>& outputs_inputs = output.get_inputs();
         for (descriptor::Input& input : target->get_inputs())
         {
