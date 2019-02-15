@@ -14,13 +14,16 @@
 // limitations under the License.
 //*****************************************************************************
 /// \file
-/// This file contains the pre-generated source code for CPURuntimeContextCG. This class is used
-/// to hold runtime information of the execution of kernels in codegen mode.
+/// Implementation of CPURuntimeContextCG related utilities.
 ///
 
-#pragma once
+#include "pregenerated_src.hpp"
 
-R"(
+#include "ngraph/code_writer.hpp"
+
+void ngraph::runtime::cpu::emit_runtime_context(CodeWriter& writer)
+{
+    writer << R"(
 struct CPURuntimeContextCG
 {
     std::unique_ptr<tbb::flow::graph> tbb_graph;
@@ -70,4 +73,5 @@ extern "C" void destroy_cg_ctx(CPURuntimeContextCG* cg_ctx)
 {
     delete cg_ctx;
 }
-)"
+)";
+}

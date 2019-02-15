@@ -175,6 +175,7 @@
 #include "ngraph/runtime/cpu/pass/cpu_rnn_fusion.hpp"
 #include "ngraph/runtime/cpu/pass/cpu_workspace_insertion.hpp"
 #include "ngraph/runtime/cpu/pass/halide_subgraph_extraction.hpp"
+#include "ngraph/runtime/cpu/pregenerated_src/pregenerated_src.hpp"
 
 #ifdef NGRAPH_DISTRIBUTED_ENABLE
 #include "ngraph/op/allreduce.hpp"
@@ -435,13 +436,6 @@ static void generate_class_declarations(CodeWriter& writer)
     writer << "struct CPURuntimeContextCG;\n";
 }
 
-static void generate_runtime_context_class(CodeWriter& writer)
-{
-    writer <<
-#include "ngraph/runtime/cpu/pregenerated_src/cpu_cg_runtime_context.hpp"
-           << "\n";
-}
-
 void runtime::cpu::CPU_ExternalFunction::compile(ngraph::pass::PassConfig& pass_config)
 {
     if (m_is_compiled)
@@ -651,7 +645,7 @@ using namespace ngraph::runtime;
     }
     writer << "\n";
 
-    generate_runtime_context_class(writer);
+    emit_runtime_context(writer);
 
     writer << common_function_string << "\n";
 

@@ -114,6 +114,7 @@ set(SRC
     pass/cpu_post_layout_optimizations.cpp
     pass/cpu_rnn_fusion.cpp
     pass/cpu_workspace_insertion.cpp
+    pregenerated_src/cg_cpu_runtime_context.cpp
     ngraph_version.cpp
 )
 
