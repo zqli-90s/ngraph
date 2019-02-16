@@ -47,8 +47,10 @@ public:
     static std::string get_file_ext();
     void set_ops_to_details(const visualize_tree_ops_map_t& ops_map) { m_ops_to_details = ops_map; }
 private:
+    std::string process_function(std::shared_ptr<Function> f);
     std::string add_attributes(std::shared_ptr<Node> node);
     std::string get_attributes(std::shared_ptr<Node> node);
+    std::string map_name(const Node& node);
     void render() const;
 
     std::stringstream m_ss;
@@ -57,4 +59,5 @@ private:
     std::unordered_map<std::type_index, std::function<void(const Node&, std::ostream& ss)>>
         m_ops_to_details;
     node_modifiers_t m_node_modifiers = nullptr;
+    std::unordered_map<std::string, std::string> m_name_to_cluster;
 };

@@ -18,10 +18,12 @@
 
 #include "ngraph/function.hpp"
 #include "ngraph/graph_util.hpp"
+#include "ngraph/log.hpp"
 #include "ngraph/node.hpp"
 #include "ngraph/op/get_output_element.hpp"
 #include "ngraph/pass/pass.hpp"
 #include "ngraph/pass/visualize_tree.hpp"
+#include "ngraph/runtime/hybrid/op/function_call.hpp"
 #include "ngraph/util.hpp"
 
 using namespace ngraph;
@@ -29,18 +31,59 @@ using namespace std;
 
 #define TI(x) std::type_index(typeid(x))
 
+string pass::VisualizeTree::process_function(shared_ptr<Function> f)
+{
+    stringstream ss;
+    traverse_nodes(f, [&](shared_ptr<Node> node) {
+        size_t i = 0;
+        for (auto arg : node->get_arguments())
+        {
+            ss << add_attributes(arg);
+            ss << add_attributes(node);
+            ss << "    " << arg->get_name() << " -> " << node->get_name();
+
+            if (std::getenv("NGRAPH_VISUALIZE_EDGE_LABELS") != nullptr)
+            {
+                size_t output = 0;
+                if (auto goe = std::dynamic_pointer_cast<op::GetOutputElement>(node))
+                {
+                    output = goe->get_n();
+                }
+                stringstream label_edge;
+                label_edge << "[label=\" " << output << " -> " << i << " \"]";
+                ss << label_edge.str();
+            }
+
+            ss << ";\n";
+            i++;
+        }
+    });
+    return ss.str();
+}
+
+string pass::VisualizeTree::map_name(const Node& node)
+{
+    string name = node.get_name();
+    auto it = m_name_to_cluster.find(name);
+    if (it != m_name_to_cluster.end())
+    {
+        name = it->second;
+    }
+    return name;
+}
+
 bool pass::VisualizeTree::run_on_module(vector<shared_ptr<ngraph::Function>>& functions)
 {
     for (shared_ptr<Function> f : functions)
     {
-        // map<size_t, list<node_ptr>> dependent_nodes;
+        // m_ss << process_function(f);
         traverse_nodes(f, [&](shared_ptr<Node> node) {
             size_t i = 0;
             for (auto arg : node->get_arguments())
             {
                 m_ss << add_attributes(arg);
                 m_ss << add_attributes(node);
-                m_ss << "    " << arg->get_name() << " -> " << node->get_name();
+                m_ss << "    " << map_name(*arg) << " -> " << map_name(*node);
 
                 if (std::getenv("NGRAPH_VISUALIZE_EDGE_LABELS") != nullptr)
                 {
@@ -145,7 +188,21 @@ std::string pass::VisualizeTree::get_attributes(shared_ptr<Node> node)
     }
 
     stringstream ss;
-    ss << "    " << node->get_name() << " [" << join(attributes, " ") << "]\n";
+
+    auto fc = dynamic_pointer_cast<runtime::hybrid::op::FunctionCall>(node);
+    if (fc)
+    {
+        auto func = fc->get_function();
+        m_name_to_cluster[node->get_name()] = "cluster" + node->get_name();
+        ss << "    subgraph cluster" << node->get_name() << "\n    {\n";
+        ss << "    node [" << join(attributes, " ") << "];\n";
+        ss << process_function(func);
+        ss << "    }\n";
+    }
+    else
+    {
+        ss << "    " << node->get_name() << " [" << join(attributes, " ") << "];\n";
+    }
 
     return ss.str();
 }
@@ -173,6 +230,7 @@ void pass::VisualizeTree::render() const
     if (out)
     {
         out << "digraph ngraph\n{\n";
+        out << "    compound=true;\n";
         out << m_ss.str();
         out << "}\n";
         out.close();
