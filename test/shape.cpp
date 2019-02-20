@@ -45,8 +45,9 @@ TEST(shape, test_shape_strides)
 TEST(shape, test_partial_shape_mnist_mlp)
 {
 //    PartialShape data_batch_shape{PartialShape::dynamic()};
-//    Shape data_batch_shape{2, 1, 28, 28};
-    PartialShape data_batch_shape{Dimension::dynamic(), 1, 28, 28};
+//    PartialShape data_batch_shape{Dimension::dynamic(), 1, 28, 28};
+//    PartialShape reshape_1_shape{Dimension::dynamic(), 1*28*28};
+    Shape data_batch_shape{2, 1, 28, 28};
     Shape reshape_1_shape{2, 1*28*28};
     Shape weight_1_shape{1*28*28, 128};
     Shape weight_2_shape{128, 64};
@@ -63,11 +64,11 @@ TEST(shape, test_partial_shape_mnist_mlp)
     auto fc_2 = make_shared<op::Dot>(act_1, weight_2);
     auto act_2 = make_shared<op::Relu>(fc_2);
     auto fc_3 = make_shared<op::Dot>(act_2, weight_3);
-    auto softmax_1 = make_shared<op::Softmax>(fc_3, AxisSet{0,1});
+    auto softmax_1 = make_shared<op::Softmax>(fc_3, AxisSet{1});
     
     auto f = make_shared<Function>(NodeVector{softmax_1}, ParameterVector{data_batch, weight_1, weight_2, weight_3});
     
-    test::Uniform<float> rng(0.0f, 1.0f);
+    test::Uniform<float> rng(-0.5f, 0.5f);
     vector<vector<float>> fprop_args;
     for (shared_ptr<op::Parameter> param : f->get_parameters())
     {
