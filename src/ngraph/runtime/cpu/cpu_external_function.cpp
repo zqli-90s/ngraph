@@ -538,6 +538,8 @@ void runtime::cpu::CPU_ExternalFunction::compile(ngraph::pass::PassConfig& pass_
 #include "ngraph/strides.hpp"
 #include "ngraph/util.hpp"
 
+#include <mkldnn.hpp>
+
 using namespace ngraph::runtime::cpu::eigen;
 using namespace ngraph::runtime;
 
@@ -644,6 +646,8 @@ using namespace ngraph::runtime;
         writer << "extern \"C\" void " << f->get_name() << func_params << ";\n";
     }
     writer << "\n";
+
+    emit_mkldnn_utils(writer);
 
     emit_runtime_context(writer);
 

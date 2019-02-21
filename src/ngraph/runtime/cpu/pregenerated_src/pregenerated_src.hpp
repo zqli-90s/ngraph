@@ -30,6 +30,12 @@ namespace ngraph
             /// Generate CPURuntimeContextCG. This class is used to hold runtime information of
             /// the execution of kernels in codegen mode.
             void emit_runtime_context(CodeWriter& writer);
+
+
+            // MKLDNN Utils
+
+            /// Generate MKLDNN utilities used to set up MKLDNN execution environment.
+            void emit_mkldnn_utils(CodeWriter& writer);
         }
     }
 }
