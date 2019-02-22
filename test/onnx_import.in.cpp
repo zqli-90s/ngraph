@@ -2086,3 +2086,99 @@ NGRAPH_INSTANTIATE_TEST_CASE_P(${BACKEND_NAME},
                                onnx,
                                lin_quant_model_param_test,
                                testing::Range(std::uint32_t{0}, std::uint32_t{10}));
+
+namespace
+{
+    class lin_quant_model_param_test_incv3 : public testing::TestWithParam<std::uint32_t>
+    {
+    protected:
+        lin_quant_model_param_test_incv3()
+            : input_filename("")
+            , output_filename("")
+        {
+            test_set_id = GetParam();
+        }
+
+        void SetUp() override
+        {
+            input_filename = "onnx/input" + std::to_string(test_set_id) + ".bin";
+            output_filename = "onnx/output" + std::to_string(test_set_id) + ".bin";
+        }
+
+        std::uint32_t test_set_id;
+        std::string input_filename;
+        std::string output_filename;
+    };
+
+} // anonymous namespace
+
+NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test_incv3, model_incv3)
+{
+    auto function = onnx_import::import_onnx_model(
+        file_util::path_join(SERIALIZED_ZOO, "onnx/incv3_v0.onnx"));
+
+    Inputs inputs{read_binary_file<float>(input_filename)};
+    Outputs expected_output{read_binary_file<float>(output_filename)};
+    Outputs outputs{execute(function, inputs, "${BACKEND_NAME}")};
+
+    // TODO: For debug only - Remove this code before merging to master
+    const auto& expected = expected_output.front();
+    const auto& got = outputs.front();
+
+    int class_shift = got.size() - expected.size();
+
+    std::cout << "expected size = " << expected.size() << std::endl;
+    std::cout << "got size = " << got.size() << std::endl << std::endl;
+
+    auto exp_idx =
+        std::distance(expected.begin(), std::max_element(expected.begin(), expected.end()));
+    auto got_idx = std::distance(got.begin(), std::max_element(got.begin(), got.end()));
+
+    std::cout << "expected_index    = " << exp_idx << std::endl;
+    std::cout << "got_index    = " << got_idx << std::endl;
+    std::cout << "expected_value = " << expected[exp_idx] << std::endl;
+    std::cout << "got_value[" << exp_idx - class_shift << "] = " << got[exp_idx - class_shift]
+              << std::endl;
+    std::cout << "got_value[" << exp_idx << "] = " << got[exp_idx] << std::endl;
+    std::cout << "got_value[" << exp_idx + class_shift << "] = " << got[exp_idx + class_shift]
+              << " *<--" << std::endl;
+    std::cout << "got_value[" << got_idx << "] = " << got[got_idx] << std::endl << std::endl;
+    // END CODE BLOCK
+
+    EXPECT_EQ(exp_idx, got_idx - class_shift);
+}
+
+// TODO - Remove perf test before merging to master
+NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test_incv3, model_incv3_perf)
+{
+    auto function = onnx_import::import_onnx_model(
+        file_util::path_join(SERIALIZED_ZOO, "onnx/incv3_v0.onnx"));
+
+    Inputs inputs{read_binary_file<float>(input_filename)};
+    Outputs expected_output{read_binary_file<float>(output_filename)};
+
+    size_t num_iterations = 10;
+    stopwatch timer;
+    timer.start();
+    Outputs outputs{execute(function, inputs, "${BACKEND_NAME}", num_iterations)};
+    timer.stop();
+    std::cout << "Performance num_iterations: " << num_iterations << ", ms/iteration: " << static_cast<double>(timer.get_milliseconds()) / num_iterations << std::endl;
+
+    const auto& expected = expected_output.front();
+    const auto& got = outputs.front();
+
+    int class_shift = got.size() - expected.size();
+
+    auto exp_idx =
+        std::distance(expected.begin(), std::max_element(expected.begin(), expected.end()));
+    auto got_idx = std::distance(got.begin(), std::max_element(got.begin(), got.end()));
+
+    std::cout << "expected_index    = " << exp_idx << std::endl;
+    std::cout << "got_index    = " << got_idx << std::endl;
+
+    EXPECT_EQ(exp_idx, got_idx - class_shift);
+}
+NGRAPH_INSTANTIATE_TEST_CASE_P(${BACKEND_NAME},
+                               onnx,
+                               lin_quant_model_param_test_incv3,
+                               testing::Range(std::uint32_t{0}, std::uint32_t{10}));
