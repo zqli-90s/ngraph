@@ -164,7 +164,7 @@ std::vector<std::shared_ptr<ngraph::runtime::Tensor>>
     auto handle = backend->compile(function);
     for (size_t i = 0; i < num_iterations; i++)
     {
-        backend->call_with_validate(handle, result_tensors, arg_tensors);
+        handle->call_with_validate(result_tensors, arg_tensors);
     }
     return result_tensors;
 }
