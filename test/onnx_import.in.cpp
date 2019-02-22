@@ -55,7 +55,7 @@ TEST(onnx_${BACKEND_NAME}, model_output_names_check)
 namespace
 {
     template <typename T>
-    std::vector<T> read_binary_file(const std::string& path)
+    std::vector<T> read_binary_file2(const std::string& path)
     {
         std::vector<T> file_content;
         std::ifstream inputs_fs{file_util::path_join(TEST_FILES, path),
@@ -2021,8 +2021,8 @@ NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test, model_resnet50)
     auto function = onnx_import::import_onnx_model(
         file_util::path_join(SERIALIZED_ZOO, "onnx/v7.onnx"));
 
-    Inputs inputs{read_binary_file<float>(input_filename)};
-    Outputs expected_output{read_binary_file<float>(output_filename)};
+    Inputs inputs{read_binary_file2<float>(input_filename)};
+    Outputs expected_output{read_binary_file2<float>(output_filename)};
     Outputs outputs{execute(function, inputs, "${BACKEND_NAME}")};
 
     // TODO: For debug only - Remove this code before merging to master
@@ -2058,8 +2058,8 @@ NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test, model_resnet50_perf)
     auto function = onnx_import::import_onnx_model(
         file_util::path_join(SERIALIZED_ZOO, "onnx/v7.onnx"));
 
-    Inputs inputs{read_binary_file<float>(input_filename)};
-    Outputs expected_output{read_binary_file<float>(output_filename)};
+    Inputs inputs{read_binary_file2<float>(input_filename)};
+    Outputs expected_output{read_binary_file2<float>(output_filename)};
 
     size_t num_iterations = 10;
     stopwatch timer;
@@ -2117,8 +2117,8 @@ NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test_incv3, model_incv3)
     auto function = onnx_import::import_onnx_model(
         file_util::path_join(SERIALIZED_ZOO, "onnx/incv3_v0.onnx"));
 
-    Inputs inputs{read_binary_file<float>(input_filename)};
-    Outputs expected_output{read_binary_file<float>(output_filename)};
+    Inputs inputs{read_binary_file2<float>(input_filename)};
+    Outputs expected_output{read_binary_file2<float>(output_filename)};
     Outputs outputs{execute(function, inputs, "${BACKEND_NAME}")};
 
     // TODO: For debug only - Remove this code before merging to master
@@ -2154,8 +2154,8 @@ NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test_incv3, model_incv3_per
     auto function = onnx_import::import_onnx_model(
         file_util::path_join(SERIALIZED_ZOO, "onnx/incv3_v0.onnx"));
 
-    Inputs inputs{read_binary_file<float>(input_filename)};
-    Outputs expected_output{read_binary_file<float>(output_filename)};
+    Inputs inputs{read_binary_file2<float>(input_filename)};
+    Outputs expected_output{read_binary_file2<float>(output_filename)};
 
     size_t num_iterations = 10;
     stopwatch timer;
