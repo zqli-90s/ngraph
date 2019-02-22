@@ -26,22 +26,19 @@ void ngraph::runtime::cpu::emit_mkldnn_utils(CodeWriter& writer)
     writer << R"(
 struct MKLDNNUtils
 {
-    static void set_memory_ptr(cpu::CPURuntimeContext* ctx,
-                               size_t primitive_index,
-                               void* ptr)
+    static void set_memory_ptr(CPURuntimeContextCG* cg_ctx, size_t primitive_index, void* ptr)
     {
-        auto* primitive = static_cast<mkldnn::memory*>(ctx->mkldnn_primitives[primitive_index]);
+        auto* primitive = static_cast<mkldnn::memory*>(cg_ctx->get_mkldnn_primitive(primitive_index));
         primitive->set_data_handle(ptr);
     }
 
-    static void invoke_primitive(cpu::CPURuntimeContext* ctx,
-                                 size_t primitive_index)
+    static void invoke_primitive(CPURuntimeContextCG* cg_ctx, size_t primitive_index)
     {
         mkldnn::stream strm(mkldnn::stream::kind::eager);
         // TODO: Can we just propagate the exception here instead of throwing ngraph_error?
         //try
         //{
-            strm.submit({*ctx->mkldnn_primitives[primitive_index]}).wait();
+            strm.submit({*cg_ctx->get_mkldnn_primitive(primitive_index)}).wait();
         //}
         //catch (const mkldnn::error& err)
         //{

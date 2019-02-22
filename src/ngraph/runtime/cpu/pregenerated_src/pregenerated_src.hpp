@@ -21,6 +21,14 @@
 
 #include "ngraph/code_writer.hpp"
 
+#include <vector>
+
+// Forward decls
+namespace ngraph
+{
+    class Node;
+}
+
 namespace ngraph
 {
     namespace runtime
@@ -29,8 +37,8 @@ namespace ngraph
         {
             /// Generate CPURuntimeContextCG. This class is used to hold runtime information of
             /// the execution of kernels in codegen mode.
-            void emit_runtime_context(CodeWriter& writer);
-
+            void emit_runtime_context(CodeWriter& writer,
+                                      const std::vector<const Node*>& mkldnn_nodes);
 
             // MKLDNN Utils
 

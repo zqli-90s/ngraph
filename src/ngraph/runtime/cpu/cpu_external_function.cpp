@@ -436,6 +436,21 @@ static void emit_class_declarations(CodeWriter& writer)
     writer << "struct CPURuntimeContextCG;\n";
 }
 
+/// Traverse all the nodes in \p functions and return those that will use mkldnn primitives in
+/// \p mkldnn_nodes.
+static void collect_mkldnn_nodes(const std::vector<std::shared_ptr<Function>>& functions,
+                                 std::vector<const Node*>& mkldnn_nodes)
+{
+    for (const shared_ptr<Function>& func : functions)
+    {
+        for (const shared_ptr<Node>& node : func->get_ops())
+        {
+            if (runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node.get()))
+                mkldnn_nodes.push_back(node.get());
+        }
+    }
+}
+
 void runtime::cpu::CPU_ExternalFunction::compile(ngraph::pass::PassConfig& pass_config)
 {
     if (m_is_compiled)
@@ -499,6 +514,7 @@ void runtime::cpu::CPU_ExternalFunction::compile(ngraph::pass::PassConfig& pass_
 #include "ngraph/runtime/cpu/cpu_eigen_utils.hpp"
 #include "ngraph/runtime/cpu/cpu_kernels.hpp"
 #include "ngraph/runtime/cpu/cpu_runtime_context.hpp"
+#include "ngraph/runtime/cpu/mkldnn_emitter.hpp"
 #include "ngraph/runtime/cpu/mkldnn_invoke.hpp"
 #include "ngraph/runtime/reference/all.hpp"
 #include "ngraph/runtime/reference/and.hpp"
@@ -647,9 +663,13 @@ using namespace ngraph::runtime;
     }
     writer << "\n";
 
-    emit_mkldnn_utils(writer);
+    // Collective information of mkldnn nodes is needed to emit the codegen runtime context and
+    // mkl utility functions.
+    std::vector<const Node*> mkldnn_nodes;
+    collect_mkldnn_nodes(pass_manager.get_state().get_functions(), mkldnn_nodes);
 
-    emit_runtime_context(writer);
+    emit_runtime_context(writer, mkldnn_nodes);
+    emit_mkldnn_utils(writer);
 
     writer << common_function_string << "\n";
 
