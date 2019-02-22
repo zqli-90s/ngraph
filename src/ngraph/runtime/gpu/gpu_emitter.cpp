@@ -137,7 +137,7 @@ function<std::string(EMIT_ARGS)> runtime::gpu::GPU_Emitter::get_emit_function(co
     auto it = typeid_map.find(type_index(typeid(node)));
     if (it == typeid_map.end())
     {
-        throw unsupported_op("Unsupported op '" + node.description() + "'");
+        throw unsupported_op("Unsupported op '" + node.op_name() + "'");
     }
 
     return it->second;
@@ -160,12 +160,12 @@ std::string runtime::gpu::GPU_Emitter::emit_Add(EMIT_ARGS)
 
 std::string runtime::gpu::GPU_Emitter::emit_All(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_AllReduce(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_And(EMIT_ARGS)
@@ -175,7 +175,7 @@ std::string runtime::gpu::GPU_Emitter::emit_And(EMIT_ARGS)
 
 std::string runtime::gpu::GPU_Emitter::emit_Any(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_ArgMax(EMIT_ARGS)
@@ -423,7 +423,7 @@ std::string runtime::gpu::GPU_Emitter::emit_Broadcast(EMIT_ARGS)
 
 std::string runtime::gpu::GPU_Emitter::emit_BroadcastLike(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_Ceiling(EMIT_ARGS)
@@ -546,7 +546,7 @@ std::string runtime::gpu::GPU_Emitter::emit_Divide(EMIT_ARGS)
 
 std::string runtime::gpu::GPU_Emitter::emit_Dequantize(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_Dot(EMIT_ARGS)
@@ -721,7 +721,7 @@ std::string runtime::gpu::GPU_Emitter::emit_MaxPool(EMIT_ARGS)
     }
     else
     {
-        throw ngraph_error("Unsupported tensor rank encountered in " + node->description());
+        throw ngraph_error("Unsupported tensor rank encountered in " + node->op_name());
     }
 
     return compiled_function->add_to_runtime(index, function_name, args, out);
@@ -753,7 +753,7 @@ std::string runtime::gpu::GPU_Emitter::emit_MaxPoolBackprop(EMIT_ARGS)
     }
     else
     {
-        throw ngraph_error("Unsupported tensor rank encountered in " + node->description());
+        throw ngraph_error("Unsupported tensor rank encountered in " + node->op_name());
     }
 }
 
@@ -882,42 +882,42 @@ std::string runtime::gpu::GPU_Emitter::emit_Product(EMIT_ARGS)
 
 std::string runtime::gpu::GPU_Emitter::emit_Quantize(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_QuantizedAvgPool(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_QuantizedConvolution(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_QuantizedConvolutionBias(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_QuantizedConvolutionBiasAdd(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_QuantizedConvolutionBiasSignedAdd(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_QuantizedConvolutionRelu(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_QuantizedMaxPool(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_Relu(EMIT_ARGS)
@@ -1152,7 +1152,7 @@ std::string runtime::gpu::GPU_Emitter::emit_Rnn(EMIT_ARGS)
 
 std::string runtime::gpu::GPU_Emitter::emit_ScalarConstantLike(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_Select(EMIT_ARGS)
@@ -1162,7 +1162,7 @@ std::string runtime::gpu::GPU_Emitter::emit_Select(EMIT_ARGS)
 
 std::string runtime::gpu::GPU_Emitter::emit_ShapeOf(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_Sigmoid(EMIT_ARGS)
@@ -1244,7 +1244,7 @@ std::string runtime::gpu::GPU_Emitter::emit_Sqrt(EMIT_ARGS)
 
 std::string runtime::gpu::GPU_Emitter::emit_StopGradient(EMIT_ARGS)
 {
-    throw unsupported_op("Unsupported op '" + node->description() + "'");
+    throw unsupported_op("Unsupported op '" + node->op_name() + "'");
 }
 
 std::string runtime::gpu::GPU_Emitter::emit_Subtract(EMIT_ARGS)

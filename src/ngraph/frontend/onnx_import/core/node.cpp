@@ -47,7 +47,7 @@ namespace ngraph
             const std::string& op_type() const;
             const std::string& name() const;
 
-            const std::string& description() const;
+            const std::string& op_name() const;
             const std::vector<std::reference_wrapper<const std::string>>& get_output_names() const;
             const std::string& output(int index) const;
 
@@ -135,7 +135,7 @@ namespace ngraph
             return result;
         }
 
-        const std::string& Node::Impl::description() const
+        const std::string& Node::Impl::op_name() const
         {
             if (m_description.empty())
             {
@@ -174,7 +174,7 @@ namespace ngraph
         NodeVector Node::get_ng_nodes() const { return m_pimpl->get_ng_nodes(*this); }
         const std::string& Node::domain() const { return m_pimpl->domain(); }
         const std::string& Node::op_type() const { return m_pimpl->op_type(); }
-        const std::string& Node::get_description() const { return m_pimpl->description(); }
+        const std::string& Node::get_description() const { return m_pimpl->op_name(); }
         const std::string& Node::get_name() const { return m_pimpl->name(); }
         const std::vector<std::reference_wrapper<const std::string>>& Node::get_output_names() const
         {

@@ -79,7 +79,7 @@ namespace ngraph
                     if (op().get_input_size() != expected_input_count)
                     {
                         std::ostringstream os;
-                        os << "The PlaidML nGraph backend only supports " << op().description()
+                        os << "The PlaidML nGraph backend only supports " << op().op_name()
                            << " operations with an input count == " << expected_input_count
                            << " (got " << op().get_input_size() << " inputs)";
                         throw std::runtime_error{os.str()};
@@ -93,7 +93,7 @@ namespace ngraph
                     if (op().get_input_size() < minimum_input_count)
                     {
                         std::ostringstream os;
-                        os << "The PlaidML nGraph backend only supports " << op().description()
+                        os << "The PlaidML nGraph backend only supports " << op().op_name()
                            << " operations with an input count >= " << minimum_input_count
                            << " (got " << op().get_input_size() << " inputs)";
                         throw std::runtime_error{os.str()};
@@ -107,7 +107,7 @@ namespace ngraph
                     if (op().get_output_size() != expected_output_count)
                     {
                         std::ostringstream os;
-                        os << "The PlaidML nGraph backend only supports " << op().description()
+                        os << "The PlaidML nGraph backend only supports " << op().op_name()
                            << " operations with an output count == " << expected_output_count
                            << " (got " << op().get_output_size() << " outputs)";
                         throw std::runtime_error{os.str()};
@@ -132,7 +132,7 @@ namespace ngraph
                 }
 
                 // Gets a useful name for the current op.
-                std::string get_op_name() const { return op().description(); }
+                std::string get_op_name() const { return op().op_name(); }
                 // Starts a Tile function builder.
                 builder::Function start_tile_function(bool debug = false) const
                 {

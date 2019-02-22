@@ -114,7 +114,7 @@ static string print_table_row_value(const string& name, T val)
 
 void print_node_parameters(ostringstream& writer, const shared_ptr<Node>& node)
 {
-    switch (get_typeid(node->description()))
+    switch (get_typeid(node->op_name()))
     {
     case OP_TYPEID::BatchNormTrainingBackprop:
     {

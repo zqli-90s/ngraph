@@ -52,7 +52,7 @@ namespace ngraph
                         assign(ngraph::runtime::cpu::CPU_ExternalFunction* external_function,
                                ngraph::Node* node)
                     {
-                        throw std::runtime_error("Unimplemented op '" + node->description() +
+                        throw std::runtime_error("Unimplemented op '" + node->op_name() +
                                                  "' in CPU assignment");
                     }
 

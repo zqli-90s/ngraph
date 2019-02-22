@@ -134,7 +134,7 @@ static void arguments_check(const shared_ptr<Node>& op, size_t input, size_t out
     if (op->get_input_size() != input || op->get_output_size() != output)
     {
         ostringstream os;
-        os << "Operation \"" << op->description() << "\" input and output sizes mismatch."
+        os << "Operation \"" << op->op_name() << "\" input and output sizes mismatch."
            << " Expected input size=" << input << ", provided=" << op->get_input_size()
            << ". Expected output size=" << output << ", provided=" << op->get_output_size();
         throw invalid_argument(os.str());
@@ -452,7 +452,7 @@ shared_ptr<runtime::Executable>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic error "-Wswitch"
 #pragma GCC diagnostic error "-Wswitch-enum"
-        switch (get_typeid(op->description()))
+        switch (get_typeid(op->op_name()))
         {
         case OP_TYPEID::Parameter:
         {
@@ -1859,8 +1859,7 @@ shared_ptr<runtime::Executable>
         case OP_TYPEID::TopK:
         case OP_TYPEID::EmbeddingLookup:
         {
-            throw unsupported_op("Unsupported op '" + op->description() +
-                                 "' in IntelGPU back end.");
+            throw unsupported_op("Unsupported op '" + op->op_name() + "' in IntelGPU back end.");
         }
 #pragma GCC diagnostic pop
         }

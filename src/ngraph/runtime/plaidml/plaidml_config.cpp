@@ -62,7 +62,7 @@ namespace ngraph
                     {
                         const auto& config = dev_configs[idx];
                         NGRAPH_INFO << "\t" << idx << ": " << config.id() << ": "
-                                    << config.description();
+                                    << config.op_name();
                     }
                 }
             }

@@ -1239,7 +1239,7 @@ static json write(const Node& n, bool binary_constant_data)
 {
     json node;
     node["name"] = n.get_name();
-    node["op"] = n.description();
+    node["op"] = n.op_name();
     // TODO Multiple outputs
     json inputs = json::array();
     json control_deps = json::array();
@@ -1272,7 +1272,7 @@ static json write(const Node& n, bool binary_constant_data)
         node["output_shapes"] = output_shapes;
     }
 
-    string node_op = n.description();
+    string node_op = n.op_name();
 #pragma GCC diagnostic push
 #pragma GCC diagnostic error "-Wswitch"
 #pragma GCC diagnostic error "-Wswitch-enum"

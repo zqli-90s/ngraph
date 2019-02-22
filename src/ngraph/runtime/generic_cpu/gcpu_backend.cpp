@@ -65,5 +65,5 @@ shared_ptr<runtime::Executable>
 
 bool runtime::gcpu::GCPUBackend::is_supported(const Node& node) const
 {
-    return m_unsupported_op_name_list.find(node.description()) == m_unsupported_op_name_list.end();
+    return m_unsupported_op_name_list.find(node.op_name()) == m_unsupported_op_name_list.end();
 }

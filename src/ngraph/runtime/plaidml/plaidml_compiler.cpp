@@ -43,8 +43,7 @@ namespace
 {
     void write_debug(const ngraph::Node& op)
     {
-        PLAIDML_DEBUG << "Node: name=\"" << op.get_name() << "\" desc=\"" << op.description()
-                      << "\"";
+        PLAIDML_DEBUG << "Node: name=\"" << op.get_name() << "\" desc=\"" << op.op_name() << "\"";
         for (const auto& op_input : op.get_inputs())
         {
             ngraph::descriptor::Tensor* tensor = op_input.get_output().get_tensor_ptr().get();
@@ -157,7 +156,7 @@ void ngraph::runtime::plaidml::Compiler::build(std::shared_ptr<Function> func, B
         {
             throw unsupported_op{
                 std::string{"The PlaidML backend doesn't currently implement the '"} +
-                op->description() + "' operation"};
+                op->op_name() + "' operation"};
         }
         it->second->Apply(b, op);
     }

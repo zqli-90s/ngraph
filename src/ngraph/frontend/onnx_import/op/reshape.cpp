@@ -47,7 +47,7 @@ namespace ngraph
                     if (output_shape.empty() && ng_inputs.size() == 2)
                     {
                         // Currently only support Constant node.
-                        ASSERT_IS_SUPPORTED(node, ng_inputs.at(1)->description() == "Constant")
+                        ASSERT_IS_SUPPORTED(node, ng_inputs.at(1)->op_name() == "Constant")
                             << "doesn't support shape input of other type than Constant.";
 
                         auto output_shape_node =

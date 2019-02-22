@@ -2080,9 +2080,9 @@ void ngraph::runtime::cpu::pass::CPUQuantFusion::construct_qconvb_add()
         std::make_shared<op::Dequantize>(qconvb_label, dq_scale1, dq_zp1, element::f32, AxisSet{});
     auto dq_l_label = std::make_shared<pattern::op::Label>(dq_l, nullptr, NodeVector{dq_l});
     auto skipr_l = std::make_shared<pattern::op::Skip>(
-        dq_l_label, [](std::shared_ptr<Node> n) { return n->description() == "Reshape"; });
+        dq_l_label, [](std::shared_ptr<Node> n) { return n->op_name() == "Reshape"; });
     auto skipb_l = std::make_shared<pattern::op::Skip>(
-        skipr_l, [](std::shared_ptr<Node> n) { return n->description() == "Broadcast"; });
+        skipr_l, [](std::shared_ptr<Node> n) { return n->op_name() == "Broadcast"; });
 
     //Right Graph
     auto summand = std::make_shared<pattern::op::Label>(element::i8, qconvb->get_shape());
@@ -2090,9 +2090,9 @@ void ngraph::runtime::cpu::pass::CPUQuantFusion::construct_qconvb_add()
         std::make_shared<op::Dequantize>(summand, dq_scale2, dq_zp2, element::f32, AxisSet{});
     auto dq_r_label = std::make_shared<pattern::op::Label>(dq_r, nullptr, NodeVector{dq_r});
     auto skipr_r = std::make_shared<pattern::op::Skip>(
-        dq_r_label, [](std::shared_ptr<Node> n) { return n->description() == "Reshape"; });
+        dq_r_label, [](std::shared_ptr<Node> n) { return n->op_name() == "Reshape"; });
     auto skipb_r = std::make_shared<pattern::op::Skip>(
-        skipr_r, [](std::shared_ptr<Node> n) { return n->description() == "Broadcast"; });
+        skipr_r, [](std::shared_ptr<Node> n) { return n->op_name() == "Broadcast"; });
 
     //Add left + right
     auto add = skipb_l + skipb_r;

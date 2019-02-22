@@ -78,7 +78,7 @@ std::shared_ptr<ngraph::Node>
     {
         throw ngraph_error{"Tile node input counts cannot be changed for a given Tile function"};
     }
-    return std::make_shared<Tile>(description(), m_function, new_args, m_output_shapes);
+    return std::make_shared<Tile>(op_name(), m_function, new_args, m_output_shapes);
 }
 
 void ngraph::runtime::plaidml::ImplTile::Apply()

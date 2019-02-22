@@ -35,7 +35,7 @@ atomic<size_t> Node::m_next_instance_id(0);
 Node::Node(const std::string& node_type, const NodeVector& arguments, size_t output_size)
     : m_node_type(node_type)
     , m_instance_id(m_next_instance_id.fetch_add(1))
-    , m_unique_name(description() + "_" + to_string(m_instance_id))
+    , m_unique_name(op_name() + "_" + to_string(m_instance_id))
 {
     // Add this node as a user of each argument.
     size_t i = 0;
@@ -114,7 +114,7 @@ bool Node::is_constant() const
     return false;
 }
 
-const std::string& Node::description() const
+const std::string& Node::op_name() const
 {
     return m_node_type;
 }
@@ -237,7 +237,7 @@ static std::string pretty_element_type(const element::Type& et)
 
 std::ostream& Node::write_long_description(std::ostream& out) const
 {
-    out << description() << '[' << get_name() << "](";
+    out << op_name() << '[' << get_name() << "](";
     string sep = "";
     for (auto arg : get_arguments())
     {
@@ -292,8 +292,7 @@ const Shape& Node::get_shape() const
     if (get_output_size() != 1)
     {
         stringstream es;
-        es << "get_shape() must be called on a node with exactly one output (" << description()
-           << ")";
+        es << "get_shape() must be called on a node with exactly one output (" << op_name() << ")";
         throw ngraph_error(es);
     }
     return get_output_shape(0);
@@ -422,7 +421,7 @@ NodeVector Node::get_users(bool check_is_used) const
 std::string ngraph::node_validation_assertion_string(const Node* node)
 {
     std::stringstream ss;
-    ss << "While validating node '" << *node << "' of type '" << node->description() << "'";
+    ss << "While validating node '" << *node << "' of type '" << node->op_name() << "'";
     return ss.str();
 }
 

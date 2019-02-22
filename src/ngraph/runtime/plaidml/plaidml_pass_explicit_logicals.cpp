@@ -74,8 +74,8 @@ void ngraph::runtime::plaidml::pass::ExplicitLogicals::construct_logical_to_data
     pattern::graph_rewrite_callback callback = [producer_op](pattern::Matcher& m) {
         auto consumer = m.get_match_root();
         auto producer = m.get_pattern_map()[producer_op];
-        NGRAPH_DEBUG << "Adding conversion for " << producer->description() << " -> "
-                     << consumer->description();
+        NGRAPH_DEBUG << "Adding conversion for " << producer->op_name() << " -> "
+                     << consumer->op_name();
         ngraph::insert_new_node_between(
             producer,
             consumer,

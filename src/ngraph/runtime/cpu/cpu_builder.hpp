@@ -278,7 +278,7 @@ namespace ngraph
                                   const std::vector<TensorViewWrapper>& args,
                                   const std::vector<TensorViewWrapper>& out)
                 {
-                    throw unsupported_op("Unimplemented op '" + node->description() +
+                    throw unsupported_op("Unimplemented op '" + node->op_name() +
                                          "' in CPU builder");
                 }
 

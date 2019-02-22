@@ -223,12 +223,12 @@ bool runtime::gpu::GPU_Backend::is_supported(const Node& op) const
 
     set<string> float_only = {"MaxPoolBackprop", "AvgPoolBackprop", "MaxPool", "Dot"};
 
-    if (unsupported_ops.find(op.description()) != unsupported_ops.end())
+    if (unsupported_ops.find(op.op_name()) != unsupported_ops.end())
     {
         return false;
     }
 
-    if (float_only.find(op.description()) != float_only.end())
+    if (float_only.find(op.op_name()) != float_only.end())
     {
         if (op.get_output_element_type(0) != element::f32 &&
             op.get_output_element_type(0) != element::f64)
@@ -237,7 +237,7 @@ bool runtime::gpu::GPU_Backend::is_supported(const Node& op) const
         }
     }
 
-    if (op.description() == "BatchNormInference")
+    if (op.op_name() == "BatchNormInference")
     {
         const ngraph::op::BatchNormInference* bn =
             static_cast<const ngraph::op::BatchNormInference*>(&op);
@@ -246,7 +246,7 @@ bool runtime::gpu::GPU_Backend::is_supported(const Node& op) const
             return false;
         }
     }
-    else if (op.description() == "BatchNormTraining")
+    else if (op.op_name() == "BatchNormTraining")
     {
         const ngraph::op::BatchNormTraining* bn =
             static_cast<const ngraph::op::BatchNormTraining*>(&op);

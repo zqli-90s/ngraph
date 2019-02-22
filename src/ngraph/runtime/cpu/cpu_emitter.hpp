@@ -47,7 +47,7 @@ namespace ngraph
                                  const std::vector<TensorViewWrapper>& args,
                                  const std::vector<TensorViewWrapper>& out)
                 {
-                    throw std::runtime_error("Unimplemented op '" + node->description() +
+                    throw std::runtime_error("Unimplemented op '" + node->op_name() +
                                              "' in CPU emitter");
                 }
 

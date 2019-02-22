@@ -29,7 +29,7 @@ runtime::hybrid::pass::FixGetOutputElement::FixGetOutputElement()
 
 bool runtime::hybrid::pass::FixGetOutputElement::run_on_node(shared_ptr<Node> node)
 {
-    if (node->description() == "GetOutputElement")
+    if (node->op_name() == "GetOutputElement")
     {
         auto parent = node->get_arguments().at(0);
         node->set_placement_index(parent->get_placement_index());

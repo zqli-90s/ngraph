@@ -814,7 +814,7 @@ using namespace ngraph::runtime;
             auto handler = dispatcher.find(type_index(typeid(n)));
             if (handler == dispatcher.end())
             {
-                throw unsupported_op(node->description());
+                throw unsupported_op(node->op_name());
             }
             vector<TensorViewWrapper> in;
             vector<string> node_input_names;
@@ -839,8 +839,7 @@ using namespace ngraph::runtime;
             {
                 if (current_function->get_name() == m_function_name)
                 {
-                    m_op_attrs.emplace_back(
-                        node->description(), node_output_names, node_input_names);
+                    m_op_attrs.emplace_back(node->op_name(), node_output_names, node_input_names);
                 }
                 if (m_use_tbb)
                 {
@@ -1688,7 +1687,7 @@ void runtime::cpu::CPU_ExternalFunction::build()
         auto handler = GetGlobalBuildDispatcher().find(type_index(typeid(n)));
         if (handler == GetGlobalBuildDispatcher().end())
         {
-            throw unsupported_op(node->description());
+            throw unsupported_op(node->op_name());
         }
         vector<TensorViewWrapper> in;
         vector<string> in_names;
@@ -1709,7 +1708,7 @@ void runtime::cpu::CPU_ExternalFunction::build()
             out_names.push_back(tv->get_name());
         }
 
-        m_op_attrs.emplace_back(node->description(), out_names, in_names);
+        m_op_attrs.emplace_back(node->op_name(), out_names, in_names);
         op_names.push_back(node->get_name());
         handler->second(this, node.get(), in, out);
 
@@ -2200,7 +2199,7 @@ string runtime::cpu::CPU_ExternalFunction::emit_op_as_function(const Node& node,
     auto handler = dispatcher.find(type_index(typeid(node)));
     if (handler == dispatcher.end())
     {
-        throw unsupported_op(node.description());
+        throw unsupported_op(node.op_name());
     }
     vector<TensorViewWrapper> in;
     size_t arg_index = 0;

@@ -32,13 +32,13 @@ runtime::gcpu::NodeWrapper::NodeWrapper(const shared_ptr<const Node>& node)
     };
 #undef NGRAPH_OP
 
-    auto it = typeid_map.find(m_node->description());
+    auto it = typeid_map.find(m_node->op_name());
     if (it != typeid_map.end())
     {
         m_typeid = it->second;
     }
     else
     {
-        throw unsupported_op("Unsupported op '" + m_node->description() + "'");
+        throw unsupported_op("Unsupported op '" + m_node->op_name() + "'");
     }
 }

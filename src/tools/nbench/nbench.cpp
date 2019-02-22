@@ -165,13 +165,12 @@ void print_results(vector<PerfShape> perf_data, bool timing_detail)
 element::Type get_op_element_type(const Node& op)
 {
     element::Type type;
-    if (op.description() == "Convert")
+    if (op.op_name() == "Convert")
     {
         type = op.get_input_element_type(0);
     }
-    else if (op.description() == "Equal" || op.description() == "Greater" ||
-             op.description() == "GreaterEq" || op.description() == "Less" ||
-             op.description() == "LessEq" || op.description() == "NotEqual")
+    else if (op.op_name() == "Equal" || op.op_name() == "Greater" || op.op_name() == "GreaterEq" ||
+             op.op_name() == "Less" || op.op_name() == "LessEq" || op.op_name() == "NotEqual")
     {
         // Get the type of the second input, not the first
         // All BinaryElementwiseComparision ops have the same type for inputs

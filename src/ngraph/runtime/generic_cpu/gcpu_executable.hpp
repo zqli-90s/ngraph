@@ -186,7 +186,7 @@ private:
                    const std::vector<const void*>& args)
     {
         const Node& node = node_wrapper.get_node();
-        std::string node_op = node.description();
+        std::string node_op = node.op_name();
 
 // We want to check that every OP_TYPEID enumeration is included in the list.
 // These GCC flags enable compile-time checking so that if an enumeration
@@ -1003,7 +1003,7 @@ private:
         case OP_TYPEID::QuantizedConvolution:
         case OP_TYPEID::QuantizedMaxPool:
         {
-            throw unsupported_op("Unsupported op '" + node.description() +
+            throw unsupported_op("Unsupported op '" + node.op_name() +
                                  "' in Interpreter back end.");
         }
         case OP_TYPEID::Relu:
@@ -1228,7 +1228,7 @@ private:
             }
             break;
         }
-        default: throw unsupported_op("Unsupported op '" + node.description() + "'");
+        default: throw unsupported_op("Unsupported op '" + node.op_name() + "'");
 #pragma GCC diagnostic pop
         }
     }
