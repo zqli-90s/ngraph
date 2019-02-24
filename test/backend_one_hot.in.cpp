@@ -109,19 +109,8 @@ NGRAPH_TEST(${BACKEND_NAME}, one_hot_scalar_fp_nonint_in_3)
     copy_data(a, vector<float>{1.1f});
     auto result = backend->create_tensor(element::f32, shape_r);
 
-    try
-    {
-        auto handle = backend->compile(f);
-        handle->call_with_validate({result}, {a});
-    }
-    catch (const std::exception& e)
-    {
-        EXPECT_EQ(e.what(), std::string("One-hot: non-integral value in input"));
-    }
-    catch (...)
-    {
-        FAIL() << "Expected a std::out_of_range exception";
-    }
+    auto handle = backend->compile(f);
+    EXPECT_THROW(handle->call_with_validate({result}, {a}), out_of_range);
 }
 
 NGRAPH_TEST(${BACKEND_NAME}, one_hot_scalar_oob_in_3)
@@ -139,19 +128,8 @@ NGRAPH_TEST(${BACKEND_NAME}, one_hot_scalar_oob_in_3)
     copy_data(a, vector<int32_t>{3000000});
     auto result = backend->create_tensor(element::i32, shape_r);
 
-    try
-    {
-        auto handle = backend->compile(f);
-        handle->call_with_validate({result}, {a});
-    }
-    catch (const std::exception& e)
-    {
-        EXPECT_EQ(e.what(), std::string("One-hot: value is out of category range"));
-    }
-    catch (...)
-    {
-        FAIL() << "Expected a std::out_of_range exception";
-    }
+    auto handle = backend->compile(f);
+    EXPECT_THROW(handle->call_with_validate({result}, {a}), out_of_range);
 }
 
 NGRAPH_TEST(${BACKEND_NAME}, one_hot_vector_0)
@@ -213,19 +191,8 @@ NGRAPH_TEST(${BACKEND_NAME}, one_hot_vector_1_barely_oob)
     copy_data(a, vector<int32_t>{2, 1, 0, 0, 3, 2, 1, 0});
     auto result = backend->create_tensor(element::i32, shape_r);
 
-    try
-    {
-        auto handle = backend->compile(f);
-        handle->call_with_validate({result}, {a});
-    }
-    catch (const std::exception& e)
-    {
-        EXPECT_EQ(e.what(), std::string("One-hot: value is out of category range"));
-    }
-    catch (...)
-    {
-        FAIL() << "Expected a std::out_of_range exception";
-    }
+    auto handle = backend->compile(f);
+    EXPECT_THROW(handle->call_with_validate({result}, {a}), out_of_range);
 }
 
 NGRAPH_TEST(${BACKEND_NAME}, one_hot_vector_1_far_oob)
@@ -243,19 +210,8 @@ NGRAPH_TEST(${BACKEND_NAME}, one_hot_vector_1_far_oob)
     copy_data(a, vector<int32_t>{2, 1, 0, 0, 3000000, 2, 1, 0});
     auto result = backend->create_tensor(element::i32, shape_r);
 
-    try
-    {
-        auto handle = backend->compile(f);
-        handle->call_with_validate({result}, {a});
-    }
-    catch (const std::exception& e)
-    {
-        EXPECT_EQ(e.what(), std::string("One-hot: value is out of category range"));
-    }
-    catch (...)
-    {
-        FAIL() << "Expected a std::out_of_range exception";
-    }
+    auto handle = backend->compile(f);
+    EXPECT_THROW(handle->call_with_validate({result}, {a}), out_of_range);
 }
 
 NGRAPH_TEST(${BACKEND_NAME}, one_hot_matrix_0)
@@ -323,17 +279,6 @@ NGRAPH_TEST(${BACKEND_NAME}, one_hot_vector_1_fp_nonint)
     copy_data(a, vector<float>{2, 1, 0, 0, 2, 2, 1.01f, 0});
     auto result = backend->create_tensor(element::f32, shape_r);
 
-    try
-    {
-        auto handle = backend->compile(f);
-        handle->call_with_validate({result}, {a});
-    }
-    catch (const std::exception& e)
-    {
-        EXPECT_EQ(e.what(), std::string("One-hot: non-integral value in input"));
-    }
-    catch (...)
-    {
-        FAIL() << "Expected a std::out_of_range exception";
-    }
+    auto handle = backend->compile(f);
+    EXPECT_THROW(handle->call_with_validate({result}, {a}), out_of_range);
 }
