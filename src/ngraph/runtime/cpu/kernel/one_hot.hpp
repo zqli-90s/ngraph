@@ -39,7 +39,10 @@ namespace ngraph
                     memset(out, 0, sizeof(ElementType) * shape_size(out_shape));
                     auto pos_raw = (static_cast<ElementType*>(arg))[0];
                     size_t pos = pos_raw;
-                    (static_cast<ElementType*>(out))[pos] = 1;
+                    if (pos >= shape_size(out_shape))
+                    {
+                        (static_cast<ElementType*>(out))[pos] = 1;
+                    }
                 }
 
                 template <typename ElementType>

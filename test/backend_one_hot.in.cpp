@@ -125,11 +125,27 @@ NGRAPH_TEST(${BACKEND_NAME}, one_hot_scalar_oob_in_3)
 
     // Create some tensors for input/output
     auto a = backend->create_tensor(element::i32, shape_a);
-    copy_data(a, vector<int32_t>{3000000});
-    auto result = backend->create_tensor(element::i32, shape_r);
+
+    // Set the one-hot value to one beyond the valid values. The op must not write past the end
+    // of the result tensor.
+    // 3 is one past the end of the output tensor
+    copy_data(a, vector<int32_t>{3});
+
+    // Create result tensor which is one larger than the shape demands
+    vector<int32_t> result_data(4, 0);
+    auto result = backend->create_tensor(element::i32, shape_r, result_data.data());
 
     auto handle = backend->compile(f);
-    EXPECT_THROW(handle->call_with_validate({result}, {a}), out_of_range);
+    try
+    {
+        handle->call_with_validate({result}, {a});
+    }
+    catch (...)
+    {
+        // Backend may or may not throw an exception. Either is OK as long as we don't
+        // write past the end of the result buffer.
+    }
+    EXPECT_EQ(result_data[3], 0) << "Data written beyond the end of the result tensor";
 }
 
 NGRAPH_TEST(${BACKEND_NAME}, one_hot_vector_0)
