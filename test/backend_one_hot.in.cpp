@@ -146,6 +146,7 @@ NGRAPH_TEST(${BACKEND_NAME}, one_hot_scalar_oob_in_3)
         // write past the end of the result buffer.
     }
     EXPECT_EQ(result_data[3], 0) << "Data written beyond the end of the result tensor";
+    EXPECT_EQ((vector<int32_t>{0, 0, 0}), read_vector<int32_t>(result));
 }
 
 NGRAPH_TEST(${BACKEND_NAME}, one_hot_vector_0)
@@ -205,29 +206,14 @@ NGRAPH_TEST(${BACKEND_NAME}, one_hot_vector_1_barely_oob)
     // Create some tensors for input/output
     auto a = backend->create_tensor(element::i32, shape_a);
     copy_data(a, vector<int32_t>{2, 1, 0, 0, 3, 2, 1, 0});
-    auto result = backend->create_tensor(element::i32, shape_r);
+    vector<int32_t> result_vector(8 * 3 * 2, 0);
+    auto result = backend->create_tensor(element::i32, shape_r, result_vector.data());
 
     auto handle = backend->compile(f);
-    EXPECT_THROW(handle->call_with_validate({result}, {a}), out_of_range);
-}
-
-NGRAPH_TEST(${BACKEND_NAME}, one_hot_vector_1_far_oob)
-{
-    Shape shape_a{8};
-    auto A = make_shared<op::Parameter>(element::i32, shape_a);
-    Shape shape_r{8, 3};
-    auto r = make_shared<op::OneHot>(A, Shape{8, 3}, 1);
-    auto f = make_shared<Function>(r, ParameterVector{A});
-
-    auto backend = runtime::Backend::create("${BACKEND_NAME}");
-
-    // Create some tensors for input/output
-    auto a = backend->create_tensor(element::i32, shape_a);
-    copy_data(a, vector<int32_t>{2, 1, 0, 0, 3000000, 2, 1, 0});
-    auto result = backend->create_tensor(element::i32, shape_r);
-
-    auto handle = backend->compile(f);
-    EXPECT_THROW(handle->call_with_validate({result}, {a}), out_of_range);
+    handle->call_with_validate({result}, {a});
+    EXPECT_EQ(
+        (vector<int32_t>{0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0}),
+        read_vector<int32_t>(result));
 }
 
 NGRAPH_TEST(${BACKEND_NAME}, one_hot_matrix_0)
