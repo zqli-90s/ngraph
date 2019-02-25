@@ -430,7 +430,7 @@ static void
     writer << "}\n";
 }
 
-static void generate_class_declarations(CodeWriter& writer)
+static void emit_class_declarations(CodeWriter& writer)
 {
     writer << "// Declare all classes\n";
     writer << "struct CPURuntimeContextCG;\n";
@@ -633,7 +633,7 @@ using namespace ngraph::runtime;
         }
     }
 
-    generate_class_declarations(writer);
+    emit_class_declarations(writer);
 
     const char* func_params =
         "(void** inputs, void** outputs, cpu::CPURuntimeContext* ctx, CPURuntimeContextCG* cg_ctx)";
