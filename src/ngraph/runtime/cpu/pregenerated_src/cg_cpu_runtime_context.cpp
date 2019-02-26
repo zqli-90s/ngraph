@@ -26,8 +26,8 @@ void ngraph::runtime::cpu::emit_runtime_context(CodeWriter& writer)
     writer << R"(
 struct CPURuntimeContextCG
 {
-    std::unique_ptr<tbb::flow::graph> tbb_graph;
-    std::unique_ptr<tbb::global_control> tbb_gcontrol;
+    std::unique_ptr<tbb::flow::graph> m_tbb_graph;
+    std::unique_ptr<tbb::global_control> m_tbb_gcontrol;
 
     CPURuntimeContextCG() { init_tbb(); }
     ~CPURuntimeContextCG() { cleanup_tbb(); }
@@ -37,10 +37,10 @@ private:
     {
         if (std::getenv("NGRAPH_CPU_USE_TBB"))
         {
-            tbb_graph.reset(new tbb::flow::graph);
+            m_tbb_graph.reset(new tbb::flow::graph);
             const char* env_parallelism = std::getenv("NGRAPH_INTER_OP_PARALLELISM");
             const int parallelism = env_parallelism == nullptr ? 1 : std::atoi(env_parallelism);
-            tbb_gcontrol.reset(
+            m_tbb_gcontrol.reset(
                 new tbb::global_control(tbb::global_control::max_allowed_parallelism, parallelism));
         }
     }
@@ -49,10 +49,10 @@ private:
     {
         if (std::getenv("NGRAPH_CPU_USE_TBB"))
         {
-            // Delete nodes in tbb_graph.
-            tbb_graph->wait_for_all();
+            // Delete nodes in m_tbb_graph.
+            m_tbb_graph->wait_for_all();
             std::vector<tbb::flow::graph_node*> to_be_deleted;
-            for (auto it = tbb_graph->begin(); it != tbb_graph->end(); it++)
+            for (auto it = m_tbb_graph->begin(); it != m_tbb_graph->end(); it++)
             {
                 to_be_deleted.push_back(&*it);
             }

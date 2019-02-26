@@ -737,7 +737,7 @@ using namespace ngraph::runtime;
             writer << "tbb::flow::continue_node<tbb::flow::continue_msg>* "
                       "flowgraph_node_start"
                    << " = new tbb::flow::continue_node<tbb::flow::continue_msg> "
-                      "(*(cg_ctx->tbb_graph), [&](const tbb::flow::continue_msg &msg)\n{});\n";
+                      "(*(cg_ctx->m_tbb_graph), [&](const tbb::flow::continue_msg &msg)\n{});\n";
         }
 
         // Add inputs to the variable name map
@@ -844,7 +844,7 @@ using namespace ngraph::runtime;
                               "flowgraph_node_"
                            << node->get_name()
                            << " = new tbb::flow::continue_node<tbb::flow::continue_msg> "
-                              "(*(cg_ctx->tbb_graph), [&](const tbb::flow::continue_msg &msg)\n{\n";
+                              "(*(cg_ctx->m_tbb_graph), [&](const tbb::flow::continue_msg &msg)\n{\n";
                     writer.indent++;
                 }
                 if (runtime::cpu::IsTracingEnabled() &&
@@ -1006,9 +1006,9 @@ using namespace ngraph::runtime;
 
             // Execute the flow graph
             writer << "(static_cast<tbb::flow::continue_node<tbb::flow::continue_msg>*>"
-                      "(&(*(cg_ctx->tbb_graph->begin()))))"
+                      "(&(*(cg_ctx->m_tbb_graph->begin()))))"
                    << "->try_put(tbb::flow::continue_msg());\n";
-            writer << "try { cg_ctx->tbb_graph->wait_for_all(); } catch(...) { throw; }\n";
+            writer << "try { cg_ctx->m_tbb_graph->wait_for_all(); } catch(...) { throw; }\n";
         }
         writer << "ctx->first_iteration = false;\n";
 
