@@ -138,7 +138,10 @@ endif()
 if (NGRAPH_CPU_ENABLE)
     set(NGRAPH_CPU_DEBUGINFO_ENABLE 0 CACHE STRING "Enable debuginfo in the CPU backend")
 
-    add_library(cpu_backend SHARED ${SRC})
+    add_library(cpu_backend SHARED ${SRC} cpu_backend_dex.cpp)
+    if (NOT NGRAPH_DEX_ONLY)
+        add_library(ccpu_backend SHARED ${SRC} cpu_backend_codegen.cpp)
+    endif()
     if(NGRAPH_LIB_VERSIONING_ENABLE)
         set_target_properties(cpu_backend PROPERTIES
             VERSION ${NGRAPH_VERSION}
@@ -206,4 +209,5 @@ if (NGRAPH_CPU_ENABLE)
     endif()
 
     install(TARGETS cpu_backend DESTINATION ${NGRAPH_INSTALL_LIB})
+    install(TARGETS ccpu_backend DESTINATION ${NGRAPH_INSTALL_LIB})
 endif()

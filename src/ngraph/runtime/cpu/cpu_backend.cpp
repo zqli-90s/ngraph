@@ -28,26 +28,9 @@
 using namespace ngraph;
 using namespace std;
 
-extern "C" CPU_BACKEND_API runtime::Backend* new_backend(const char* configuration_string)
+runtime::cpu::CPU_Backend::CPU_Backend(bool is_dex)
+    : m_is_dex{is_dex}
 {
-    // Force TBB to link to the backend
-    tbb::TBB_runtime_interface_version();
-    return new runtime::cpu::CPU_Backend();
-}
-
-extern "C" CPU_BACKEND_API void delete_backend(runtime::Backend* backend)
-{
-    delete backend;
-}
-
-namespace
-{
-    static class CPUStaticInit
-    {
-    public:
-        CPUStaticInit() { runtime::BackendManager::register_backend("CPU", new_backend); }
-        ~CPUStaticInit() {}
-    } s_cpu_static_init;
 }
 
 shared_ptr<runtime::cpu::CPU_CallFrame> runtime::cpu::CPU_Backend::make_call_frame(
@@ -79,19 +62,20 @@ shared_ptr<runtime::Executable>
     }
     else
     {
-        rc = make_shared<CPU_Executable>(func, performance_counters_enabled);
+        rc = make_shared<CPU_Executable>(func, performance_counters_enabled, m_is_dex);
         m_exec_map.insert({func, rc});
     }
     return rc;
 }
 
 runtime::cpu::CPU_Executable::CPU_Executable(shared_ptr<Function> func,
-                                             bool performance_counters_enabled)
+                                             bool performance_counters_enabled,
+                                             bool is_dex)
 {
     FunctionInstance& instance = m_function_instance;
     if (instance.m_external_function == nullptr)
     {
-        instance.m_external_function = make_shared<CPU_ExternalFunction>(func);
+        instance.m_external_function = make_shared<CPU_ExternalFunction>(func, true, is_dex);
         instance.m_external_function->m_emit_timing = performance_counters_enabled;
         auto cf = instance.m_external_function->make_call_frame();
         instance.m_call_frame = dynamic_pointer_cast<CPU_CallFrame>(cf);

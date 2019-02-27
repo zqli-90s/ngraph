@@ -34,6 +34,7 @@ namespace ngraph
             class CPU_BACKEND_API CPU_Backend : public runtime::Backend
             {
             public:
+                CPU_Backend(bool is_dex);
                 std::shared_ptr<CPU_CallFrame>
                     make_call_frame(const std::shared_ptr<CPU_ExternalFunction>& external_function);
 
@@ -58,12 +59,15 @@ namespace ngraph
             private:
                 std::unordered_map<std::shared_ptr<Function>, std::shared_ptr<Executable>>
                     m_exec_map;
+                bool m_is_dex;
             };
 
             class CPU_BACKEND_API CPU_Executable : public runtime::Executable
             {
             public:
-                CPU_Executable(std::shared_ptr<Function> func, bool performance_counters_enabled);
+                CPU_Executable(std::shared_ptr<Function> func,
+                               bool performance_counters_enabled,
+                               bool is_dex);
                 bool call(const std::vector<std::shared_ptr<runtime::Tensor>>& outputs,
                           const std::vector<std::shared_ptr<runtime::Tensor>>& inputs) override;
 
