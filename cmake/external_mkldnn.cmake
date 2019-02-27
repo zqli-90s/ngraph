@@ -16,7 +16,7 @@
 
 include(ExternalProject)
 
-# Includes blas 3.8.0 in mkldnn 
+# Includes blas 3.8.0 in mkldnn
 set(NGRAPH_MKLDNN_VERSION "v0.18")
 set(NGRAPH_MKLDNN_SUB_VERSION "2019.0.3.20190125")
 set(NGRAPH_MKLDNN_GIT_TAG "v0.18")
@@ -162,14 +162,6 @@ if (WIN32)
         GIT_TAG ${MKLDNN_GIT_TAG}
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND
-        # Patch gets mad if it applied for a second time so:
-        #    --forward tells patch to ignore if it has already been applied
-        #    --reject-file tells patch to not right a reject file
-        #    || exit 0 changes the exit code for the PATCH_COMMAND to zero so it is not an error
-        # I don't like it, but it works
-        PATCH_COMMAND patch -p1 --forward --reject-file=- -i ${CMAKE_SOURCE_DIR}/cmake/${MKLDNN_PATCH_FILE} || exit 0
-        # Uncomment below with any in-flight MKL-DNN patches
-        # PATCH_COMMAND patch -p1 < ${CMAKE_SOURCE_DIR}/third-party/patches/mkldnn-cmake-openmp.patch
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
         CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
         CMAKE_GENERATOR_TOOLSET ${CMAKE_GENERATOR_TOOLSET}
@@ -203,8 +195,6 @@ else()
         #    || exit 0 changes the exit code for the PATCH_COMMAND to zero so it is not an error
         # I don't like it, but it works
         PATCH_COMMAND patch -p1 --forward --reject-file=- -i ${CMAKE_SOURCE_DIR}/cmake/${MKLDNN_PATCH_FILE} || exit 0
-        # Uncomment below with any in-flight MKL-DNN patches
-        # PATCH_COMMAND patch -p1 < ${CMAKE_SOURCE_DIR}/third-party/patches/mkldnn-cmake-openmp.patch
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
         CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
         CMAKE_GENERATOR_TOOLSET ${CMAKE_GENERATOR_TOOLSET}
