@@ -17,9 +17,9 @@
 include(ExternalProject)
 
 # Includes blas 3.8.0 in mkldnn 
-set(NGRAPH_MKLDNN_VERSION "v0.18-rc")
+set(NGRAPH_MKLDNN_VERSION "v0.18")
 set(NGRAPH_MKLDNN_SUB_VERSION "2019.0.3.20190125")
-set(NGRAPH_MKLDNN_GIT_TAG "08bd90c")
+set(NGRAPH_MKLDNN_GIT_TAG "v0.18")
 
 #------------------------------------------------------------------------------
 # Fetch and install MKL-DNN
@@ -180,7 +180,6 @@ if (WIN32)
             -DCMAKE_INSTALL_PREFIX=${EXTERNAL_PROJECTS_ROOT}/mkldnn
             -DMKLDNN_ENABLE_CONCURRENT_EXEC=ON
             -DMKLROOT=${MKL_ROOT}
-            -DMKLDNN_LIB_VERSIONING_ENABLE=${NGRAPH_LIB_VERSIONING_ENABLE}
         TMP_DIR "${EXTERNAL_PROJECTS_ROOT}/mkldnn/tmp"
         STAMP_DIR "${EXTERNAL_PROJECTS_ROOT}/mkldnn/stamp"
         DOWNLOAD_DIR "${EXTERNAL_PROJECTS_ROOT}/mkldnn/download"
@@ -216,7 +215,6 @@ else()
             -DCMAKE_INSTALL_PREFIX=${EXTERNAL_PROJECTS_ROOT}/mkldnn
             -DMKLDNN_ENABLE_CONCURRENT_EXEC=ON
             -DMKLROOT=${MKL_ROOT}
-            -DMKLDNN_LIB_VERSIONING_ENABLE=${NGRAPH_LIB_VERSIONING_ENABLE}
             "-DARCH_OPT_FLAGS=-march=${NGRAPH_TARGET_ARCH} -mtune=${NGRAPH_TARGET_ARCH} ${MKLDNN_FLAG}"
         TMP_DIR "${EXTERNAL_PROJECTS_ROOT}/mkldnn/tmp"
         STAMP_DIR "${EXTERNAL_PROJECTS_ROOT}/mkldnn/stamp"
