@@ -2104,8 +2104,8 @@ namespace
 
 NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test, model_resnet50)
 {
-    auto function = onnx_import::import_onnx_model(
-        file_util::path_join(SERIALIZED_ZOO, "onnx/v7.onnx"));
+    auto function =
+        onnx_import::import_onnx_model(file_util::path_join(SERIALIZED_ZOO, "onnx/v7.onnx"));
 
     Inputs inputs{read_binary_file2<float>(input_filename)};
     Outputs expected_output{read_binary_file2<float>(output_filename)};
@@ -2141,8 +2141,8 @@ NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test, model_resnet50)
 // TODO - Remove perf test before merging to master
 NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test, model_resnet50_perf)
 {
-    auto function = onnx_import::import_onnx_model(
-        file_util::path_join(SERIALIZED_ZOO, "onnx/v7.onnx"));
+    auto function =
+        onnx_import::import_onnx_model(file_util::path_join(SERIALIZED_ZOO, "onnx/v7.onnx"));
 
     Inputs inputs{read_binary_file2<float>(input_filename)};
     Outputs expected_output{read_binary_file2<float>(output_filename)};
@@ -2152,7 +2152,8 @@ NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test, model_resnet50_perf)
     timer.start();
     Outputs outputs{execute(function, inputs, "${BACKEND_NAME}", num_iterations)};
     timer.stop();
-    std::cout << "Performance num_iterations: " << num_iterations << ", ms/iteration: " << static_cast<double>(timer.get_milliseconds()) / num_iterations << std::endl;
+    std::cout << "Performance num_iterations: " << num_iterations << ", ms/iteration: "
+              << static_cast<double>(timer.get_milliseconds()) / num_iterations << std::endl;
 
     const auto& expected = expected_output.front();
     const auto& got = outputs.front();
@@ -2200,8 +2201,8 @@ namespace
 
 NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test_incv3, model_incv3)
 {
-    auto function = onnx_import::import_onnx_model(
-        file_util::path_join(SERIALIZED_ZOO, "onnx/incv3_v2.onnx"));
+    auto function =
+        onnx_import::import_onnx_model(file_util::path_join(SERIALIZED_ZOO, "onnx/incv3_v2.onnx"));
 
     Inputs inputs{read_binary_file2<float>(input_filename)};
     Outputs expected_output{read_binary_file2<float>(output_filename)};
@@ -2237,8 +2238,8 @@ NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test_incv3, model_incv3)
 // TODO - Remove perf test before merging to master
 NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test_incv3, model_incv3_perf)
 {
-    auto function = onnx_import::import_onnx_model(
-        file_util::path_join(SERIALIZED_ZOO, "onnx/incv3_v2.onnx"));
+    auto function =
+        onnx_import::import_onnx_model(file_util::path_join(SERIALIZED_ZOO, "onnx/incv3_v2.onnx"));
 
     Inputs inputs{read_binary_file2<float>(input_filename)};
     Outputs expected_output{read_binary_file2<float>(output_filename)};
@@ -2248,7 +2249,8 @@ NGRAPH_TEST_P(${BACKEND_NAME}, lin_quant_model_param_test_incv3, model_incv3_per
     timer.start();
     Outputs outputs{execute(function, inputs, "${BACKEND_NAME}", num_iterations)};
     timer.stop();
-    std::cout << "Performance num_iterations: " << num_iterations << ", ms/iteration: " << static_cast<double>(timer.get_milliseconds()) / num_iterations << std::endl;
+    std::cout << "Performance num_iterations: " << num_iterations << ", ms/iteration: "
+              << static_cast<double>(timer.get_milliseconds()) / num_iterations << std::endl;
 
     const auto& expected = expected_output.front();
     const auto& got = outputs.front();

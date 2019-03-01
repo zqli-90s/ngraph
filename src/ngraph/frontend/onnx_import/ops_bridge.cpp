@@ -38,9 +38,6 @@
 #include "op/cast.hpp"
 #include "op/ceil.hpp"
 #include "op/clip.hpp"
-#include "op/com.microsoft/dequantize_linear.hpp"
-#include "op/com.microsoft/quant_conv.hpp"
-#include "op/com.microsoft/quantize_linear.hpp"
 #include "op/concat.hpp"
 #include "op/constant.hpp"
 #include "op/conv.hpp"
@@ -115,8 +112,6 @@
 #include "op/where.hpp"
 #include "op/xor.hpp"
 #include "ops_bridge.hpp"
-
-#include "op/com.microsoft/register_custom_ops.hpp"
 
 namespace ngraph
 {
@@ -328,14 +323,6 @@ namespace ngraph
             REGISTER_OPERATOR("Unsqueeze", 1, unsqueeze);
             REGISTER_OPERATOR("Where", 1, where);
             REGISTER_OPERATOR("Xor", 1, logical_xor);
-
-            // Register custom operators.
-            m_map["com.microsoft"]["DequantizeLinear"].emplace(
-                1, std::bind(onnxruntime::ngraph_ep::dequantize_linear, std::placeholders::_1));
-            m_map["com.microsoft"]["QuantizeLinear"].emplace(
-                1, std::bind(onnxruntime::ngraph_ep::quantize_linear, std::placeholders::_1));
-            m_map["com.microsoft"]["QLinearConv"].emplace(
-                1, std::bind(onnxruntime::ngraph_ep::quant_conv, std::placeholders::_1));
         }
 
     } // namespace onnx_import
