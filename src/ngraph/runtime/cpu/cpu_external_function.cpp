@@ -436,21 +436,6 @@ static void emit_class_declarations(CodeWriter& writer)
     writer << "struct CPURuntimeContextCG;\n";
 }
 
-/// Traverse all the nodes in \p functions and return those that will use mkldnn primitives in
-/// \p mkldnn_nodes.
-static void collect_mkldnn_nodes(const std::vector<std::shared_ptr<Function>>& functions,
-                                 std::vector<const Node*>& mkldnn_nodes)
-{
-    for (const shared_ptr<Function>& func : functions)
-    {
-        for (const shared_ptr<Node>& node : func->get_ops())
-        {
-            if (runtime::cpu::mkldnn_utils::use_mkldnn_kernel(node.get()))
-                mkldnn_nodes.push_back(node.get());
-        }
-    }
-}
-
 void runtime::cpu::CPU_ExternalFunction::compile(ngraph::pass::PassConfig& pass_config)
 {
     if (m_is_compiled)
@@ -505,7 +490,8 @@ void runtime::cpu::CPU_ExternalFunction::compile(ngraph::pass::PassConfig& pass_
     writer << "#define NGRAPH_DISTRIBUTED_OMPI_ENABLE\n";
 #endif
 #endif
-
+    // TODO: Include files conditionally. For example mkldnn.hpp and fstream are only needed when
+    // MKL-DNN is used.
     writer +=
         R"(
 #include <cmath>
@@ -554,6 +540,7 @@ void runtime::cpu::CPU_ExternalFunction::compile(ngraph::pass::PassConfig& pass_
 #include "ngraph/strides.hpp"
 #include "ngraph/util.hpp"
 
+#include <fstream>
 #include <mkldnn.hpp>
 
 using namespace ngraph::runtime::cpu::eigen;
@@ -663,13 +650,8 @@ using namespace ngraph::runtime;
     }
     writer << "\n";
 
-    // Collective information of mkldnn nodes is needed to emit the codegen runtime context and
-    // mkl utility functions.
-    std::vector<const Node*> mkldnn_nodes;
-    collect_mkldnn_nodes(pass_manager.get_state().get_functions(), mkldnn_nodes);
-
-    emit_runtime_context(writer, mkldnn_nodes);
-    emit_mkldnn_utils(writer);
+    emit_runtime_context_decl(writer, *m_mkldnn_emitter);
+    emit_mkldnn_utils(writer, *m_mkldnn_emitter);
 
     writer << common_function_string << "\n";
 
@@ -860,11 +842,12 @@ using namespace ngraph::runtime;
                 }
                 if (m_use_tbb)
                 {
-                    writer << "tbb::flow::continue_node<tbb::flow::continue_msg>* "
-                              "flowgraph_node_"
-                           << node->get_name()
-                           << " = new tbb::flow::continue_node<tbb::flow::continue_msg> "
-                              "(*(cg_ctx->m_tbb_graph), [&](const tbb::flow::continue_msg &msg)\n{\n";
+                    writer
+                        << "tbb::flow::continue_node<tbb::flow::continue_msg>* "
+                           "flowgraph_node_"
+                        << node->get_name()
+                        << " = new tbb::flow::continue_node<tbb::flow::continue_msg> "
+                           "(*(cg_ctx->m_tbb_graph), [&](const tbb::flow::continue_msg &msg)\n{\n";
                     writer.indent++;
                 }
                 if (runtime::cpu::IsTracingEnabled() &&
@@ -1036,6 +1019,12 @@ using namespace ngraph::runtime;
         // End generated function
         writer += "}\n\n";
     }
+
+    // TODO: We should make the "codegen pass" simpler. Currently, in addition to emitting code,
+    // the previous loop is also building MKLDNN primitives and populating nGraph data structures.
+    // Because of that, we have to split the code generation of MKLDNN primitives in two parts:
+    // before and after the loop. The following function cannot be moved before the previous loop.
+    emit_runtime_context_def(writer, *m_mkldnn_emitter);
 
     // TODO: Cleanup and make this a utility function
     string filename = file_util::path_join(s_output_dir, m_function_name + "_codegen.cpp");

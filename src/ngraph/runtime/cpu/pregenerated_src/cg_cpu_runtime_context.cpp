@@ -21,6 +21,7 @@
 
 #include "ngraph/code_writer.hpp"
 #include "ngraph/node.hpp"
+#include "ngraph/runtime/cpu/mkldnn_emitter.hpp"
 //#include "ngraph/op/abs.hpp"
 //#include "ngraph/op/acos.hpp"
 //#include "ngraph/op/add.hpp"
@@ -99,6 +100,7 @@
 //#include "ngraph/op/topk.hpp"
 
 using namespace ngraph;
+using namespace ngraph::runtime::cpu;
 
 using OpStringMap = std::unordered_map<std::type_index, const std::string>;
 
@@ -160,7 +162,7 @@ static const OpStringMap mkldnn_init_dispatcher{
     //    {TI(ngraph::op::Floor), "UNDEFINED()"},
     //    {TI(ngraph::op::Ceiling), "UNDEFINED()"},
     //    {TI(ngraph::op::Sqrt), "UNDEFINED()"},
-    {TI(ngraph::op::Convolution), "UNDEFINED()"},
+    {TI(ngraph::op::Convolution), "build_convolution<ngraph::op::Convolution>(node, args, out)"},
     //    {TI(ngraph::op::ConvolutionBackpropFilters), "UNDEFINED()"},
     //    {TI(ngraph::op::ConvolutionBackpropData), "UNDEFINED()"},
     //    {TI(ngraph::op::GroupConvolution), "UNDEFINED()"},
@@ -221,100 +223,88 @@ static const OpStringMap mkldnn_init_dispatcher{
 // Emit MKLDNN members of CPURuntimeContextCG. It includes:
 //   1) MKLDNNPrimitives: enum that assigns an ID to each MKL primitive used in the code.
 //   2) m_mkl_primitive_idxs: holds the descriptor for each member of MKLDNNPrimitives.
-static CodeWriter& emit_mkldnn_members(CodeWriter& writer,
-                                       const std::vector<const Node*>& mkldnn_nodes)
+static void emit_mkldnn_members(CodeWriter& writer, const MKLDNNEmitter& mkldnn_emitter)
 {
+    std::vector<mkldnn::primitive*> mkldnn_primitives = mkldnn_emitter.get_mkldnn_primitives();
+
     // Enum is not generated if there are no mkldnn nodes.
-    if (!mkldnn_nodes.size())
-        return writer;
+    if (!mkldnn_primitives.size())
+        return;
 
     writer << "\n";
     writer.indent++;
     writer << "// MLKDNN members\n";
-    writer << "enum MKLDNNPrimitives { ";
+    //writer << "enum MKLDNNPrimitives { ";
 
-    bool first_node = true;
-    for (const Node* node : mkldnn_nodes)
-    {
-        std::string op_name = node->description();
-        std::transform(op_name.begin(), op_name.end(), op_name.begin(), ::toupper);
-        writer << "NG_MKLDNN_" << op_name;
+    //bool first_node = true;
+    //for (const Node* node : mkldnn_nodes)
+    //{
+    //    std::string op_name = node->description();
+    //    std::transform(op_name.begin(), op_name.end(), op_name.begin(), ::toupper);
+    //    writer << "NG_MKLDNN_" << op_name;
 
-        if (first_node)
-        {
-            // Initialize the first enum member to zero.
-            writer << " = 0";
-            first_node = false;
-        }
-        writer << ", ";
-    }
+    //    if (first_node)
+    //    {
+    //        // Initialize the first enum member to zero.
+    //        writer << " = 0";
+    //        first_node = false;
+    //    }
+    //    writer << ", ";
+    //}
 
-    writer << "NG_MKLDNN_NUM_PRIMITIVES };\n";
-    writer << "std::array<size_t, NG_MKLDNN_NUM_PRIMITIVES> m_mkl_primitive_idxs;\n";
-    writer << "MKLDNNEmitter m_mkldnn_emitter;";
+    //writer << "NG_MKLDNN_NUM_PRIMITIVES };\n";
+    writer << "std::array<mkldnn::primitive*, " << mkldnn_primitives.size()
+           << "> m_mkldnn_primitives;\n";
+    //writer << "std::array<size_t, NG_MKLDNN_NUM_PRIMITIVES> m_mkl_primitive_idxs;\n";
+    //writer << "ngraph::runtime::cpu::MKLDNNEmitter m_mkldnn_emitter;";
+
     writer.indent--;
-
-    return writer;
 }
 
+// TODO
 // Emit 'init_mkldnn' utility, which initializes MKLDNN environment.
-static CodeWriter& emit_init_mkldnn(CodeWriter& writer,
-                                    const std::vector<const Node*>& mkldnn_nodes)
+static void emit_init_and_destroy_mkldnn_decl(CodeWriter& writer,
+                                              const MKLDNNEmitter& mkldnn_emitter)
 {
-    // Not generated if there no mkldnn nodes.
-    if (!mkldnn_nodes.size())
-        return writer;
+    std::vector<mkldnn::primitive*> mkldnn_primitives = mkldnn_emitter.get_mkldnn_primitives();
+
+    // Not generated if there are no mkldnn nodes.
+    if (!mkldnn_primitives.size())
+        return;
 
     writer << "\n";
     writer.indent++;
-    writer << "inline void init_mkldnn()\n";
-    writer.block_begin();
 
-    for (size_t i = 0, end = mkldnn_nodes.size(); i < end; ++i)
-    {
-        auto mkl_init_func_it = mkldnn_init_dispatcher.find(TI(*mkldnn_nodes[i]));
-        NGRAPH_ASSERT(mkl_init_func_it != mkldnn_init_dispatcher.end())
-            << "Unexpected node for MKLDNN.";
+    writer << "inline void init_mkldnn();\n";
+    writer << "inline void destroy_mkldnn();\n";
 
-        writer << "m_mkl_primitive_idxs[" << i << "] = m_mkldnn_emitter."
-               << mkl_init_func_it->second << ";\n";
-    }
-
-    writer.block_end();
     writer.indent--;
 }
 
-void ngraph::runtime::cpu::emit_runtime_context(CodeWriter& writer,
-                                                const std::vector<const Node*>& mkldnn_nodes)
+void ngraph::runtime::cpu::emit_runtime_context_decl(CodeWriter& writer,
+                                                     const MKLDNNEmitter& mkldnn_emitter)
 {
-    bool has_mkldnn_nodes = mkldnn_nodes.size();
-
     writer << R"(
 struct CPURuntimeContextCG
 {
     std::unique_ptr<tbb::flow::graph> m_tbb_graph;
     std::unique_ptr<tbb::global_control> m_tbb_gcontrol;
 )";
-    emit_mkldnn_members(writer, mkldnn_nodes);
-    writer << R"(
-    CPURuntimeContextCG() { init_tbb(); }
-    ~CPURuntimeContextCG() { cleanup_tbb(); }
-)";
-
-    if (has_mkldnn_nodes)
-    {
-        writer << R"(
-    inline mkldnn::primitive* get_mkldnn_primitive(size_t primitive_index)
-    {
-        return &*mkldnn_primitives[primitive_index];
-    }
-)";
-    }
+    emit_mkldnn_members(writer, mkldnn_emitter);
 
     writer << R"(
+    CPURuntimeContextCG()
+    {
+        init_tbb();
+        init_mkldnn();
+    }
+    ~CPURuntimeContextCG()
+    {
+        cleanup_tbb();
+        destroy_mkldnn();
+    }
+
 private:
-    std::vector<std::unique_ptr<mkldnn::primitive>> mkldnn_primitives;     
-
     inline void init_tbb()
     {
         if (std::getenv("NGRAPH_CPU_USE_TBB"))
@@ -345,9 +335,57 @@ private:
         }
     }
 )";
-    emit_init_mkldnn(writer, mkldnn_nodes);
-    writer << R"(};
+    emit_init_and_destroy_mkldnn_decl(writer, mkldnn_emitter);
+    writer << "};\n";
+}
 
+// TODO
+// Emit 'init_mkldnn' utility, which initializes MKLDNN environment.
+static void emit_init_and_destroy_mkldnn_def(CodeWriter& writer,
+                                             const MKLDNNEmitter& mkldnn_emitter)
+{
+    std::vector<mkldnn::primitive*> mkldnn_primitives = mkldnn_emitter.get_mkldnn_primitives();
+
+    // Not generated if there are no mkldnn nodes.
+    if (!mkldnn_primitives.size())
+        return;
+
+    // Init function.
+    writer << "inline void CPURuntimeContextCG::init_mkldnn()\n";
+    writer.block_begin();
+
+    mkldnn_emitter.serialize_and_deserialize_descriptors("descriptors.bin", writer);
+
+    //for (size_t i = 0, end = mkldnn_nodes.size(); i < end; ++i)
+    //{
+    //    auto mkl_init_func_it = mkldnn_init_dispatcher.find(TI(*mkldnn_nodes[i]));
+    //    NGRAPH_ASSERT(mkl_init_func_it != mkldnn_init_dispatcher.end())
+    //        << "Unexpected node for MKLDNN.";
+
+    //    //writer << "m_mkl_primitive_idxs[" << i << "] = m_mkldnn_emitter."
+    //    //       << mkl_init_func_it->second << ";\n";
+    //}
+
+    writer.block_end();
+
+    // Destroy function.
+    writer << "\n";
+    writer << "inline void CPURuntimeContextCG::destroy_mkldnn()\n";
+    writer.block_begin();
+
+    writer << "for (auto* primitive : m_mkldnn_primitives)\n";
+    writer.block_begin();
+    writer << "delete primitive;\n";
+    writer.block_end();
+
+    writer.block_end();
+}
+
+void ngraph::runtime::cpu::emit_runtime_context_def(CodeWriter& writer,
+                                                    const MKLDNNEmitter& mkldnn_emitter)
+{
+    emit_init_and_destroy_mkldnn_def(writer, mkldnn_emitter);
+    writer << R"(
 extern "C" CPURuntimeContextCG* init_cg_ctx()
 {
     return new CPURuntimeContextCG;

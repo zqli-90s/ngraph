@@ -14,11 +14,15 @@
 // limitations under the License.
 //*****************************************************************************
 
+#include <cxxabi.h>
+#include <fstream>
 #include <memory>
+#include <mkldnn.hpp>
 #include <string>
 
 #include "mkldnn_emitter.hpp"
 
+#include "ngraph/code_writer.hpp"
 #include "ngraph/op/constant.hpp"
 #include "ngraph/op/dequantize.hpp"
 #include "ngraph/op/experimental/quantized_avg_pool.hpp"
@@ -122,6 +126,248 @@ mkldnn::memory::desc
     md.layout_desc.blocking.offset_padding = 0;
 
     return mkldnn::memory::desc(md);
+}
+
+static void emit_dummy_memory_desc(ngraph::CodeWriter& output, const std::string& desc_name)
+{
+    const std::string dims_name = desc_name + "_dd";
+    output << "mkldnn::memory::dims " << dims_name << " {1};\n";
+    output << "mkldnn::memory::desc " << desc_name << "(" << dims_name
+           << ", mkldnn::memory::f32, mkldnn::memory::format_undef);\n";
+}
+
+void MKLDNNEmitter::serialize_and_deserialize_descriptors(const std::string& ser_output_filename,
+                                                          CodeWriter& deser_output) const
+{
+    std::ofstream ser_output(ser_output_filename, std::ios::out | std::ios::binary);
+    deser_output << "// Deserialize primitive descriptors.\n";
+    deser_output << "std::ifstream desc_file (\"" << ser_output_filename
+                 << "\", std::ios::binary);\n";
+
+    for (size_t i = 0, end = m_mkldnn_primitives.size(); i < end; ++i)
+    {
+        mkldnn::primitive* primitive = m_mkldnn_primitives[i];
+        mkldnn_primitive_kind_t kind;
+        mkldnn::error::wrap_c_api(
+            mkldnn_primitive_desc_query(
+                primitive->get_primitive_desc(), mkldnn_query_primitive_kind, 0, &kind),
+            "could not get descriptor kind");
+
+        switch (kind)
+        {
+        case mkldnn_undefined_primitive:
+        {
+            throw ngraph_error("Unexpected primitive 'mkldnn_undefined_primitive'");
+        }
+        case mkldnn_memory:
+        {
+            // Serialization part.
+            mkldnn::memory::desc mem_desc =
+                (static_cast<mkldnn::memory*>(primitive))->get_primitive_desc().desc();
+            ser_output.write(reinterpret_cast<char*>(&mem_desc), sizeof(mem_desc));
+
+            // Deserialization part.
+            deser_output << "// Memory primitive.\n";
+            deser_output.block_begin();
+
+            const std::string mem_desc_name = "mem_d";
+            emit_dummy_memory_desc(deser_output, mem_desc_name);
+            deser_output << "desc_file.read(reinterpret_cast<char*>(& " << mem_desc_name
+                         << "), sizeof(mkldnn::memory::desc));\n";
+            deser_output << "m_mkldnn_primitives[" << i << "] = new mkldnn::memory({"
+                         << mem_desc_name << ", mkldnn::engine(mkldnn::engine::cpu, 0)});\n";
+
+            deser_output.block_end();
+            break;
+        }
+        case mkldnn_view: { throw ngraph_error("Unsupported primitive 'mkldnn_view'");
+        }
+        case mkldnn_reorder: { throw ngraph_error("Unsupported primitive 'mkldnn_reorder'");
+        }
+        case mkldnn_shuffle: { throw ngraph_error("Unsupported primitive 'mkldnn_shuffle'");
+        }
+        case mkldnn_concat: { throw ngraph_error("Unsupported primitive 'mkldnn_concat'");
+        }
+        case mkldnn_concat_inplace:
+        {
+            throw ngraph_error("Unsupported primitive 'mkldnn_concat_inplace'");
+        }
+        case mkldnn_sum: { throw ngraph_error("Unsupported primitive 'mkldnn_sum'");
+        }
+        case mkldnn_convolution: { throw ngraph_error("Unsupported primitive 'mkldnn_convolution'");
+        }
+        case mkldnn_deconvolution:
+        {
+            throw ngraph_error("Unsupported primitive 'mkldnn_deconvolution'");
+        }
+        case mkldnn_eltwise: // and deprecated 'mkldnn_relu'
+        {
+            // Serialization part.
+            mkldnn_eltwise_desc_t eltwise_desc;
+            mkldnn::error::wrap_c_api(
+                mkldnn_primitive_desc_query(
+                    primitive->get_primitive_desc(), mkldnn_query_eltwise_d, 0, &eltwise_desc),
+                "could not get eltwise descriptor");
+            ser_output.write(reinterpret_cast<char*>(&eltwise_desc), sizeof(eltwise_desc));
+
+            NGRAPH_ASSERT(eltwise_desc.primitive_kind == mkldnn_primitive_kind_t::mkldnn_eltwise)
+                << "Unexpected primitive_kind for eltwise descriptor: "
+                << eltwise_desc.primitive_kind;
+
+            // Deserialization part.
+
+            // Figure out eltwise primitive (forward or backward) based on prop kind.
+            std::string eltwise_primitive_name;
+            if (eltwise_desc.prop_kind == mkldnn_prop_kind_t::mkldnn_forward_training ||
+                eltwise_desc.prop_kind == mkldnn_prop_kind_t::mkldnn_forward_inference)
+            {
+                eltwise_primitive_name = "mkldnn::eltwise_forward";
+            }
+            else // eltwise_backward
+            {
+                NGRAPH_ASSERT(eltwise_desc.prop_kind == mkldnn_prop_kind_t::mkldnn_backward ||
+                              eltwise_desc.prop_kind == mkldnn_prop_kind_t::mkldnn_backward_data)
+                    << "Unexpected prop_kind for eltwise descriptor: " << eltwise_desc.prop_kind;
+
+                eltwise_primitive_name = "mkldnn::eltwise_backward";
+            }
+
+            deser_output << "// Eltwise primitive.\n";
+            deser_output.block_begin();
+
+            const std::vector<size_t>& deps = m_primitive_deps.at(i);
+            const std::string input_desc_name("dummy_input_desc");
+
+            emit_dummy_memory_desc(deser_output, input_desc_name);
+            deser_output << eltwise_primitive_name << "::desc "
+                         << "eltwise_desc(mkldnn::prop_kind::forward, " << eltwise_desc.prop_kind
+                         << "/*prop kind*/," << input_desc_name
+                         << ", 0.0f /*alpha*/, 0.0f /*beta*/);\n";
+            deser_output << "desc_file.read(reinterpret_cast<char*>(&eltwise_desc), "
+                            "sizeof(mkldnn::eltwise_forward::desc));\n";
+            deser_output << "m_mkldnn_primitives[" << i << "]"
+                         << " = new mkldnn::eltwise_forward({eltwise_desc, "
+                            "mkldnn::engine(mkldnn::engine::cpu, 0)}, *m_mkldnn_primitives["
+                         << deps[0] << "], *m_mkldnn_primitives[" << deps[1] << "]);\n";
+
+            deser_output.block_end();
+            break;
+        }
+        case mkldnn_softmax: { throw ngraph_error("Unsupported primitive 'mkldnn_softmax'");
+        }
+        case mkldnn_pooling: { throw ngraph_error("Unsupported primitive 'mkldnn_pooling'");
+        }
+        case mkldnn_lrn: { throw ngraph_error("Unsupported primitive 'mkldnn_lrn'");
+        }
+        case mkldnn_batch_normalization:
+        {
+            throw ngraph_error("Unsupported primitive 'mkldnn_normalization'");
+        }
+        case mkldnn_inner_product:
+        {
+            throw ngraph_error("Unsupported primitive 'mkldnn_inner_product'");
+        }
+        //case mkldnn_convolution_relu:
+        //{
+        //    throw ngraph_error("Unsupported primitive 'mkldnn_convolution_relu'");
+        //}
+        case mkldnn_rnn: { throw ngraph_error("Unsupported primitive 'mkldnn_convolution_relu'");
+        }
+        //case  mkldnn_sum)
+        //else if (TI(mkldnn::sum) == TI((*primitive)))
+        //{
+        //    //read
+        //    auto deps = m_primitive_deps[i];
+        //    deser_output << "{\n";
+        //    deser_output << "\tstd::vector<float> scale_vector(2, 1);\n";
+        //    deser_output << "\tstd::vector<mkldnn::memory::primitive::at> inputs_primitive;\n";
+        //    deser_output << "\tinputs_primitive.push_back(*primitives.at(" << deps[0] << "));\n";
+        //    deser_output << "\tinputs_primitive.push_back(*primitives.at(" << deps[1] << "));\n";
+        //    deser_output << "\tstd::vector<mkldnn::memory::primitive_desc> inputs_pd;\n";
+        //    deser_output << "\tinputs_pd.push_back(static_cast<mkldnn::memory*>(primitives.at("
+        //                 << deps[0] << "))->get_primitive_desc());\n";
+        //    deser_output << "\tinputs_pd.push_back(static_cast<mkldnn::memory*>(primitives.at("
+        //                 << deps[1] << "))->get_primitive_desc());\n";
+        //    deser_output << "\tmkldnn::memory::desc result_desc = "
+        //                    "static_cast<mkldnn::memory*>(primitives.at("
+        //                 << deps[1] << "))->get_primitive_desc().desc();\n";
+        //    deser_output << "\tmkldnn::sum::primitive_desc sum_pd = "
+        //                    "mkldnn::sum::primitive_desc(result_desc, "
+        //                    "scale_vector, inputs_pd);\n";
+        //    deser_output << "\tprimitives.push_back(new mkldnn::sum(sum_pd, inputs_primitive, "
+        //                    "*primitives.at(("
+        //                 << deps[2] << "))));\n";
+        //    deser_output << "}\n";
+        //}
+        ////else if (kind == mkldnn_convolution)
+        //else if (TI(mkldnn::convolution_forward) == TI((*primitive)))
+        //{
+        //    auto& serialized_descs = m_serialized_descs.at(i);
+        //    auto deps = m_primitive_deps[i];
+        //    desc_file.write(serialized_descs.data(), serialized_descs.size());
+        //    deser_output << "{\n";
+        //    deser_output << "\tchar tmp_conv[sizeof(mkldnn::convolution_forward::desc)];\n";
+        //    deser_output
+        //        << "\tdesc_file.read(&tmp_conv[0], sizeof(mkldnn::convolution_forward::desc));\n";
+        //    deser_output << "\tmkldnn::post_ops pops;\n";
+        //    deser_output << "\tdesc_file.read(&pops, sizeof(mkldnn::pops));\n";
+        //    deser_output << "\tmkldnn::primitive_attr conv_attr;\n";
+        //    deser_output << "\tconv_attr.set_post_ops(pops);\n";
+        //    deser_output << "\tmkldnn::convolution_forward::desc* conv_desc_ptr = "
+        //                    "reinterpret_cast<mkldnn::convolution_forward::desc*>(&tmp_conv);\n";
+        //    deser_output
+        //        << "\tmkldnn::convolution_forward::primitive_desc conv_prim_desc(*conv_desc_ptr, "
+        //           "conv_attr, AOT::global_cpu_engine);\n";
+        //    deser_output
+        //        << "\tmkldnn::convolution_forward conv_prim (conv_prim_desc, primitives.at("
+        //        << deps[0] << "), "
+        //        << "primitives.at(" << deps[1] << "), "
+        //        << "primitives.at(" << deps[2] << "));\n";
+        //    deser_output << "primitives.push_back(conv_prim);\n";
+        //    deser_output << "}\n";
+        //}
+        /*
+        else if (TI(mkldnn::convolution_forward) == TI(*primitive))
+        {
+        //mkldnn_query_primitive_kind
+        char conv_desc[sizeof(mkldnn_convolution_desc_t)];
+        mkldnn_primitive_desc_query(primitive->get_primitive_desc(), mkldnn_query_convolution_d, 0, &conv_desc[0]);
+        
+        desc_file.write(reinterpret_cast<char*>(&conv_desc[0]), sizeof(conv_desc));
+
+            deser_output << "{\n";
+            deser_output << "\tchar tmp[sizeof(mkldnn::convolution_forward::desc)];\n";
+            deser_output << "\tdesc_file.read(reinterpret_cast<char*>(&(reinterpret_cast<mkldnn::convolution_forward::desc*>(&tmp[0])->data)), sizeof(mkldnn_convolution_desc_t));\n";
+            deser_output << "\tdesc_file.read(reinterpret_cast<char*>(&tmp[0]), sizeof(mkldnn_convolution_desc_t));\n";
+
+            auto conv_prim_desc = (static_cast<mkldnn::convolution_forward*>(primitive))->get_primitive_desc();
+            const size_t offset_of_attr = 8;
+            const size_t offset_of_post_ops = 88;
+            mkldnn::post_ops* ppo =	reinterpret_cast<mkldnn::post_ops*>(reinterpret_cast<char*>(&conv_prim_desc) + offset_of_attr + offset_of_post_ops);
+            desc_file.write(reinterpret_cast<char*>(ppo), sizeof(mkldnn::post_ops));
+            
+            auto deps = m_primitive_deps[i];
+            deser_output << "\tmkldnn::post_ops pops;\n";
+            deser_output << "\tmkldnn::primitive_attr conv_attr;\n";
+            deser_output << "\tconv_attr.set_post_ops(pops);\n";
+            deser_output << "\tdesc_file.read(reinterpret_cast<mkldnn::post_ops*>(&pops), sizeof(mkldnn::post_ops));\n";
+            deser_output << "\tauto* conv_desc_p = reinterpret_cast<mkldnn::convolution_forward::desc*>(&tmp[0]);\n";
+            deser_output << "\tmkldnn::convolution_forward::primitive_desc conv_prim_desc(*conv_desc_p, conv_attr, AOT::global_cpu_engine);\n";
+            deser_output << "\tmkldnn::convolution_forward conv_prim (conv_prim_desc, primitives.at(" << deps[0] << "), " 
+                << "primitives.at(" << deps[1] << "), " 
+                << "primitives.at(" << deps[2] << "));\n";
+            deser_output << "primitives.push_back(conv_prim);\n";
+            deser_output << "}\n";
+        }
+        */
+        default:
+        {
+            int status;
+            std::string type_name = abi::__cxa_demangle(typeid(*primitive).name(), 0, 0, &status);
+            throw ngraph_error("Unsupported primitive '" + type_name + "'");
+        }
+        }
+    }
 }
 
 size_t MKLDNNEmitter::build_memory_primitive(const mkldnn::memory::desc& desc)

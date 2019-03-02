@@ -59,6 +59,12 @@
 
 #define MKLDNN_DIMS(X) mkldnn::memory::dims(X.begin(), X.end())
 
+// Forward declarations.
+namespace ngraph
+{
+    class CodeWriter;
+}
+
 namespace ngraph
 {
     namespace runtime
@@ -106,6 +112,12 @@ namespace ngraph
                     build_blocked_memory_descriptor(const mkldnn::memory::dims& dim,
                                                     const mkldnn::memory::dims& strides,
                                                     mkldnn::memory::data_type dtype) const;
+
+                /// TODO
+                void serialize_and_deserialize_descriptors(
+                    const std::string& ser_output_filename,
+                    ngraph::CodeWriter& deser_output) const;
+
                 size_t build_memory_primitive(const mkldnn::memory::desc& desc);
                 void build_memory_primitive(const mkldnn::memory::desc& desc, size_t index);
 

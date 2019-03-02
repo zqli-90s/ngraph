@@ -23,10 +23,22 @@
 
 #include <vector>
 
-// Forward decls
+// Forward declarations.
 namespace ngraph
 {
     class Node;
+
+    namespace runtime
+    {
+        namespace cpu
+        {
+            class MKLDNNEmitter;
+        }
+    }
+    namespace codegen
+    {
+        class CodeWriter;
+    }
 }
 
 namespace ngraph
@@ -37,13 +49,15 @@ namespace ngraph
         {
             /// Generate CPURuntimeContextCG. This class is used to hold runtime information of
             /// the execution of kernels in codegen mode.
-            void emit_runtime_context(CodeWriter& writer,
-                                      const std::vector<const Node*>& mkldnn_nodes);
+            void emit_runtime_context_decl(CodeWriter& writer, const MKLDNNEmitter& mkldnn_emitter);
+
+            /// TODO
+            void emit_runtime_context_def(CodeWriter& writer, const MKLDNNEmitter& mkldnn_emitter);
 
             // MKLDNN Utils
 
             /// Generate MKLDNN utilities used to set up MKLDNN execution environment.
-            void emit_mkldnn_utils(CodeWriter& writer);
+            void emit_mkldnn_utils(CodeWriter& writer, const MKLDNNEmitter& mkldnn_emitter);
         }
     }
 }
