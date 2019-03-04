@@ -24,11 +24,27 @@ namespace ngraph
 {
     namespace op
     {
+        class AddKind : public NodeKind
+        {
+            friend class Add;
+            AddKind()
+                : NodeKind("Add")
+            {
+            }
+
+        public:
+            virtual std::shared_ptr<Node> make_shared(const NodeVector& args) override;
+        };
+
         /// \brief Elementwise addition operation.
         ///
         class Add : public util::BinaryElementwiseArithmetic
         {
         public:
+            static const AddKind node_kind;
+
+            virtual const NodeKind* get_node_kind() override { return &node_kind; }
+
             /// \brief Constructs an addition operation.
             ///
             /// \param arg0 Node that produces the first input tensor.<br>
@@ -48,8 +64,8 @@ namespace ngraph
                                            const NodeVector& deltas) override;
             virtual bool is_commutative() override { return true; }
         };
-    }
+    } // namespace op
 
     std::shared_ptr<ngraph::Node> operator+(const std::shared_ptr<ngraph::Node> arg0,
                                             const std::shared_ptr<ngraph::Node> arg1);
-}
+} // namespace ngraph

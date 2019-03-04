@@ -70,6 +70,27 @@ namespace ngraph
                                                          size_t i);
     const NodeVector& check_single_output_args(const NodeVector& args);
 
+    class NodeKind
+    {
+    public:
+        const std::string& get_name() const { return m_name; }
+
+        static const NodeKind* get_node_kind(const std::string& name);
+
+        virtual std::shared_ptr<Node> make_shared(const NodeVector& args) = 0;
+
+    protected:
+        NodeKind(const std::string& name);
+
+        virtual ~NodeKind();
+
+        const std::string& m_name;
+
+        using node_kind_map = std::map<std::string, NodeKind*>;
+
+        static node_kind_map s_node_kinds;
+    };
+
     /// Nodes are the backbone of the graph of Value dataflow. Every node has
     /// zero or more nodes as arguments and one value, which is either a tensor
     /// or a (possibly empty) tuple of values.
@@ -90,6 +111,8 @@ namespace ngraph
         friend class ngraph::pass::GetOutputElementElimination;
 
     protected:
+        virtual const NodeKind* get_node_kind() { return 0; }
+
         /// Throws if the node is invalid.
         virtual void validate_and_infer_types();
 
@@ -103,6 +126,7 @@ namespace ngraph
         Node(const std::string& node_type, const NodeVector& arguments, size_t output_size = 1);
 
         virtual void generate_adjoints(autodiff::Adjoints& adjoints, const NodeVector& deltas) {}
+
     public:
         virtual ~Node();
         void revalidate_and_infer_types() { validate_and_infer_types(); }

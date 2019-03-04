@@ -19,6 +19,14 @@
 using namespace std;
 using namespace ngraph;
 
+
+const op::AddKind op::Add::node_kind;
+
+std::shared_ptr<Node> op::AddKind::make_shared(const NodeVector& args)
+{
+    return std::make_shared<op::Add>(args.at(0), args.at(1));
+}
+
 op::Add::Add(const shared_ptr<Node>& arg0, const shared_ptr<Node>& arg1)
     : BinaryElementwiseArithmetic("Add", arg0, arg1)
 {

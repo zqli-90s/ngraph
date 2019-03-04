@@ -32,6 +32,25 @@ using namespace ngraph;
 
 atomic<size_t> Node::m_next_instance_id(0);
 
+NodeKind::node_kind_map NodeKind::s_node_kinds;
+
+const NodeKind* NodeKind::get_node_kind(const std::string& name)
+{
+    auto it = s_node_kinds.find(name);
+    return it == s_node_kinds.end() ? 0 : it->second;
+}
+
+NodeKind::NodeKind(const std::string& name)
+    : m_name(name)
+{
+    s_node_kinds.insert(node_kind_map::value_type(name, this));
+}
+
+NodeKind::~NodeKind()
+{
+    s_node_kinds.erase(m_name);
+}
+
 Node::Node(const std::string& node_type, const NodeVector& arguments, size_t output_size)
     : m_node_type(node_type)
     , m_instance_id(m_next_instance_id.fetch_add(1))
@@ -80,9 +99,7 @@ void Node::set_output_size(size_t n)
     }
 }
 
-void Node::validate_and_infer_types()
-{
-}
+void Node::validate_and_infer_types() {}
 
 void Node::set_output_type(size_t i, const element::Type& element_type, const PartialShape& pshape)
 {
@@ -216,7 +233,7 @@ namespace ngraph
     {
         return out << NodeDescription(node, false);
     }
-}
+} // namespace ngraph
 
 std::ostream& Node::write_short_description(std::ostream& out) const
 {
@@ -441,8 +458,8 @@ void ngraph::check_new_args_count(const Node* node, const NodeVector& new_args)
 const std::shared_ptr<Node>& ngraph::check_single_output_arg(const std::shared_ptr<Node>& node,
                                                              size_t i)
 {
-    NGRAPH_ASSERT(node->get_output_size() == 1) << "Argument " << i << node
-                                                << " must produce exactly one value.";
+    NGRAPH_ASSERT(node->get_output_size() == 1)
+        << "Argument " << i << node << " must produce exactly one value.";
     return node;
 }
 
