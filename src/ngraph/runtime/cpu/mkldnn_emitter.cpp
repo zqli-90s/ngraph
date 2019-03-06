@@ -128,12 +128,32 @@ mkldnn::memory::desc
     return mkldnn::memory::desc(md);
 }
 
-static void emit_dummy_memory_desc(ngraph::CodeWriter& output, const std::string& desc_name)
+static std::string int_to_prop_kind(int input)
 {
-    const std::string dims_name = desc_name + "_dd";
-    output << "mkldnn::memory::dims " << dims_name << " {1};\n";
-    output << "mkldnn::memory::desc " << desc_name << "(" << dims_name
-           << ", mkldnn::memory::f32, mkldnn::memory::format_undef);\n";
+    std::stringstream ss;
+    ss << "static_cast<mkldnn::prop_kind>(" << input << ")";
+    return ss.str();
+}
+
+static std::string int_to_alg_kind(int input)
+{
+    std::stringstream ss;
+    ss << "static_cast<mkldnn::algorithm>(0x" << std::hex << input << ")";
+    return ss.str();
+}
+
+static std::string get_dep_primitive(const std::vector<size_t>& deps, int index)
+{
+    std::stringstream ss;
+    ss << "m_mkldnn_primitives[" << deps[index] << "]";
+    return ss.str();
+}
+
+static std::string emit_memory_desc_placeholder(const std::string& desc_name)
+{
+    std::stringstream ss;
+    ss << "char " << desc_name << "[sizeof(mkldnn::memory::desc)];\n";
+    return ss.str();
 }
 
 void MKLDNNEmitter::serialize_and_deserialize_descriptors(const std::string& ser_output_filename,
@@ -164,18 +184,20 @@ void MKLDNNEmitter::serialize_and_deserialize_descriptors(const std::string& ser
             // Serialization part.
             mkldnn::memory::desc mem_desc =
                 (static_cast<mkldnn::memory*>(primitive))->get_primitive_desc().desc();
-            ser_output.write(reinterpret_cast<char*>(&mem_desc), sizeof(mem_desc));
+            ser_output.write(reinterpret_cast<char*>(&mem_desc), sizeof(mkldnn::memory::desc));
 
             // Deserialization part.
             deser_output << "// Memory primitive.\n";
             deser_output.block_begin();
 
             const std::string mem_desc_name = "mem_d";
-            emit_dummy_memory_desc(deser_output, mem_desc_name);
-            deser_output << "desc_file.read(reinterpret_cast<char*>(& " << mem_desc_name
-                         << "), sizeof(mkldnn::memory::desc));\n";
+            deser_output << emit_memory_desc_placeholder(mem_desc_name);
+            deser_output << "desc_file.read(" << mem_desc_name
+                         << ", sizeof(mkldnn::memory::desc));\n";
             deser_output << "m_mkldnn_primitives[" << i << "] = new mkldnn::memory({"
-                         << mem_desc_name << ", mkldnn::engine(mkldnn::engine::cpu, 0)});\n";
+                         << "*reinterpret_cast<mkldnn::memory::desc*>(" << mem_desc_name << "), "
+                         << "cpu::executor::global_cpu_engine});\n";
+            //<< mem_desc_name << ", global_cpu_engine});\n";
 
             deser_output.block_end();
             break;
@@ -203,52 +225,64 @@ void MKLDNNEmitter::serialize_and_deserialize_descriptors(const std::string& ser
         case mkldnn_eltwise: // and deprecated 'mkldnn_relu'
         {
             // Serialization part.
-            mkldnn_eltwise_desc_t eltwise_desc;
+            mkldnn_eltwise_desc_t* eltwise_desc;
             mkldnn::error::wrap_c_api(
                 mkldnn_primitive_desc_query(
                     primitive->get_primitive_desc(), mkldnn_query_eltwise_d, 0, &eltwise_desc),
                 "could not get eltwise descriptor");
-            ser_output.write(reinterpret_cast<char*>(&eltwise_desc), sizeof(eltwise_desc));
 
-            NGRAPH_ASSERT(eltwise_desc.primitive_kind == mkldnn_primitive_kind_t::mkldnn_eltwise)
+            NGRAPH_ASSERT(eltwise_desc->primitive_kind == mkldnn_primitive_kind_t::mkldnn_eltwise)
                 << "Unexpected primitive_kind for eltwise descriptor: "
-                << eltwise_desc.primitive_kind;
+                << eltwise_desc->primitive_kind;
+
+            ser_output.write(reinterpret_cast<char*>(eltwise_desc), sizeof(mkldnn_eltwise_desc_t));
 
             // Deserialization part.
 
             // Figure out eltwise primitive (forward or backward) based on prop kind.
-            std::string eltwise_primitive_name;
-            if (eltwise_desc.prop_kind == mkldnn_prop_kind_t::mkldnn_forward_training ||
-                eltwise_desc.prop_kind == mkldnn_prop_kind_t::mkldnn_forward_inference)
+            std::string eltwise_prim_tyname;
+            if (eltwise_desc->prop_kind == mkldnn_prop_kind_t::mkldnn_forward_training ||
+                eltwise_desc->prop_kind == mkldnn_prop_kind_t::mkldnn_forward_inference)
             {
-                eltwise_primitive_name = "mkldnn::eltwise_forward";
+                eltwise_prim_tyname = "mkldnn::eltwise_forward";
             }
             else // eltwise_backward
             {
-                NGRAPH_ASSERT(eltwise_desc.prop_kind == mkldnn_prop_kind_t::mkldnn_backward ||
-                              eltwise_desc.prop_kind == mkldnn_prop_kind_t::mkldnn_backward_data)
-                    << "Unexpected prop_kind for eltwise descriptor: " << eltwise_desc.prop_kind;
+                NGRAPH_ASSERT(eltwise_desc->prop_kind == mkldnn_prop_kind_t::mkldnn_backward ||
+                              eltwise_desc->prop_kind == mkldnn_prop_kind_t::mkldnn_backward_data)
+                    << "Unexpected prop_kind for eltwise descriptor: " << eltwise_desc->prop_kind;
 
-                eltwise_primitive_name = "mkldnn::eltwise_backward";
+                eltwise_prim_tyname = "mkldnn::eltwise_backward";
             }
+
+            const std::string eltwise_prim_desc_tyname = eltwise_prim_tyname + "::desc";
 
             deser_output << "// Eltwise primitive.\n";
             deser_output.block_begin();
 
             const std::vector<size_t>& deps = m_primitive_deps.at(i);
-            const std::string input_desc_name("dummy_input_desc");
+            //const std::string input_desc_name("dummy_input_desc");
 
-            emit_dummy_memory_desc(deser_output, input_desc_name);
-            deser_output << eltwise_primitive_name << "::desc "
-                         << "eltwise_desc(mkldnn::prop_kind::forward, " << eltwise_desc.prop_kind
-                         << "/*prop kind*/," << input_desc_name
-                         << ", 0.0f /*alpha*/, 0.0f /*beta*/);\n";
-            deser_output << "desc_file.read(reinterpret_cast<char*>(&eltwise_desc), "
-                            "sizeof(mkldnn::eltwise_forward::desc));\n";
-            deser_output << "m_mkldnn_primitives[" << i << "]"
-                         << " = new mkldnn::eltwise_forward({eltwise_desc, "
-                            "mkldnn::engine(mkldnn::engine::cpu, 0)}, *m_mkldnn_primitives["
-                         << deps[0] << "], *m_mkldnn_primitives[" << deps[1] << "]);\n";
+            //emit_dummy_memory_desc(deser_output, input_desc_name);
+            deser_output << "char eltwise_prim_desc[sizeof(" << eltwise_prim_desc_tyname << ")];\n";
+            deser_output << "desc_file.read(reinterpret_cast<char*>(&(reinterpret_cast<"
+                         << eltwise_prim_desc_tyname
+                         << "*>(eltwise_prim_desc)->data)), sizeof(mkldnn_eltwise_desc_t));\n";
+
+            //deser_output << eltwise_primitive_name << "::desc eltwise_desc("
+            //             << int_to_prop_kind(eltwise_desc->prop_kind) << ", "
+            //             << int_to_alg_kind(eltwise_desc->alg_kind) << ", "
+            //             << "static_cast<mkldnn::memory*>(" << get_dep_primitive(deps, 0)
+            //             << ")->get_primitive_desc().desc(), " << eltwise_desc->alpha
+            //             << " /*alpha*/, " << eltwise_desc->beta << " /*beta*/);\n";
+            //deser_output << "desc_file.read(reinterpret_cast<char*>(&eltwise_desc), "
+            //                "sizeof(mkldnn::eltwise_forward::desc));\n";
+            deser_output << "m_mkldnn_primitives[" << i << "] = new " << eltwise_prim_tyname
+                         << "({*reinterpret_cast<" << eltwise_prim_desc_tyname
+                         << "*>(eltwise_prim_desc), cpu::executor::global_cpu_engine}, *"
+                         //<< "({eltwise_desc, global_cpu_engine}, *"
+                         << get_dep_primitive(deps, 0) << ", *" << get_dep_primitive(deps, 1)
+                         << ");\n";
 
             deser_output.block_end();
             break;

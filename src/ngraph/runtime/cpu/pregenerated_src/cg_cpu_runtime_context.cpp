@@ -257,6 +257,7 @@ static void emit_mkldnn_members(CodeWriter& writer, const MKLDNNEmitter& mkldnn_
            << "> m_mkldnn_primitives;\n";
     //writer << "std::array<size_t, NG_MKLDNN_NUM_PRIMITIVES> m_mkl_primitive_idxs;\n";
     //writer << "ngraph::runtime::cpu::MKLDNNEmitter m_mkldnn_emitter;";
+    //writer << "mkldnn::engine global_cpu_engine{mkldnn::engine::cpu, 0};\n";
 
     writer.indent--;
 }
